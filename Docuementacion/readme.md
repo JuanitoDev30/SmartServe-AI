@@ -38,7 +38,7 @@ Diseñar e implementar un sistema de atención automatizada que permita:
 En esta sección se incluyen los siguientes documentos:
 
 ### 📊 1. Presentación del Contexto
-Contiene el análisis detallado del problema organizacional, impacto actual y justificación de la solución.
+Contiene el análisis detallado del problema organizacional, impacto actual y solucion.
 
 https://www.canva.com/design/DAHBniYVkPo/tnX5QlOQWw2EOxjAvsOKJA/edit
 ---

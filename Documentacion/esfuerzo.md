@@ -4,6 +4,8 @@ El repsente documento describe la estimacion de esfuerzo para el desarrollo de S
 
 La estimación se realizó utilizando una escala de puntos tipo Fibonacci:
 
+
+
 3 → Baja complejidad
 
 5 → Complejidad media-baja

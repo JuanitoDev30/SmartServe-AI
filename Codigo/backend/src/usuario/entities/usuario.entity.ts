@@ -1,29 +1,44 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity() 
+@Entity()
 export class Usuario {
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
-  @PrimaryGeneratedColumn()
-  id: number;
+  @Column('text', {
+    nullable: true,
+  })
+  nombre?: string;
 
-  @Column()
-  nombre: string;
+  @Column('text', {
+    nullable: true,
+  })
+  apellido?: string;
 
-  @Column()
-  apellido: string;
+  @Column('text', {
+    unique: true,
+  })
+  email!: string;
 
-  @Column()
-  email: string;
+  @Column('text', {
+    nullable: false,
+    default: 'activo',
+  })
+  estado!: string;
 
-  @Column()
-  estado: string;
+  @Column('text', {
+    nullable: false,
+  })
+  rol!: string;
 
-  @Column()
-  rol: string;
+  @Column('text', {
+    unique: true,
+    nullable: false,
+  })
+  cedula!: string;
 
-  @Column()
-  cedula: string;
-
-  @Column({ nullable: true })
+  @Column('text', {
+    nullable: true,
+  })
   telefono?: string;
 }

@@ -10,7 +10,7 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { Usuario } from './entities/usuario.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @Injectable()
 export class UsuarioService {
@@ -21,6 +21,7 @@ export class UsuarioService {
     private readonly usuarioRepository: Repository<Usuario>,
   ) {}
 
+  //TODO: USE TRY CATCH IN ALL METHODS
   // CREATE
   async create(createUsuarioDto: CreateUsuarioDto) {
     try {
@@ -52,12 +53,20 @@ export class UsuarioService {
   }
 
   // GET
-  findAll() {
-    return this.usuarioRepository.find();
+  findAll(paginationDto: PaginationDto) {
+    try {
+      const { limit = 10, offset = 0 } = paginationDto;
+      return this.usuarioRepository.find({
+        take: limit,
+        skip: offset,
+      });
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 
   // GET ONE
-  async findOne(id: number) {
+  async findOne(id: string) {
     const usuario = await this.usuarioRepository.findOneBy({ id });
 
     if (!usuario)
@@ -67,7 +76,7 @@ export class UsuarioService {
   }
 
   // UPDATE
-  async update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
+  async update(id: string, updateUsuarioDto: UpdateUsuarioDto) {
     const usuario = await this.usuarioRepository.preload({
       id: id,
       ...updateUsuarioDto,
@@ -85,7 +94,7 @@ export class UsuarioService {
   }
 
   // DELETE
-  async remove(id: number) {
+  async remove(id: string) {
     const usuario = await this.findOne(id);
     await this.usuarioRepository.remove(usuario);
   }

@@ -40,7 +40,10 @@ export class ProductoController {
   // UPDATE
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductoDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateProductDto: UpdateProductoDto,
+  ) {
     return this.productoService.update(id, updateProductDto);
   }
 

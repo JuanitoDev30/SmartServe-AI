@@ -67,12 +67,17 @@ export class UsuarioService {
 
   // GET ONE
   async findOne(id: string) {
+    try{
+
     const usuario = await this.usuarioRepository.findOneBy({ id });
 
     if (!usuario)
       throw new NotFoundException(`Usuario con id ${id} no encontrado`);
 
     return usuario;
+    }catch(error){
+      this.handleExceptions(error);
+    }
   }
 
   // UPDATE
@@ -95,11 +100,24 @@ export class UsuarioService {
 
   // DELETE
   async remove(id: string) {
-    const usuario = await this.findOne(id);
-    await this.usuarioRepository.remove(usuario);
+    try {
+      const usuario = await this.usuarioRepository.findOneBy({ id });
+
+      if (!usuario)
+        throw new NotFoundException(`Usuario con id ${id} no encontrado`);
+      this.usuarioRepository.delete(usuario);
+      return usuario
+    } catch (error) {
+      this.handleExceptions(error);
+      throw error
+    }
   }
 
   private handleExceptions(error: any) {
+    if (error instanceof BadRequestException || error instanceof NotFoundException) {
+      throw error;
+    }
+
     if (error.code === '23505') {
       throw new BadRequestException('Datos duplicados');
     }

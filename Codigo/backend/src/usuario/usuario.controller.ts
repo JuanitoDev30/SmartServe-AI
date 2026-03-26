@@ -18,8 +18,6 @@ import { PaginationDto } from 'src/common/dtos/pagination.dto';
 export class UsuarioController {
   constructor(private readonly usuarioService: UsuarioService) {}
 
-  //TODO: Pagination for findAll
-
   @Post()
   create(@Body() createUsuarioDto: CreateUsuarioDto) {
     return this.usuarioService.create(createUsuarioDto);

@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsuarioModule } from './usuario/usuario.module';
 import { CommonModule } from './common/common.module';
 import { PedidoModule } from './pedido/pedido.module';
+import { VentasModule } from './ventas/ventas.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PedidoModule } from './pedido/pedido.module';
     UsuarioModule,
     CommonModule,
     PedidoModule,
+    VentasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

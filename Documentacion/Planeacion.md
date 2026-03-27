@@ -1,3 +1,12 @@
-## Formulacion
+## Formulación
 
-En esta carpeta se va a implementar toda la formulacion de el proyecto.
+Esta carpeta contiene la formulación inicial del proyecto, incluyendo la planificación y definición del alcance.
+
+### Sprint Planning - Primera versión
+
+🔗 https://excalidraw.com/#json=Q9n1Se-PJfihHR6hkbZ4p,97EaPciIhou8B5bHY_rN5w
+
+Incluye:
+- Story Mapping
+- Sprint Planning
+- Producto Mínimo Viable (MVP)

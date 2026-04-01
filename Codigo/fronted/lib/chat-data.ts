@@ -1,28 +1,18 @@
 export interface Contact {
   id: string;
-
   name: string;
-
   avatar: string;
-
   status: 'online' | 'offline' | 'typing';
-
   lastSeen?: string;
-
   about?: string;
 }
 
 export interface Message {
   id: string;
-
   contactId: string;
-
   text: string;
-
-  time: string;
-
-  sender: 'me' | 'contact';
-
+  timestamp: string;
+  sender: 'me' | 'them';
   status: 'sent' | 'delivered' | 'read';
 }
 
@@ -181,18 +171,152 @@ export const messagesData: Record<string, Message[]> = {
     {
       id: 'm1',
       contactId: '1',
-      text: 'Hey Alice! How are you?',
-      time: '10:00 AM',
-      sender: 'me',
+      text: 'Hola! Como estas?',
+      timestamp: '12:30',
+      sender: 'them',
       status: 'read',
     },
     {
       id: 'm2',
       contactId: '1',
-      text: 'Hi! I am good, thanks! How about you?',
-      time: '10:01 AM',
-      sender: 'contact',
+      text: 'Muy bien! Y tu? Que planes tienes para hoy?',
+      timestamp: '12:32',
+      sender: 'me',
+      status: 'read',
+    },
+    {
+      id: 'm3',
+      contactId: '1',
+      text: 'Todo genial por aqui. Estaba pensando en que podemos reunirnos manana para revisar el proyecto.',
+      timestamp: '12:35',
+      sender: 'them',
+      status: 'read',
+    },
+    {
+      id: 'm4',
+      contactId: '1',
+      text: 'Me parece perfecto! A que hora?',
+      timestamp: '12:38',
+      sender: 'me',
+      status: 'read',
+    },
+    {
+      id: 'm5',
+      contactId: '1',
+      text: 'Que te parece a las 10 de la manana?',
+      timestamp: '12:40',
+      sender: 'them',
+      status: 'read',
+    },
+    {
+      id: 'm6',
+      contactId: '1',
+      text: 'Perfecto, ahi estare!',
+      timestamp: '12:42',
+      sender: 'me',
       status: 'delivered',
+    },
+    {
+      id: 'm7',
+      contactId: '1',
+      text: 'Nos vemos manana a las 10!',
+      timestamp: '12:45',
+      sender: 'them',
+      status: 'read',
+    },
+  ],
+  '2': [
+    {
+      id: 'm8',
+      contactId: '2',
+      text: 'Como va el proyecto?',
+      timestamp: '10:00',
+      sender: 'me',
+      status: 'read',
+    },
+    {
+      id: 'm9',
+      contactId: '2',
+      text: 'Va muy bien! Ya termine la parte del backend',
+      timestamp: '10:15',
+      sender: 'them',
+      status: 'read',
+    },
+    {
+      id: 'm10',
+      contactId: '2',
+      text: 'Excelente! Yo estoy avanzando con el frontend',
+      timestamp: '10:30',
+      sender: 'me',
+      status: 'read',
+    },
+    {
+      id: 'm11',
+      contactId: '2',
+      text: 'El proyecto esta casi listo',
+      timestamp: '11:30',
+      sender: 'them',
+      status: 'read',
+    },
+  ],
+  '3': [
+    {
+      id: 'm12',
+      contactId: '3',
+      text: 'Hola Laura! Tienes un momento?',
+      timestamp: '12:20',
+      sender: 'me',
+      status: 'read',
+    },
+    {
+      id: 'm13',
+      contactId: '3',
+      text: 'Si claro, dime!',
+      timestamp: '12:25',
+      sender: 'them',
+      status: 'read',
+    },
+    {
+      id: 'm14',
+      contactId: '3',
+      text: 'Necesito que me ayudes con el diseno de la nueva pantalla',
+      timestamp: '12:30',
+      sender: 'me',
+      status: 'read',
+    },
+  ],
+  '8': [
+    {
+      id: 'm15',
+      contactId: '8',
+      text: 'Buenos dias equipo! Sprint review a las 3pm',
+      timestamp: '09:00',
+      sender: 'them',
+      status: 'read',
+    },
+    {
+      id: 'm16',
+      contactId: '8',
+      text: 'Perfecto, estare ahi',
+      timestamp: '09:15',
+      sender: 'me',
+      status: 'read',
+    },
+    {
+      id: 'm17',
+      contactId: '8',
+      text: 'Ya subi los cambios al repo',
+      timestamp: '11:00',
+      sender: 'me',
+      status: 'delivered',
+    },
+    {
+      id: 'm18',
+      contactId: '8',
+      text: 'Merge aprobado!',
+      timestamp: '12:30',
+      sender: 'them',
+      status: 'read',
     },
   ],
 };

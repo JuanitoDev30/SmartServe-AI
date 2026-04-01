@@ -29,9 +29,7 @@ export default function ChatApp() {
   const [showMobileChat, setShowMobilChat] = useState(false);
 
   const activeContact = activeContactId
-    ? contacts.find(contact => {
-        contact.id === activeContactId;
-      }) || null
+    ? contacts.find(contact => contact.id === activeContactId) || null
     : null;
 
   //1
@@ -66,7 +64,7 @@ export default function ChatApp() {
         id: `msg-${Date.now()}`,
         contactId: activeContactId,
         text,
-        time: new Date().toISOString(),
+        timestamp: new Date().toISOString(),
         sender: 'me',
         status: 'sent',
       };
@@ -81,7 +79,7 @@ export default function ChatApp() {
             ? {
                 ...conv,
                 lastMessage: text,
-                lastMessageTime: newMessage.time,
+                lastMessageTime: newMessage.timestamp,
               }
             : conv,
         ),
@@ -112,6 +110,7 @@ export default function ChatApp() {
     },
     [activeContactId],
   );
+  console.log(activeContact);
 
   const handleNewChat = useCallback(() => {
     setSearchQuery('');

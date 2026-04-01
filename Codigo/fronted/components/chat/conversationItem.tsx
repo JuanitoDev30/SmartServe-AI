@@ -53,7 +53,7 @@ export function ConversationItem({
             getAvatarColor(contact.id),
           )}
         >
-          {contact.image}
+          {contact.avatar}
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">

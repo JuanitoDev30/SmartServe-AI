@@ -4,41 +4,41 @@ import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
 
 interface StatsCardProps {
-  title: string;
-  value: string;
-  description?: string;
+  titulo: string;
+  valor: string;
+  descripcion?: string;
   icon: LucideIcon;
-  trend?: {
+  tendencia?: {
     value: number;
     isPositive: boolean;
   };
 }
 
 export function StatsCard({
-  title,
-  value,
-  description,
+  titulo,
+  valor,
+  descripcion,
   icon: Icon,
-  trend,
+  tendencia,
 }: StatsCardProps) {
   return (
     <div className="rounded-xl bg-card border border-border p-6">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-2xl font-semibold text-foreground mt-1">{value}</p>
-          {description && (
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+          <p className="text-sm font-medium text-muted-foreground">{titulo}</p>
+          <p className="text-2xl font-semibold text-foreground mt-1">{valor}</p>
+          {descripcion && (
+            <p className="text-sm text-muted-foreground mt-1">{descripcion}</p>
           )}
-          {trend && (
+          {tendencia && (
             <p
               className={cn(
                 'text-sm font-medium mt-2',
-                trend.isPositive ? 'text-emerald-600' : 'text-red-600',
+                tendencia.isPositive ? 'text-emerald-600' : 'text-red-600',
               )}
             >
-              {trend.isPositive ? '+' : '-'}
-              {Math.abs(trend.value)}% vs ayer
+              {tendencia.isPositive ? '+' : '-'}
+              {Math.abs(tendencia.value)}% vs ayer
             </p>
           )}
         </div>

@@ -1,0 +1,170 @@
+'use client';
+
+import { Product, ProductStatus } from '@/types';
+import { cn } from '@/lib/utils';
+import { Edit2, Trash2, Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+interface ProductTableProps {
+  products: Product[];
+  onEdit: (product: Product) => void;
+  onDelete: (product: Product) => void;
+}
+
+const statusConfig: Record<
+  ProductStatus,
+  { label: string; className: string }
+> = {
+  active: {
+    label: 'Activo',
+    className: 'bg-success/10 text-success',
+  },
+  inactive: {
+    label: 'Inactivo',
+    className: 'bg-muted text-muted-foreground',
+  },
+  low_stock: {
+    label: 'Stock bajo',
+    className: 'bg-warning/10 text-warning-foreground',
+  },
+  out_of_stock: {
+    label: 'Sin stock',
+    className: 'bg-destructive/10 text-destructive',
+  },
+};
+
+const categoryLabels: Record<string, string> = {
+  food: 'Alimentos',
+  beverages: 'Bebidas',
+  electronics: 'Electronica',
+  clothing: 'Ropa',
+  other: 'Otros',
+};
+
+export function ProductTable({
+  products,
+  onEdit,
+  onDelete,
+}: ProductTableProps) {
+  return (
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-border bg-muted/30">
+              <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">
+                Producto
+              </th>
+              <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 hidden sm:table-cell">
+                SKU
+              </th>
+              <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 hidden md:table-cell">
+                Categoria
+              </th>
+              <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">
+                Precio
+              </th>
+              <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">
+                Stock
+              </th>
+              <th className="text-center text-xs font-medium text-muted-foreground px-4 py-3 hidden sm:table-cell">
+                Estado
+              </th>
+              <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {products.map(product => {
+              const status = statusConfig[product.status];
+              return (
+                <tr
+                  key={product.id}
+                  className="group hover:bg-muted/30 transition-colors"
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                        <Package className="size-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm text-foreground truncate max-w-[200px]">
+                          {product.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground sm:hidden">
+                          {product.sku}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 hidden sm:table-cell">
+                    <span className="text-sm font-mono text-muted-foreground">
+                      {product.sku}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    <span className="text-sm text-foreground">
+                      {categoryLabels[product.category]}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <span className="text-sm font-medium text-foreground">
+                      ${product.price.toFixed(2)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <span
+                      className={cn(
+                        'text-sm font-medium',
+                        product.stock === 0
+                          ? 'text-destructive'
+                          : product.stock <= product.minStock
+                            ? 'text-warning-foreground'
+                            : 'text-foreground',
+                      )}
+                    >
+                      {product.stock}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 hidden sm:table-cell">
+                    <div className="flex justify-center">
+                      <span
+                        className={cn(
+                          'text-xs font-medium px-2.5 py-1 rounded-full',
+                          status.className,
+                        )}
+                      >
+                        {status.label}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-muted-foreground hover:text-foreground"
+                        onClick={() => onEdit(product)}
+                      >
+                        <Edit2 className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => onDelete(product)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

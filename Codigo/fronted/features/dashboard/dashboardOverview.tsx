@@ -20,28 +20,28 @@ export function DashboardOverview() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title="Pedidos Hoy"
-          value="47"
+          titulo="Pedidos Hoy"
+          valor="47"
           icon={ShoppingCart}
-          trend={{ value: 12, isPositive: true }}
+          tendencia={{ value: 12, isPositive: true }}
         />
         <StatsCard
-          title="Ingresos Hoy"
-          value={formatCurrency(1850000)}
+          titulo="Ingresos Hoy"
+          valor={formatCurrency(1850000)}
           icon={DollarSign}
-          trend={{ value: 8, isPositive: true }}
+          tendencia={{ value: 8, isPositive: true }}
         />
         <StatsCard
-          title="Pendientes"
-          value="23"
+          titulo="Pendientes"
+          valor="23"
           icon={Clock}
-          description="Requieren atencion"
+          descripcion="Requieren atencion"
         />
         <StatsCard
-          title="Completados"
-          value="1,180"
+          titulo="Completados"
+          valor="1,180"
           icon={CheckCircle}
-          description="Total historico"
+          descripcion="Total historico"
         />
       </div>
 

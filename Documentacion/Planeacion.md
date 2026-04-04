@@ -10,3 +10,9 @@ Incluye:
 - Story Mapping
 - Sprint Planning
 - Producto Mínimo Viable (MVP)
+### Sprint Planning - Segunda versión
+https://excalidraw.com/#json=mJHdYLf-2QnTTi6-HttRq,Cue42zXdwBXGqesCOdpJYQ
+
+Incluye:
+-Sprint Plannign (más detallado)
+- Producto Mínimo Viable (MVP)

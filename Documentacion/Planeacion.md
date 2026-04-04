@@ -16,4 +16,5 @@ https://excalidraw.com/#json=mJHdYLf-2QnTTi6-HttRq,Cue42zXdwBXGqesCOdpJYQ
 Incluye:
 -Sprint Plannign (más detallado)
 - Producto Mínimo Viable (MVP)
-[Ver archivo](epicasV1.xlsx)
+----------  VERSIONES EPICAS  -----------
+EPICAS V1 [Ver archivo](epicasV1.xlsx)

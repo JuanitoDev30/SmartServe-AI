@@ -19,4 +19,6 @@ Incluye:
 
 
 ### ----------  VERSIONES EPICAS  -----------
--EPICAS V1 [Ver archivo](epicasV1.xlsx)
+- EPICAS V1 [Ver archivo](epicasV1.xlsx)
+- EPICAS V2 [Ver archivo](epicasV2.xlsx)
+  

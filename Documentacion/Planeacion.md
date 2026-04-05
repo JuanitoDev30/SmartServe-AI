@@ -11,7 +11,7 @@ Incluye:
 - Sprint Planning
 - Producto Mínimo Viable (MVP)
 ### Sprint Planning - Segunda versión
-https://excalidraw.com/#json=mJHdYLf-2QnTTi6-HttRq,Cue42zXdwBXGqesCOdpJYQ
+https://excalidraw.com/#json=hBeu8E93h7WA-yfRL_Q96,_3jRVI3JIZqEmoi5kvg4zg
 
 Incluye:
 -Sprint Plannign (más detallado)

@@ -6,15 +6,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropDownMenu';
+import {
+  ProductStatus,
+  ProductType,
+} from '@/features/users/schemas/productSchema';
 import { cn } from '@/lib/utils';
-import { Product, ProductStatus } from '@/types';
 
 import { Edit2, MoreVertical, Package, Trash2 } from 'lucide-react';
 
 interface ProductCardProps {
-  product: Product;
-  onEdit: (product: Product) => void;
-  onDelete: (product: Product) => void;
+  product: ProductType;
+  onEdit: (product: ProductType) => void;
+  onDelete: (product: ProductType) => void;
 }
 
 const statusConfig: Record<ProductStatus, { label: string; color: string }> = {
@@ -56,10 +59,10 @@ export function ProductCard({ onDelete, onEdit, product }: ProductCardProps) {
           </div>
           <div className="min-w-0">
             <h3 className="font-semibold text-foreground truncate">
-              {product.name}
+              {product.nombre}
             </h3>
             <p className="text-xs text-muted-foreground font-mono">
-              {product.sku}
+              {product.slug}
             </p>
           </div>
         </div>
@@ -91,9 +94,9 @@ export function ProductCard({ onDelete, onEdit, product }: ProductCardProps) {
         </DropdownMenu>
       </div>
       {/* Description */}
-      {product.description && (
+      {product.descripcion && (
         <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-          {product.description}
+          {product.descripcion}
         </p>
       )}
 
@@ -102,7 +105,7 @@ export function ProductCard({ onDelete, onEdit, product }: ProductCardProps) {
         <div className="rounded-lg bg-muted/50 px-3 py-2">
           <p className="text-xs text-muted-foreground mb-0.5">Precio</p>
           <p className="text-sm font-semibold text-foreground">
-            ${product.price.toFixed(2)}
+            ${product.precio}
           </p>
         </div>
         <div className="rounded-lg bg-muted/50 px-3 py-2">
@@ -116,15 +119,15 @@ export function ProductCard({ onDelete, onEdit, product }: ProductCardProps) {
       {/* Footer */}
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground px-2 py-1 rounded-md bg-muted/50">
-          {categoryLabels[product.category]}
+          {categoryLabels[product.categoria]}
         </span>
         <span
           className={cn(
             'text-xs font-medium px-2.5 py-1 rounded-full',
-            status.color,
+            //  status.color,
           )}
         >
-          {status.label}
+          {/* {status.label} */}
         </span>
       </div>
     </div>

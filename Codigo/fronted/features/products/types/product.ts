@@ -6,4 +6,3 @@ export interface CreateProductDto {
   stock?: number;
   proveedor?: string;
 }
-

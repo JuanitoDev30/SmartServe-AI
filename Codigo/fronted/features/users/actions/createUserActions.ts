@@ -13,6 +13,7 @@ export async function createUserActions(data: UserType) {
       error: 'Error al crear el usuario',
     };
   }
+
   return {
     success: 'Usuario creado correctamente',
     error: '',

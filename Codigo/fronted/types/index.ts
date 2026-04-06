@@ -107,19 +107,6 @@ export interface Product {
   updatedAt: string;
 }
 
-export interface ProductFormData {
-  name: string;
-  description?: string;
-  sku: string;
-  category: ProductCategory;
-  price: number;
-  costPrice?: number;
-  stock: number;
-  minStock: number;
-  status: ProductStatus;
-  imageUrl?: string;
-}
-
 // ============================================
 // USER/AUTH TYPES
 // ============================================

@@ -4,11 +4,12 @@ import { Product, ProductStatus } from '@/types';
 import { cn } from '@/lib/utils';
 import { Edit2, Trash2, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ProductType } from '@/features/users/schemas/productSchema';
 
 interface ProductTableProps {
-  products: Product[];
-  onEdit: (product: Product) => void;
-  onDelete: (product: Product) => void;
+  products: ProductType[];
+  onEdit: (product: ProductType) => void;
+  onDelete: (product: ProductType) => void;
 }
 
 const statusConfig: Record<
@@ -90,38 +91,38 @@ export function ProductTable({
                       </div>
                       <div className="min-w-0">
                         <p className="font-medium text-sm text-foreground truncate max-w-[200px]">
-                          {product.name}
+                          {product.nombre}
                         </p>
                         <p className="text-xs text-muted-foreground sm:hidden">
-                          {product.sku}
+                          {product.slug}
                         </p>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell">
                     <span className="text-sm font-mono text-muted-foreground">
-                      {product.sku}
+                      {product.slug}
                     </span>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
                     <span className="text-sm text-foreground">
-                      {categoryLabels[product.category]}
+                      {categoryLabels[product.categoria]}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span className="text-sm font-medium text-foreground">
-                      ${product.price.toFixed(2)}
+                      ${product.precio?.toFixed(2)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span
                       className={cn(
                         'text-sm font-medium',
-                        product.stock === 0
-                          ? 'text-destructive'
-                          : product.stock <= product.minStock
-                            ? 'text-warning-foreground'
-                            : 'text-foreground',
+                        product.stock === 0,
+                        // ? 'text-destructive'
+                        // : product.stock <= product.minStock
+                        //   ? 'text-warning-foreground'
+                        //   : 'text-foreground',
                       )}
                     >
                       {product.stock}

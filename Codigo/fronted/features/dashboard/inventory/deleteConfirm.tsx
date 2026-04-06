@@ -3,12 +3,13 @@
 import { Product } from '@/types';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ProductType } from '@/features/users/schemas/productSchema';
 
 interface DeleteConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  product: Product | null;
+  product: ProductType | null;
   isLoading?: boolean;
 }
 
@@ -45,8 +46,10 @@ export function DeleteConfirmModal({
           {/* Message */}
           <p className="text-sm text-muted-foreground mb-6">
             Estas seguro de que deseas eliminar{' '}
-            <span className="font-medium text-foreground">{product.name}</span>?
-            Esta accion no se puede deshacer.
+            <span className="font-medium text-foreground">
+              {product.nombre}
+            </span>
+            ? Esta accion no se puede deshacer.
           </p>
 
           {/* Actions */}

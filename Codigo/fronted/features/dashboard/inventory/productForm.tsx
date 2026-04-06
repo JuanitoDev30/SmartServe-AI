@@ -1,21 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Product,
-  ProductFormData,
-  ProductCategory,
-  ProductStatus,
-} from '@/types';
+import { Product, ProductCategory, ProductStatus } from '@/types';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  ProductType,
+  ProductFormData,
+} from '@/features/users/schemas/productSchema';
 
 interface ProductFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: ProductFormData) => void;
-  product?: Product | null;
+  product?: ProductType | null;
   isLoading?: boolean;
 }
 
@@ -35,15 +34,16 @@ const statuses: { value: ProductStatus; label: string }[] = [
 ];
 
 const defaultFormData: ProductFormData = {
-  name: '',
-  description: '',
-  sku: '',
-  category: 'food',
-  price: 0,
-  costPrice: 0,
+  nombre: '',
+  precio: 0,
+  descripcion: '',
+  slug: '',
   stock: 0,
-  minStock: 5,
+  proveedor: '',
   status: 'active',
+  categoria: 'food',
+
+  //minStock: 5,
 };
 
 export function ProductFormModal({
@@ -58,16 +58,17 @@ export function ProductFormModal({
   useEffect(() => {
     if (product) {
       setFormData({
-        name: product.name,
-        description: product.description || '',
-        sku: product.sku,
-        category: product.category,
-        price: product.price,
-        costPrice: product.costPrice || 0,
-        stock: product.stock,
-        minStock: product.minStock,
+        nombre: product.nombre,
+        precio: product.precio || 0,
+        descripcion: product.descripcion || '',
+        slug: product.slug || '',
+        //costPrice: product.precio || 0,
+        stock: product.stock || 0,
+        proveedor: product.proveedor || '',
+        // minStock: product.minStock,
         status: product.status,
-        imageUrl: product.imageUrl,
+        categoria: product.categoria,
+        //imageUrl: product.imageUrl,
       });
     } else {
       setFormData(defaultFormData);
@@ -128,8 +129,8 @@ export function ProductFormModal({
                 Nombre del producto
               </label>
               <Input
-                name="name"
-                value={formData.name}
+                name="nombre"
+                value={formData.nombre}
                 onChange={handleChange}
                 placeholder="Ej: Hamburguesa Clasica"
                 required
@@ -143,8 +144,8 @@ export function ProductFormModal({
                 Descripcion
               </label>
               <textarea
-                name="description"
-                value={formData.description}
+                name="descripcion"
+                value={formData.descripcion || ''}
                 onChange={handleChange}
                 placeholder="Descripcion del producto..."
                 rows={3}
@@ -160,7 +161,7 @@ export function ProductFormModal({
                 </label>
                 <Input
                   name="sku"
-                  value={formData.sku}
+                  value={formData.slug}
                   onChange={handleChange}
                   placeholder="Ej: PROD-001"
                   required
@@ -173,7 +174,7 @@ export function ProductFormModal({
                 </label>
                 <select
                   name="category"
-                  value={formData.category}
+                  value={formData.categoria}
                   onChange={handleChange}
                   className="flex h-11 w-full rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
@@ -199,7 +200,7 @@ export function ProductFormModal({
                   <Input
                     type="number"
                     name="price"
-                    value={formData.price}
+                    value={formData.precio}
                     onChange={handleChange}
                     min="0"
                     step="0.01"
@@ -212,7 +213,7 @@ export function ProductFormModal({
                 <label className="text-sm font-medium text-foreground">
                   Costo
                 </label>
-                <div className="relative">
+                {/* <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                     $
                   </span>
@@ -225,7 +226,7 @@ export function ProductFormModal({
                     step="0.01"
                     className="h-11 pl-7"
                   />
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -245,7 +246,7 @@ export function ProductFormModal({
                   className="h-11"
                 />
               </div>
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
                   Stock minimo
                 </label>
@@ -258,7 +259,7 @@ export function ProductFormModal({
                   required
                   className="h-11"
                 />
-              </div>
+              </div> */}
             </div>
 
             {/* Status */}

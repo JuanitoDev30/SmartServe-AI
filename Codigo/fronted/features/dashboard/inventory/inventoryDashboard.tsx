@@ -27,6 +27,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+import { getProductsAction } from '@/features/products/actions/getProductActions';
+import { ProductType } from '@/features/users/schemas/productSchema';
+
 type ViewMode = 'grid' | 'table';
 
 interface Stats {
@@ -38,7 +41,7 @@ interface Stats {
 }
 
 export function InventoryDashboard() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductType[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,43 +51,50 @@ export function InventoryDashboard() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(
+    null,
+  );
 
-  // const loadData = useCallback(async () => {
-  //   setIsLoading(true);
-  //   try {
-  //     const [productsRes, statsRes] = await Promise.all([
-  //       getProducts({
-  //         search: search || undefined,
-  //         category: category || undefined,
-  //         status: status || undefined,
-  //       }),
-  //       getProductStats(),
-  //     ]);
-  //     setProducts(productsRes.data);
-  //     setStats(statsRes);
-  //   } catch (error) {
-  //     console.error('Error loading data:', error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }, [search, category, status]);
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
 
-  // useEffect(() => {
-  //   loadData();
-  // }, [loadData]);
+    try {
+      const products = await getProductsAction();
+
+      setProducts(products);
+
+      // 👉 stats temporal (puedes moverlo luego a use-case)
+      const statsCalculated = {
+        total: products.length,
+        active: products.filter(p => p.stock > 0).length,
+        lowStock: products.filter(p => p.stock > 0 && p.stock < 5).length,
+        outOfStock: products.filter(p => p.stock === 0).length,
+        totalValue: products.reduce((acc, p) => acc + p.precio * p.stock, 0),
+      };
+
+      setStats(statsCalculated);
+    } catch (error) {
+      console.error('Error loading products:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleCreate = () => {
     setSelectedProduct(null);
     setIsFormOpen(true);
   };
 
-  const handleEdit = (product: Product) => {
+  const handleEdit = (product: ProductType) => {
     setSelectedProduct(product);
     setIsFormOpen(true);
   };
 
-  const handleDelete = (product: Product) => {
+  const handleDelete = (product: ProductType) => {
     setSelectedProduct(product);
     setIsDeleteOpen(true);
   };
@@ -258,9 +268,7 @@ export function InventoryDashboard() {
         <Button
           variant="outline"
           size="icon"
-          onClick={() => {
-            /* loadData() */
-          }}
+          onClick={loadData}
           disabled={isLoading}
           className="size-10 shrink-0"
         >

@@ -1,5 +1,5 @@
 export interface ProductType {
-  id: string;
+  //id: string;
   nombre: string;
   precio?: number;
   descripcion?: string;
@@ -17,11 +17,15 @@ export type ProductStatus =
   | 'out_of_stock';
 
 export type ProductCategory =
-  | 'food'
-  | 'beverages'
-  | 'electronics'
-  | 'clothing'
-  | 'other';
+  | 'Vino'
+  | 'Aguardiente'
+  | 'Snacks'
+  | 'Cerveza'
+  | 'Tequila'
+  | 'Whisky'
+  | 'Ron'
+  | 'Vino tinto'
+  | 'Ginebra';
 
 export interface ProductFormData {
   nombre: string;

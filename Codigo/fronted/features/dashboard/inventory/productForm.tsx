@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Product, ProductCategory, ProductStatus } from '@/types';
+
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   ProductType,
   ProductFormData,
+  ProductCategory,
+  ProductStatus,
 } from '@/features/users/schemas/productSchema';
 
 interface ProductFormModalProps {
@@ -19,11 +21,17 @@ interface ProductFormModalProps {
 }
 
 const categories: { value: ProductCategory; label: string }[] = [
-  { value: 'food', label: 'Alimentos' },
-  { value: 'beverages', label: 'Bebidas' },
-  { value: 'electronics', label: 'Electronica' },
-  { value: 'clothing', label: 'Ropa' },
-  { value: 'other', label: 'Otros' },
+  { value: 'Aguardiente', label: 'Aguardiente' },
+  { value: 'Cerveza', label: 'Cerveza' },
+  { value: 'Snacks', label: 'Snacks' },
+  { value: 'Tequila', label: 'Tequila' },
+  { value: 'Whisky', label: 'Whisky' },
+  { value: 'Ron', label: 'Ron' },
+  { value: 'Vino tinto', label: 'Vino tinto' },
+  { value: 'Ginebra', label: 'Ginebra' },
+  { value: 'Vino', label: 'Vino' },
+
+ 
 ];
 
 const statuses: { value: ProductStatus; label: string }[] = [
@@ -41,7 +49,7 @@ const defaultFormData: ProductFormData = {
   stock: 0,
   proveedor: '',
   status: 'active',
-  categoria: 'food',
+  categoria: 'Aguardiente',
 
   //minStock: 5,
 };
@@ -132,7 +140,7 @@ export function ProductFormModal({
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
-                placeholder="Ej: Hamburguesa Clasica"
+                placeholder="Ej: Aguardiente"
                 required
                 className="h-11"
               />
@@ -160,7 +168,7 @@ export function ProductFormModal({
                   SKU
                 </label>
                 <Input
-                  name="sku"
+                  name="slug"
                   value={formData.slug}
                   onChange={handleChange}
                   placeholder="Ej: PROD-001"
@@ -173,7 +181,8 @@ export function ProductFormModal({
                   Categoria
                 </label>
                 <select
-                  name="category"
+
+                  name="categoria"
                   value={formData.categoria}
                   onChange={handleChange}
                   className="flex h-11 w-full rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -199,7 +208,7 @@ export function ProductFormModal({
                   </span>
                   <Input
                     type="number"
-                    name="price"
+                    name="precio"
                     value={formData.precio}
                     onChange={handleChange}
                     min="0"
@@ -210,9 +219,24 @@ export function ProductFormModal({
                 </div>
               </div>
               <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Costo
+                  Stock actual
                 </label>
+                <Input
+                  type="number"
+                  name="stock"
+                  value={formData.stock}
+                  onChange={handleChange}
+                  min="0"
+                  required
+                  className="h-11 w-50"
+                />
+              </div>
+                {/* <label className="text-sm font-medium text-foreground">
+                  Costo
+                </label> */}
                 {/* <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                     $
@@ -231,21 +255,7 @@ export function ProductFormModal({
             </div>
 
             {/* Stock & Min Stock */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  Stock actual
-                </label>
-                <Input
-                  type="number"
-                  name="stock"
-                  value={formData.stock}
-                  onChange={handleChange}
-                  min="0"
-                  required
-                  className="h-11"
-                />
-              </div>
+           
               {/* <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
                   Stock minimo
@@ -292,7 +302,9 @@ export function ProductFormModal({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+             
+            type="submit" disabled={isLoading}>
               {isLoading
                 ? 'Guardando...'
                 : product

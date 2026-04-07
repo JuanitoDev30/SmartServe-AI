@@ -1,12 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import {
-  Product,
-  ProductFormData,
-  ProductCategory,
-  ProductStatus,
-} from '@/types';
+
 
 import { ProductCard } from './productCard';
 import { ProductTable } from './productTable';
@@ -28,7 +23,9 @@ import {
 import { cn } from '@/lib/utils';
 
 import { getProductsAction } from '@/features/products/actions/getProductActions';
-import { ProductType } from '@/features/users/schemas/productSchema';
+import { createProductActions } from '@/features/products/actions/createProductActions';
+import { ProductCategory, ProductFormData, ProductStatus, ProductType } from '@/features/users/schemas/productSchema';
+import { clonePageVaryPathWithNewSearchParams } from 'next/dist/client/components/segment-cache/vary-path';
 
 type ViewMode = 'grid' | 'table';
 
@@ -99,22 +96,30 @@ export function InventoryDashboard() {
     setIsDeleteOpen(true);
   };
 
-  // const handleFormSubmit = async (data: ProductFormData) => {
-  //   setIsSubmitting(true);
-  //   try {
-  //     if (selectedProduct) {
-  //       await updateProduct(selectedProduct.id, data);
-  //     } else {
-  //       await createProduct(data);
-  //     }
-  //     setIsFormOpen(false);
-  //     loadData();
-  //   } catch (error) {
-  //     console.error('Error saving product:', error);
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
+  const handleFormSubmit = async (data: ProductFormData) => {
+    setIsSubmitting(true);
+  
+    try {
+      if (selectedProduct) {
+        
+        console.log('Update pendiente');
+      } else {
+        const result = await createProductActions(data);
+  
+        if (!result.success) {
+          console.log('Error creating product:', result, result.error);
+          throw new Error(result.error);
+        }
+      }
+  
+      setIsFormOpen(false);
+      await loadData(); 
+    } catch (error) {
+      console.error('Error saving product:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // const handleConfirmDelete = async () => {
   //   if (!selectedProduct) return;
@@ -303,7 +308,7 @@ export function InventoryDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {products.map(product => (
             <ProductCard
-              key={product.id}
+              key={product.slug}
               product={product}
               onEdit={handleEdit}
               onDelete={handleDelete}
@@ -322,7 +327,7 @@ export function InventoryDashboard() {
       <ProductFormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        onSubmit={() => {}}
+        onSubmit={handleFormSubmit}
         product={selectedProduct}
         isLoading={isSubmitting}
       />

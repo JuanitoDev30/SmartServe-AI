@@ -78,30 +78,20 @@ export interface DashboardAnalytics {
 // PRODUCT/INVENTORY TYPES
 // ============================================
 
-export type ProductCategory =
-  | 'food'
-  | 'beverages'
-  | 'electronics'
-  | 'clothing'
-  | 'other';
 
-export type ProductStatus =
-  | 'active'
-  | 'inactive'
-  | 'low_stock'
-  | 'out_of_stock';
+
 
 export interface Product {
   id: string;
   name: string;
   description?: string;
   sku: string;
-  category: ProductCategory;
+ // category: ProductCategory;
   price: number;
   costPrice?: number;
   stock: number;
   minStock: number;
-  status: ProductStatus;
+  //status: ProductStatus;
   imageUrl?: string;
   createdAt: string;
   updatedAt: string;

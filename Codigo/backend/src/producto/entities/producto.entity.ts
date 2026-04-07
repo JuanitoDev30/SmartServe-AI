@@ -34,7 +34,16 @@ export class Producto {
     nullable: true,
   })
   imagen?: string;
+  
+  @Column('text', {
+    nullable: true,
+  })
+  status?: string;
 
+  @Column('text', {
+    nullable: true,
+  })
+  categoria?: string;
   //Proveedor
   @Column('text', {
     nullable: true,

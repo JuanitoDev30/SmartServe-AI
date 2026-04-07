@@ -23,16 +23,21 @@ export class CreateProductoDto {
   @IsString()
   @IsOptional()
   descripcion?: string;
-
   @IsString()
   @IsOptional()
   slug?: string;
+  
+  @IsOptional()
+  categoria?: string;
+  
+  @IsOptional()
+  status?: string;
+
 
   @IsInt()
   @IsPositive()
   @IsOptional()
   stock?: number;
-
   @IsString()
   @IsOptional()
   proveedor?: string;

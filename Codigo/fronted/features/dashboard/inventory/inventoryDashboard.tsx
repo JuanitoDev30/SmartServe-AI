@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-
 import { ProductCard } from './productCard';
 import { ProductTable } from './productTable';
 import { ProductFormModal } from './productForm';
@@ -24,8 +23,16 @@ import { cn } from '@/lib/utils';
 
 import { getProductsAction } from '@/features/products/actions/getProductActions';
 import { createProductActions } from '@/features/products/actions/createProductActions';
-import { ProductCategory, ProductFormData, ProductStatus, ProductType } from '@/features/users/schemas/productSchema';
-import { clonePageVaryPathWithNewSearchParams } from 'next/dist/client/components/segment-cache/vary-path';
+import { updateProductActions } from '@/features/products/actions/updateProductActions';
+import { deleteProductActions } from '@/features/products/actions/deleteProductActions';
+
+import {
+  ProductCategory,
+  ProductFormData,
+  ProductStatus,
+  ProductType,
+} from '@/features/products/schemas/productSchema';
+import { set } from 'zod';
 
 type ViewMode = 'grid' | 'table';
 
@@ -48,6 +55,7 @@ export function InventoryDashboard() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(
     null,
   );
@@ -60,7 +68,6 @@ export function InventoryDashboard() {
 
       setProducts(products);
 
-      // 👉 stats temporal (puedes moverlo luego a use-case)
       const statsCalculated = {
         total: products.length,
         active: products.filter(p => p.stock > 0).length,
@@ -71,7 +78,7 @@ export function InventoryDashboard() {
 
       setStats(statsCalculated);
     } catch (error) {
-      console.error('Error loading products:', error);
+      console.error('Error al cargar los productos', error);
     } finally {
       setIsLoading(false);
     }
@@ -84,6 +91,7 @@ export function InventoryDashboard() {
   const handleCreate = () => {
     setSelectedProduct(null);
     setIsFormOpen(true);
+    setFormError(null);
   };
 
   const handleEdit = (product: ProductType) => {
@@ -98,43 +106,69 @@ export function InventoryDashboard() {
 
   const handleFormSubmit = async (data: ProductFormData) => {
     setIsSubmitting(true);
-  
+    setFormError(null);
+
     try {
+      // if (!selectedProduct?.id) return; // para evitar errores de tipo, aunque en teoría no debería pasar
+      let result;
       if (selectedProduct) {
-        
-        console.log('Update pendiente');
-      } else {
-        const result = await createProductActions(data);
-  
+        const cleanData: ProductFormData = {
+          ...data,
+          precio: Number(data.precio),
+          status: data.status || undefined,
+          categoria: data.categoria || undefined,
+        };
+
+        //console.log('DATA ENVIADA:', data);
+        result = await updateProductActions(selectedProduct.id, cleanData);
+
         if (!result.success) {
-          console.log('Error creating product:', result, result.error);
+          console.log('Error al actualizar', result.error);
+          setFormError(result.error ?? null);
+          throw new Error(result.error);
+        }
+      } else {
+        //console.log('CREAR');
+        result = await createProductActions(data);
+
+        if (!result.success) {
+          console.log('Error al crear el producto', result, result.error);
+          setFormError(result.error ?? null);
           throw new Error(result.error);
         }
       }
-  
+
       setIsFormOpen(false);
-      await loadData(); 
+      await loadData();
     } catch (error) {
-      console.error('Error saving product:', error);
+      console.error('Error al guardar el producto:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // const handleConfirmDelete = async () => {
-  //   if (!selectedProduct) return;
-  //   setIsSubmitting(true);
-  //   try {
-  //     await deleteProduct(selectedProduct.id);
-  //     setIsDeleteOpen(false);
-  //     setSelectedProduct(null);
-  //     loadData();
-  //   } catch (error) {
-  //     console.error('Error deleting product:', error);
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
+  const handleConfirmDelete = async () => {
+    if (!selectedProduct?.id) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await deleteProductActions(selectedProduct.id);
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      setIsDeleteOpen(false);
+      setSelectedProduct(null);
+
+      await loadData();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -308,7 +342,7 @@ export function InventoryDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {products.map(product => (
             <ProductCard
-              key={product.slug}
+              key={product.id}
               product={product}
               onEdit={handleEdit}
               onDelete={handleDelete}
@@ -330,12 +364,13 @@ export function InventoryDashboard() {
         onSubmit={handleFormSubmit}
         product={selectedProduct}
         isLoading={isSubmitting}
+        error={formError}
       />
 
       <DeleteConfirmModal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
-        onConfirm={() => {}}
+        onConfirm={handleConfirmDelete}
         product={selectedProduct}
         isLoading={isSubmitting}
       />

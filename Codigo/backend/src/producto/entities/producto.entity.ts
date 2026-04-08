@@ -3,7 +3,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity()
 export class Producto {
   @PrimaryGeneratedColumn('uuid')
-  id?: string;
+  id!: string;
 
   @Column('text', {
     unique: true,
@@ -34,7 +34,7 @@ export class Producto {
     nullable: true,
   })
   imagen?: string;
-  
+
   @Column('text', {
     nullable: true,
   })

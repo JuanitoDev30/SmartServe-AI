@@ -1,10 +1,12 @@
 'use client';
 
-import { Product, ProductStatus } from '@/types';
 import { cn } from '@/lib/utils';
 import { Edit2, Trash2, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ProductType } from '@/features/users/schemas/productSchema';
+import {
+  ProductStatus,
+  ProductType,
+} from '@/features/products/schemas/productSchema';
 
 interface ProductTableProps {
   products: ProductType[];

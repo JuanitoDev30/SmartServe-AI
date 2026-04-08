@@ -59,10 +59,14 @@ export class ProductoService {
   // UPDATE
 
   async update(id: string, updateProductoDto: UpdateProductoDto) {
+    //console.log('ID recibido en backend: ----> ', id);
+
     const product = await this.productRepository.preload({
       id: id,
       ...updateProductoDto,
     });
+
+    //console.log('Producto encontrado:', product);
 
     if (!product)
       throw new NotFoundException(`Producto con id ${id} no encontrado`);

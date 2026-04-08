@@ -3,7 +3,7 @@
 import { Product } from '@/types';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ProductType } from '@/features/users/schemas/productSchema';
+import { ProductType } from '@/features/products/schemas/productSchema';
 
 interface DeleteConfirmModalProps {
   isOpen: boolean;

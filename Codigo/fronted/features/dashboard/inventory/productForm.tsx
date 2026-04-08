@@ -10,7 +10,8 @@ import {
   ProductFormData,
   ProductCategory,
   ProductStatus,
-} from '@/features/users/schemas/productSchema';
+} from '@/features/products/schemas/productSchema';
+import { cn } from '@/lib/utils';
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface ProductFormModalProps {
   onSubmit: (data: ProductFormData) => void;
   product?: ProductType | null;
   isLoading?: boolean;
+  error?: string | null;
 }
 
 const categories: { value: ProductCategory; label: string }[] = [
@@ -30,8 +32,6 @@ const categories: { value: ProductCategory; label: string }[] = [
   { value: 'Vino tinto', label: 'Vino tinto' },
   { value: 'Ginebra', label: 'Ginebra' },
   { value: 'Vino', label: 'Vino' },
-
- 
 ];
 
 const statuses: { value: ProductStatus; label: string }[] = [
@@ -60,6 +60,7 @@ export function ProductFormModal({
   onSubmit,
   product,
   isLoading,
+  error,
 }: ProductFormModalProps) {
   const [formData, setFormData] = useState<ProductFormData>(defaultFormData);
 
@@ -67,25 +68,22 @@ export function ProductFormModal({
     if (product) {
       setFormData({
         nombre: product.nombre,
-        precio: product.precio || 0,
+        precio: Number(product.precio) || 0,
         descripcion: product.descripcion || '',
         slug: product.slug || '',
-        //costPrice: product.precio || 0,
         stock: product.stock || 0,
         proveedor: product.proveedor || '',
-        // minStock: product.minStock,
         status: product.status,
         categoria: product.categoria,
-        //imageUrl: product.imageUrl,
       });
     } else {
       setFormData(defaultFormData);
     }
   }, [product, isOpen]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
+    //console.log(error);
   };
 
   const handleChange = (
@@ -96,7 +94,14 @@ export function ProductFormModal({
     const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      [name]:
+        type === 'number'
+          ? parseFloat(value) || 0
+          : name === 'categoria'
+            ? (value as ProductCategory)
+            : name === 'status'
+              ? (value as ProductStatus)
+              : value,
     }));
   };
 
@@ -142,8 +147,16 @@ export function ProductFormModal({
                 onChange={handleChange}
                 placeholder="Ej: Aguardiente"
                 required
-                className="h-11"
+                className={cn(
+                  'h-11',
+                  error && 'border-red-500 focus:ring-red-500',
+                )}
               />
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2 rounded-lg">
+                  {error}
+                </div>
+              )}
             </div>
 
             {/* Description */}
@@ -181,7 +194,6 @@ export function ProductFormModal({
                   Categoria
                 </label>
                 <select
-
                   name="categoria"
                   value={formData.categoria}
                   onChange={handleChange}
@@ -219,25 +231,25 @@ export function ProductFormModal({
                 </div>
               </div>
               <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  Stock actual
-                </label>
-                <Input
-                  type="number"
-                  name="stock"
-                  value={formData.stock}
-                  onChange={handleChange}
-                  min="0"
-                  required
-                  className="h-11 w-50"
-                />
-              </div>
-                {/* <label className="text-sm font-medium text-foreground">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">
+                      Stock actual
+                    </label>
+                    <Input
+                      type="number"
+                      name="stock"
+                      value={formData.stock}
+                      onChange={handleChange}
+                      min="0"
+                      required
+                      className="h-11 w-50"
+                    />
+                  </div>
+                  {/* <label className="text-sm font-medium text-foreground">
                   Costo
                 </label> */}
-                {/* <div className="relative">
+                  {/* <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                     $
                   </span>
@@ -251,11 +263,11 @@ export function ProductFormModal({
                     className="h-11 pl-7"
                   />
                 </div> */}
+                </div>
               </div>
-            </div>
 
-            {/* Stock & Min Stock */}
-           
+              {/* Stock & Min Stock */}
+
               {/* <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
                   Stock minimo
@@ -302,9 +314,7 @@ export function ProductFormModal({
             >
               Cancelar
             </Button>
-            <Button
-             
-            type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading}>
               {isLoading
                 ? 'Guardando...'
                 : product

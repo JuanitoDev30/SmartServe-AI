@@ -1,11 +1,10 @@
-import { ProductType } from '@/features/users/schemas/productSchema';
-import { createProductsUseCase } from '@/features/products/services/useCases/createProductUseCase';
-import { ProductRepository } from '@/features/products/services/repositories/productRepository'; // ajusta ruta
+import { ProductFormData } from '@/features/products/schemas/productSchema';
+import { ProductRepository } from '../services/repositories/productRepository';
+import { createProductsUseCase } from '../services/useCases/createProductUseCase';
 
-export async function createProductActions(data: ProductType) {
+export async function createProductActions(data: ProductFormData) {
   try {
     const repo = new ProductRepository();
-
     const createProduct = createProductsUseCase(repo);
 
     const result = await createProduct(data);

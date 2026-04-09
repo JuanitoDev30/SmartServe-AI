@@ -145,17 +145,20 @@ export function InventoryDashboard({
         if (!result.success) {
           console.log('Error al actualizar', result.error);
           setFormError(result.error ?? null);
-          toast({
+          console.log("---->",result.success)
+         
+          return;
+        }
+
+         toast({
             variant: result.success ? 'default' : 'destructive',
             title: result.success
-              ? 'Producto actualizad'
+              ? 'Producto actualizado'
               : 'Error al actualizar el producto',
             description: result.success
               ? 'El producto se actualizó correctamente'
               : result.error || 'Ocurrió un error inesperado',
           });
-          return;
-        }
       } else {
         const cleanData: ProductFormData = {
           ...data,

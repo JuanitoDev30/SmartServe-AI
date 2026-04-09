@@ -156,9 +156,18 @@ export function InventoryDashboard({
           return;
         }
       } else {
-        //console.log('CREAR');
-        // result = await createProductActions(data);
-        //console.log(result);
+        const cleanData: ProductFormData = {
+          ...data,
+          precio: Number(data.precio),
+          status: data.status || undefined,
+          categoria: data.categoria || undefined,
+        };
+
+        result = await createProductActions(cleanData);
+
+        if (!result.success) {
+          setFormError(result.error ?? null);
+        }
 
         toast({
           variant: result.success ? 'default' : 'destructive',

@@ -6,16 +6,18 @@ import { revalidatePath } from 'next/cache';
 export async function createProductActions(data: ProductFormData) {
   try {
     const result = await createProductsUseCase.execute(data);
-
+    // console.log(result);
     revalidatePath('/dashboard/inventario');
-
-    return result;
-  } catch (error) {
+    return {
+      success: true,
+      data: result,
+    };
+  } catch (error: any) {
     console.error(error);
 
     return {
       success: false,
-      error: 'Error creating product',
+      error: error.message || 'Error creating product',
     };
   }
 }

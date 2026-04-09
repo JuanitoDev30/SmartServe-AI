@@ -117,6 +117,16 @@ export function InventoryDashboard({
     setIsSubmitting(true);
     setFormError(null);
 
+    if (data.nombre.trim().length < 3) {
+      toast({
+        variant: 'destructive',
+        title: 'Nombre inválido',
+        description: 'El nombre del producto debe tener al menos 3 caracteres',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       // if (!selectedProduct?.id) return; // para evitar errores de tipo, aunque en teoría no debería pasar
       let result: { success: boolean; error?: string } = { success: false };

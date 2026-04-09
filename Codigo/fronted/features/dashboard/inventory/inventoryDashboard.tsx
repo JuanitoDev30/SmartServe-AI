@@ -34,6 +34,7 @@ import {
   ProductType,
 } from '@/features/products/schemas/productSchema';
 import useInventoryFormHandler from './hooks/useInventoryFormHandler';
+import { set } from 'zod';
 
 type ViewMode = 'grid' | 'table';
 
@@ -54,7 +55,7 @@ export function InventoryDashboard({
 }: InventoryDashboardProps) {
   const [products, setProducts] = useState<ProductType[]>(productsResponse);
   const [stats, setStats] = useState<Stats | null>(null);
-  const [isLoading, setIsLoading] = useState(productsResponse.length === 0);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<ProductCategory | ''>('');
@@ -370,7 +371,7 @@ export function InventoryDashboard({
         <div className="flex items-center justify-center py-12">
           <RefreshCw className="size-6 animate-spin text-muted-foreground" />
         </div>
-      ) : products.length === 0 ? (
+      ) : productsResponse.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Package className="size-12 text-muted-foreground/50 mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-1">

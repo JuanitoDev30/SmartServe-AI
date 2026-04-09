@@ -24,6 +24,22 @@ export class ProductoService {
 
   async create(createProductoDto: CreateProductoDto) {
     try {
+      const { nombre, slug } = createProductoDto;
+
+      const responseSlug = await this.findOneBySlug(slug!);
+      if (responseSlug)
+        return {
+          error: responseSlug.message,
+          success: false,
+        };
+
+      const responseName = await this.findOneByName(nombre!);
+      if (responseName)
+        return {
+          error: responseName.message,
+          success: false,
+        };
+
       const producto = this.productRepository.create(createProductoDto);
 
       await this.productRepository.save(producto);
@@ -56,6 +72,26 @@ export class ProductoService {
     return product;
   }
 
+  // Get One by Slug
+
+  async findOneBySlug(slug: string) {
+    const product = await this.productRepository.findOneBy({ slug });
+    if (product)
+      return {
+        message: `Producto con slug ${slug} ya registrado`,
+      };
+    return null;
+  }
+  // Get one by name
+  async findOneByName(nombre: string) {
+    const product = await this.productRepository.findOneBy({ nombre });
+    if (product)
+      return {
+        message: `Producto con nombre ${nombre} ya registrado`,
+      };
+    return null;
+  }
+
   // UPDATE
 
   async update(id: string, updateProductoDto: UpdateProductoDto) {
@@ -74,7 +110,7 @@ export class ProductoService {
     try {
       await this.productRepository.save(product);
       return product;
-    } catch (error) {
+    } catch (error: any) {
       this.handleExceptions(error);
     }
   }
@@ -88,9 +124,34 @@ export class ProductoService {
   }
 
   private handleExceptions(error: any) {
-    //console.log(error);
-    if ((error as any).code === '23505')
-      throw new BadRequestException((error as any).detail);
+    if (error.code === '23505') {
+      const detail = error.detail as string;
+
+      if (typeof detail === 'string') {
+        let field = 'general';
+        let value = '';
+
+        if (detail.includes('(nombre)')) {
+          field = 'nombre';
+          const startIndex = detail.indexOf('=(') + 2;
+          const endIndex = detail.indexOf(')', startIndex);
+          value = detail.substring(startIndex, endIndex);
+        } else if (detail.includes('(slug)')) {
+          field = 'slug';
+          const startIndex = detail.indexOf('=(') + 2;
+          const endIndex = detail.indexOf(')', startIndex);
+          value = detail.substring(startIndex, endIndex);
+        }
+
+        if (field !== 'general') {
+          throw new BadRequestException(
+            `Ya existe un producto con el ${field} '${value}'`,
+          );
+        }
+      }
+
+      throw new BadRequestException('Ya existe un producto con esos datos');
+    }
 
     this.logger.error(error);
     throw new InternalServerErrorException('Error al crear el producto');

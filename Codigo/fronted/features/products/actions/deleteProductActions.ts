@@ -1,4 +1,3 @@
-import { ProductRepository } from '@/features/products/services/repositories/productRepository';
 import { deleteProductsUseCase } from '@/features/products/services/useCases/deleteProductUseCase';
 
 type DeleteProductResponse =
@@ -9,10 +8,7 @@ export async function deleteProductActions(
   id: string,
 ): Promise<DeleteProductResponse> {
   try {
-    const repo = new ProductRepository();
-    const deleteProduct = deleteProductsUseCase(repo);
-
-    await deleteProduct(id);
+    await deleteProductsUseCase.execute(id);
 
     return { success: true };
   } catch (error: any) {

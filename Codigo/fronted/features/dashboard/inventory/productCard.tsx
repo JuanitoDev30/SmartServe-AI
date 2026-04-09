@@ -124,10 +124,10 @@ export function ProductCard({ onDelete, onEdit, product }: ProductCardProps) {
         <span
           className={cn(
             'text-xs font-medium px-2.5 py-1 rounded-full',
-            //  status.color,
+            status.color,
           )}
         >
-          {/* {status.label} */}
+          {status.label}
         </span>
       </div>
     </div>

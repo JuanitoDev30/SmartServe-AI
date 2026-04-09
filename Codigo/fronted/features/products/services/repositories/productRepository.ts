@@ -8,10 +8,26 @@ import {
   ProductFormData,
 } from '@/features/products/schemas/productSchema';
 
-export class ProductRepository implements IProductRepository {
-  async getAll(): Promise<ProductType[]> {
-    const { data } = await api.get('/producto');
-    //console.log('ESTA ES LA DATA', data);
+interface ProductsActionsProps {
+  page: number;
+  pageSize: number;
+  search?: string;
+}
+
+class ProductRepository implements IProductRepository {
+  async getAll({
+    page,
+    pageSize,
+    search,
+  }: ProductsActionsProps): Promise<ProductType[]> {
+    const { data } = await api.get('/producto', {
+      params: {
+        page,
+        pageSize,
+        search,
+      },
+    });
+
     return data;
   }
 
@@ -23,8 +39,19 @@ export class ProductRepository implements IProductRepository {
 
   async create(data: ProductFormData): Promise<any> {
     try {
-      const response = await api.post('/producto', data);
+      const response = await api.post<{
+        success: boolean;
+        data: any;
+        error: string | null;
+      }>('/producto', data);
       console.log(response);
+
+      if (!response.data.success) {
+        return {
+          success: false,
+          error: response.data.error || 'Error creando producto',
+        };
+      }
 
       return {
         success: true,
@@ -43,12 +70,22 @@ export class ProductRepository implements IProductRepository {
     }
   }
 
-  async update(id: string, data: ProductFormData): Promise<ProductType> {
-    const { data: updated } = await api.patch(`/producto/${id}`, data);
-    return updated;
+  async update(id: string, data: ProductFormData): Promise<any> {
+    try {
+      const response = await api.patch(`/producto/${id}`, data);
+      return response.data;
+    } catch (error: any) {
+      // Lanzar error con el mensaje real del backend
+      const message =
+        error?.response?.data?.message ||
+        error.message ||
+        'Error actualizando producto';
+      throw new Error(message);
+    }
   }
-
   async delete(id: string): Promise<void> {
     await api.delete(`/producto/${id}`);
   }
 }
+
+export const productRepository = new ProductRepository();

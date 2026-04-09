@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from '@/hooks/useToast';
 
 import { ProductCard } from './productCard';
 import { ProductTable } from './productTable';
@@ -32,7 +33,7 @@ import {
   ProductStatus,
   ProductType,
 } from '@/features/products/schemas/productSchema';
-import { set } from 'zod';
+import useInventoryFormHandler from './hooks/useInventoryFormHandler';
 
 type ViewMode = 'grid' | 'table';
 
@@ -44,10 +45,16 @@ interface Stats {
   totalValue: number;
 }
 
-export function InventoryDashboard() {
-  const [products, setProducts] = useState<ProductType[]>([]);
+interface InventoryDashboardProps {
+  productsResponse: ProductType[];
+}
+
+export function InventoryDashboard({
+  productsResponse,
+}: InventoryDashboardProps) {
+  const [products, setProducts] = useState<ProductType[]>(productsResponse);
   const [stats, setStats] = useState<Stats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(productsResponse.length === 0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<ProductCategory | ''>('');
@@ -59,34 +66,35 @@ export function InventoryDashboard() {
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(
     null,
   );
+  const { refresh } = useInventoryFormHandler({ isEdit: !!selectedProduct });
 
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
+  // const loadData = useCallback(async () => {
+  //   setIsLoading(true);
 
-    try {
-      const products = await getProductsAction();
+  //   try {
+  //     //const products = await getProductsAction();
 
-      setProducts(products);
+  //     setProducts(products);
 
-      const statsCalculated = {
-        total: products.length,
-        active: products.filter(p => p.stock > 0).length,
-        lowStock: products.filter(p => p.stock > 0 && p.stock < 5).length,
-        outOfStock: products.filter(p => p.stock === 0).length,
-        totalValue: products.reduce((acc, p) => acc + p.precio * p.stock, 0),
-      };
+  //     const statsCalculated = {
+  //       total: products.length,
+  //       active: products.filter(p => p.stock > 0).length,
+  //       lowStock: products.filter(p => p.stock > 0 && p.stock < 5).length,
+  //       outOfStock: products.filter(p => p.stock === 0).length,
+  //       totalValue: products.reduce((acc, p) => acc + p.precio * p.stock, 0),
+  //     };
 
-      setStats(statsCalculated);
-    } catch (error) {
-      console.error('Error al cargar los productos', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  //     setStats(statsCalculated);
+  //   } catch (error) {
+  //     console.error('Error al cargar los productos', error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  // useEffect(() => {
+  //   loadData();
+  // }, [loadData]);
 
   const handleCreate = () => {
     setSelectedProduct(null);
@@ -96,6 +104,7 @@ export function InventoryDashboard() {
 
   const handleEdit = (product: ProductType) => {
     setSelectedProduct(product);
+    setFormError(null);
     setIsFormOpen(true);
   };
 
@@ -110,7 +119,7 @@ export function InventoryDashboard() {
 
     try {
       // if (!selectedProduct?.id) return; // para evitar errores de tipo, aunque en teoría no debería pasar
-      let result;
+      let result: { success: boolean; error?: string } = { success: false };
       if (selectedProduct) {
         const cleanData: ProductFormData = {
           ...data,
@@ -125,21 +134,32 @@ export function InventoryDashboard() {
         if (!result.success) {
           console.log('Error al actualizar', result.error);
           setFormError(result.error ?? null);
-          throw new Error(result.error);
+          toast({
+            variant: result.success ? 'default' : 'destructive',
+            title: result.success
+              ? 'Producto actualizad'
+              : 'Error al actualizar el producto',
+            description: result.success
+              ? 'El producto se actualizó correctamente'
+              : result.error || 'Ocurrió un error inesperado',
+          });
+          return;
         }
       } else {
         //console.log('CREAR');
-        result = await createProductActions(data);
+        // result = await createProductActions(data);
+        console.log(result);
 
-        if (!result.success) {
-          console.log('Error al crear el producto', result, result.error);
-          setFormError(result.error ?? null);
-          throw new Error(result.error);
-        }
+        toast({
+          variant: result.success ? 'default' : 'destructive',
+          title: result.success ? 'Producto creado' : 'Error al crear producto',
+          description: result.success
+            ? 'El producto se creó correctamente'
+            : result.error || 'Ocurrió un error inesperado',
+        });
       }
 
       setIsFormOpen(false);
-      await loadData();
     } catch (error) {
       console.error('Error al guardar el producto:', error);
     } finally {
@@ -156,13 +176,21 @@ export function InventoryDashboard() {
       const result = await deleteProductActions(selectedProduct.id);
 
       if (!result.success) {
-        throw new Error(result.error);
+        toast({
+          variant: 'destructive',
+          title: 'Error al eliminar producto',
+          description: result.error || 'Ocurrió un error inesperado',
+        });
+        return;
       }
 
       setIsDeleteOpen(false);
       setSelectedProduct(null);
-
-      await loadData();
+      toast({
+        title: 'Producto eliminado',
+        description: 'El producto se eliminó correctamente',
+      });
+      // await loadData();
     } catch (error) {
       console.error('Error deleting product:', error);
     } finally {
@@ -263,11 +291,15 @@ export function InventoryDashboard() {
           className="h-10 rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-[140px]"
         >
           <option value="">Todas las categorias</option>
-          <option value="food">Alimentos</option>
-          <option value="beverages">Bebidas</option>
-          <option value="electronics">Electronica</option>
-          <option value="clothing">Ropa</option>
-          <option value="other">Otros</option>
+          <option value="Aguardiente">Aguardiente</option>
+          <option value="Cerveza">Cerveza</option>
+          <option value="Snacks">Snacks</option>
+          <option value="Tequila">Tequila</option>
+          <option value="Whisky">Whisky</option>
+          <option value="Ron">Ron</option>
+          <option value="Vino tinto">Vino tinto</option>
+          <option value="Ginebra">Ginebra</option>
+          <option value="Vino">Vino</option>
         </select>
         <select
           value={status}
@@ -307,7 +339,7 @@ export function InventoryDashboard() {
         <Button
           variant="outline"
           size="icon"
-          onClick={loadData}
+          onClick={refresh}
           disabled={isLoading}
           className="size-10 shrink-0"
         >
@@ -340,7 +372,7 @@ export function InventoryDashboard() {
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {products.map(product => (
+          {productsResponse.map(product => (
             <ProductCard
               key={product.id}
               product={product}
@@ -360,7 +392,10 @@ export function InventoryDashboard() {
       {/* Modals */}
       <ProductFormModal
         isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
+        onClose={() => {
+          setIsFormOpen(false);
+          setFormError(null);
+        }}
         onSubmit={handleFormSubmit}
         product={selectedProduct}
         isLoading={isSubmitting}

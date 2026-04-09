@@ -12,6 +12,7 @@ import {
   ProductStatus,
 } from '@/features/products/schemas/productSchema';
 import { cn } from '@/lib/utils';
+import { error } from 'console';
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -54,6 +55,17 @@ const defaultFormData: ProductFormData = {
   //minStock: 5,
 };
 
+function getErrorField(
+  error: string | null | undefined,
+): 'nombre' | 'slug' | 'general' | null {
+  console.log(error);
+  if (!error) return null;
+  const lowerError = error.toLowerCase();
+  if (lowerError.includes('nombre')) return 'nombre';
+  if (lowerError.includes('slug')) return 'slug';
+  return 'general';
+}
+
 export function ProductFormModal({
   isOpen,
   onClose,
@@ -63,6 +75,7 @@ export function ProductFormModal({
   error,
 }: ProductFormModalProps) {
   const [formData, setFormData] = useState<ProductFormData>(defaultFormData);
+  const errorField = getErrorField(error);
 
   useEffect(() => {
     if (product) {
@@ -136,6 +149,13 @@ export function ProductFormModal({
           className="overflow-y-auto max-h-[calc(90vh-140px)]"
         >
           <div className="p-6 space-y-5">
+            {/* Error general */}
+            {errorField === 'general' && (
+              <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2 rounded-lg">
+                {error}
+              </div>
+            )}
+
             {/* Name */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
@@ -149,10 +169,11 @@ export function ProductFormModal({
                 required
                 className={cn(
                   'h-11',
-                  error && 'border-red-500 focus:ring-red-500',
+                  errorField === 'nombre' &&
+                    'border-red-500 focus:ring-red-500',
                 )}
               />
-              {error && (
+              {errorField === 'nombre' && (
                 <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2 rounded-lg">
                   {error}
                 </div>
@@ -178,7 +199,7 @@ export function ProductFormModal({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  SKU
+                  SLUG
                 </label>
                 <Input
                   name="slug"
@@ -186,8 +207,17 @@ export function ProductFormModal({
                   onChange={handleChange}
                   placeholder="Ej: PROD-001"
                   required
-                  className="h-11 font-mono"
+                  className={cn(
+                    'h-11 font-mono',
+                    errorField === 'slug' &&
+                      'border-red-500 focus:ring-red-500',
+                  )}
                 />
+                {errorField === 'slug' && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2 rounded-lg">
+                    {error}
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
@@ -246,23 +276,6 @@ export function ProductFormModal({
                       className="h-11 w-50"
                     />
                   </div>
-                  {/* <label className="text-sm font-medium text-foreground">
-                  Costo
-                </label> */}
-                  {/* <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    $
-                  </span>
-                  <Input
-                    type="number"
-                    name="costPrice"
-                    value={formData.costPrice}
-                    onChange={handleChange}
-                    min="0"
-                    step="0.01"
-                    className="h-11 pl-7"
-                  />
-                </div> */}
                 </div>
               </div>
 
@@ -293,6 +306,7 @@ export function ProductFormModal({
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
+                defaultChecked={formData.status === 'active'}
                 className="flex h-11 w-full rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {statuses.map(status => (

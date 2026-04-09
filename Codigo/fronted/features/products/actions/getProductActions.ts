@@ -1,10 +1,15 @@
-// actions/getProducts.action.ts
-
-import { ProductRepository } from '@/features/products/services/repositories/productRepository';
 import { getProductsUseCase } from '@/features/products/services/useCases/getProductUseCase';
 
-const getProducts = getProductsUseCase(new ProductRepository());
+interface ProductsActionsProps {
+  page: number;
+  pageSize: number;
+  search?: string;
+}
 
-export async function getProductsAction() {
-  return getProducts();
+export async function getProductsAction({
+  page,
+  pageSize,
+  search,
+}: ProductsActionsProps) {
+  return await getProductsUseCase.execute({ page, pageSize, search });
 }

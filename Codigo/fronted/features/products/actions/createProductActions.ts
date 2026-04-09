@@ -1,18 +1,15 @@
+'use server';
 import { ProductFormData } from '@/features/products/schemas/productSchema';
-import { ProductRepository } from '../services/repositories/productRepository';
 import { createProductsUseCase } from '../services/useCases/createProductUseCase';
+import { revalidatePath } from 'next/cache';
 
 export async function createProductActions(data: ProductFormData) {
   try {
-    const repo = new ProductRepository();
-    const createProduct = createProductsUseCase(repo);
+    const result = await createProductsUseCase.execute(data);
 
-    const result = await createProduct(data);
+    revalidatePath('/dashboard/inventario');
 
-    return {
-      success: true,
-      data: result,
-    };
+    return result;
   } catch (error) {
     console.error(error);
 

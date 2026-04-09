@@ -37,11 +37,15 @@ const statusConfig: Record<
 };
 
 const categoryLabels: Record<string, string> = {
-  food: 'Alimentos',
-  beverages: 'Bebidas',
-  electronics: 'Electronica',
-  clothing: 'Ropa',
-  other: 'Otros',
+  Aguardiente: 'Aguardiente',
+  Cerveza: 'Cerveza',
+  Ron: 'Ron',
+  Tequila: 'Tequila',
+  Vino: 'Vino',
+  Whisky: 'Whisky',
+  Snacks: 'Snacks',
+  Ginebra: 'Ginebra',
+  VinoTinto: 'Vino Tinto',
 };
 
 export function ProductTable({
@@ -80,7 +84,10 @@ export function ProductTable({
           </thead>
           <tbody className="divide-y divide-border">
             {products.map(product => {
-              const status = statusConfig[product.status];
+              const status = statusConfig[product.status as ProductStatus] ?? {
+                label: 'Sin estado',
+                className: 'bg-muted text-muted-foreground',
+              };
               return (
                 <tr
                   key={product.id}
@@ -113,7 +120,7 @@ export function ProductTable({
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span className="text-sm font-medium text-foreground">
-                      ${product.precio?.toFixed(2)}
+                      ${product.precio}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">

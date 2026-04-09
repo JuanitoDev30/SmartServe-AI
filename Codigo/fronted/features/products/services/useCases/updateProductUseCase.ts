@@ -1,8 +1,13 @@
 import { ProductFormData } from '@/features/products/schemas/productSchema';
 import { IProductRepository } from '../repositories/productRepositoryInterface';
+import { productRepository } from '../repositories/productRepository';
 
-export const updateProductUseCase = (repo: IProductRepository) => {
-  return async (id: string, data: ProductFormData) => {
-    return await repo.update(id, data);
-  };
-};
+class UpdateProductUseCase {
+  constructor(private readonly productRepository: IProductRepository) {}
+
+  async execute(id: string, data: ProductFormData): Promise<void> {
+    await this.productRepository.update(id, data);
+  }
+}
+
+export const updateProductUseCase = new UpdateProductUseCase(productRepository);

@@ -4,7 +4,15 @@ import {
 } from '@/features/products/schemas/productSchema';
 
 export interface IProductRepository {
-  getAll(): Promise<ProductType[]>;
+  getAll({
+    page,
+    pageSize,
+    search,
+  }: {
+    page: number;
+    pageSize: number;
+    search?: string;
+  }): Promise<ProductType[]>;
   getById(id: string): Promise<ProductType>;
   create(data: ProductFormData): Promise<ProductType>;
   update(id: string, data: ProductFormData): Promise<ProductType>;

@@ -1,24 +1,23 @@
+'use server';
+import { revalidatePath } from 'next/cache';
 import { ProductFormData, ProductType } from '../schemas/productSchema';
-import { ProductRepository } from '../services/repositories/productRepository';
 import { updateProductUseCase } from '../services/useCases/updateProductUseCase';
 
 type UpdateProductResponse =
   | { success: true; data: ProductType }
   | { success: false; error: string };
-
 export async function updateProductActions(
   id: string,
   data: ProductFormData,
-): Promise<UpdateProductResponse> {
+): Promise<any> {
   try {
-    const repo = new ProductRepository();
-    const updateProduct = updateProductUseCase(repo);
+    await updateProductUseCase.execute(id, data);
 
-    const result = await updateProduct(id, data);
+    revalidatePath('/inventario'); // Revalidate the products page to reflect the updated product
 
     return {
       success: true,
-      data: result,
+      data: null, // You can replace this with the actual updated product data if needed
     };
   } catch (error: any) {
     console.error(error);

@@ -1,6 +1,14 @@
+import { productRepository } from '../repositories/productRepository';
 import { IProductRepository } from '../repositories/productRepositoryInterface';
 
-export const deleteProductsUseCase =
-  (repo: IProductRepository) => async (id: string) => {
-    return await repo.delete(id);
-  };
+class DeleteProductsUseCase {
+  constructor(private readonly productRepository: IProductRepository) {}
+
+  async execute(id: string): Promise<void> {
+    await this.productRepository.delete(id);
+  }
+}
+
+export const deleteProductsUseCase = new DeleteProductsUseCase(
+  productRepository,
+);

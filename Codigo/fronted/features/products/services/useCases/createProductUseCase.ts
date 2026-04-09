@@ -1,13 +1,17 @@
 // use-cases/createProducts.usecase.ts
 
-import {
-  ProductFormData,
-  ProductType,
-} from '@/features/products/schemas/productSchema';
+import { ProductFormData } from '@/features/products/schemas/productSchema';
 import { IProductRepository } from '../repositories/productRepositoryInterface';
+import { productRepository } from '../repositories/productRepository';
 
-export const createProductsUseCase = (repo: IProductRepository) => {
-  return async (data: ProductFormData) => {
-    return await repo.create(data);
-  };
-};
+class CreateProductsUseCase {
+  constructor(private readonly productRepository: IProductRepository) {}
+
+  async execute(data: ProductFormData): Promise<void> {
+    await this.productRepository.create(data);
+  }
+}
+
+export const createProductsUseCase = new CreateProductsUseCase(
+  productRepository,
+);

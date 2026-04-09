@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import {
+  Archive,
   BarChart3,
   ChevronLeft,
   LayoutDashboard,
@@ -9,6 +10,7 @@ import {
   Package,
   Settings,
   ShoppingCart,
+  User,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -19,26 +21,39 @@ const navItems = [
     href: '/dashboard',
     icon: LayoutDashboard,
   },
+
   {
-    label: 'Pedidos',
-    href: '/dashboard/orders',
-    icon: ShoppingCart,
+    label: 'Usuario',
+    href: '/dashboard/usuario',
+    icon: User,
   },
   {
-    label: 'Inventario',
-    href: '/dashboard/inventory',
+    label: 'Pedidos',
+    href: '/dashboard/pedidos',
     icon: Package,
   },
   {
+    label: 'Ventas',
+    href: '/dashboard/ventas',
+    icon: ShoppingCart,
+  },
+
+  {
     label: 'Analytics',
-    href: '/dashboard/analytics',
+    href: '/dashboard/reportes',
     icon: BarChart3,
   },
   {
-    label: 'Configuracion',
-    href: '/dashboard/settings',
-    icon: Settings,
+    label: 'Inventario',
+    href: '/dashboard/inventario',
+    icon: Archive,
   },
+
+  // {
+  //   label: 'Configuracion',
+  //   href: '/dashboard/settings',
+  //   icon: Settings,
+  // },
 ];
 
 interface DashboardSidebarProps {

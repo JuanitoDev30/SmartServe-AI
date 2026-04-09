@@ -9,7 +9,7 @@ import {
 } from '@/features/products/schemas/productSchema';
 
 interface ProductTableProps {
-  products: ProductType[];
+  productsResponse: ProductType[];
   onEdit: (product: ProductType) => void;
   onDelete: (product: ProductType) => void;
 }
@@ -49,7 +49,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 export function ProductTable({
-  products,
+  productsResponse,
   onEdit,
   onDelete,
 }: ProductTableProps) {
@@ -83,7 +83,7 @@ export function ProductTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {products.map(product => {
+            {productsResponse.map(product => {
               const status = statusConfig[product.status as ProductStatus] ?? {
                 label: 'Sin estado',
                 className: 'bg-muted text-muted-foreground',

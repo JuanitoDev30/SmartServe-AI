@@ -401,7 +401,7 @@ export function InventoryDashboard({
         </div>
       ) : (
         <ProductTable
-          products={products}
+          productsResponse={productsResponse}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />

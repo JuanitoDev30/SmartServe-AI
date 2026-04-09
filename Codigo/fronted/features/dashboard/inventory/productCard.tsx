@@ -16,6 +16,7 @@ import { Edit2, MoreVertical, Package, Trash2 } from 'lucide-react';
 
 interface ProductCardProps {
   product: ProductType;
+
   onEdit: (product: ProductType) => void;
   onDelete: (product: ProductType) => void;
 }

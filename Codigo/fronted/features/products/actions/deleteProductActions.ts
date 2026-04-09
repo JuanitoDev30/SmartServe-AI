@@ -1,4 +1,6 @@
+'use server';
 import { deleteProductsUseCase } from '@/features/products/services/useCases/deleteProductUseCase';
+import { revalidatePath } from 'next/cache';
 
 type DeleteProductResponse =
   | { success: true }
@@ -9,7 +11,7 @@ export async function deleteProductActions(
 ): Promise<DeleteProductResponse> {
   try {
     await deleteProductsUseCase.execute(id);
-
+    revalidatePath('/inventario');
     return { success: true };
   } catch (error: any) {
     console.error(error);

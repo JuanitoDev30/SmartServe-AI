@@ -158,7 +158,7 @@ export function InventoryDashboard({
       } else {
         //console.log('CREAR');
         // result = await createProductActions(data);
-        console.log(result);
+        //console.log(result);
 
         toast({
           variant: result.success ? 'default' : 'destructive',
@@ -200,7 +200,6 @@ export function InventoryDashboard({
         title: 'Producto eliminado',
         description: 'El producto se eliminó correctamente',
       });
-      // await loadData();
     } catch (error) {
       console.error('Error deleting product:', error);
     } finally {

@@ -6,13 +6,16 @@ import * as React from 'react';
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast';
 
 const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000000;
+const TOAST_REMOVE_DELAY = 300; // Delay after dismiss animation
+const DEFAULT_DURATION = 5000; // 5 seconds default duration
 
 type ToasterToast = ToastProps & {
   id: string;
   title?: React.ReactNode;
   description?: React.ReactNode;
   action?: ToastActionElement;
+  duration?: number;
+  createdAt?: number;
 };
 
 const actionTypes = {
@@ -54,10 +57,17 @@ interface State {
 }
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+const autoDismissTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 
 const addToRemoveQueue = (toastId: string) => {
   if (toastTimeouts.has(toastId)) {
     return;
+  }
+
+  // Clear auto-dismiss timeout when manually dismissing
+  if (autoDismissTimeouts.has(toastId)) {
+    clearTimeout(autoDismissTimeouts.get(toastId));
+    autoDismissTimeouts.delete(toastId);
   }
 
   const timeout = setTimeout(() => {
@@ -69,6 +79,19 @@ const addToRemoveQueue = (toastId: string) => {
   }, TOAST_REMOVE_DELAY);
 
   toastTimeouts.set(toastId, timeout);
+};
+
+const scheduleAutoDismiss = (toastId: string, duration: number) => {
+  if (autoDismissTimeouts.has(toastId)) {
+    return;
+  }
+
+  const timeout = setTimeout(() => {
+    autoDismissTimeouts.delete(toastId);
+    dispatch({ type: 'DISMISS_TOAST', toastId });
+  }, duration);
+
+  autoDismissTimeouts.set(toastId, timeout);
 };
 
 export const reducer = (state: State, action: Action): State => {
@@ -139,8 +162,9 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, 'id'>;
 
-function toast({ ...props }: Toast) {
+function toast({ duration = DEFAULT_DURATION, ...props }: Toast) {
   const id = genId();
+  const createdAt = Date.now();
 
   const update = (props: ToasterToast) =>
     dispatch({
@@ -154,12 +178,17 @@ function toast({ ...props }: Toast) {
     toast: {
       ...props,
       id,
+      duration,
+      createdAt,
       open: true,
       onOpenChange: open => {
         if (!open) dismiss();
       },
     },
   });
+
+  // Schedule auto-dismiss
+  scheduleAutoDismiss(id, duration);
 
   return {
     id: id,

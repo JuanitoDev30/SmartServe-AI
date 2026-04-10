@@ -110,7 +110,7 @@ export default function ChatApp() {
     },
     [activeContactId],
   );
-  console.log(activeContact);
+  //console.log(activeContact);
 
   const handleNewChat = useCallback(() => {
     setSearchQuery('');

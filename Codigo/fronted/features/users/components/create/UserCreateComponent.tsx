@@ -22,7 +22,7 @@ export default function UserCreateComponent() {
     if (result.error) {
       console.error(result.error);
     } else {
-      console.log(result.success);
+      // console.log(result.success);
     }
     reset();
   };

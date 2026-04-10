@@ -49,7 +49,7 @@ class UsersRepository implements IUserRepository {
     // Simulación de una llamada a una API para crear un usuario
     return new Promise(resolve => {
       setTimeout(() => {
-        console.log('Usuario creado con los datos:', data);
+        //console.log('Usuario creado con los datos:', data);
         resolve();
       }, 1000);
     });

@@ -34,7 +34,6 @@ import {
   ProductType,
 } from '@/features/products/schemas/productSchema';
 import useInventoryFormHandler from './hooks/useInventoryFormHandler';
-import { set } from 'zod';
 
 type ViewMode = 'grid' | 'table';
 
@@ -179,6 +178,8 @@ export function InventoryDashboard({
           description: result.success
             ? 'El producto se creó correctamente'
             : result.error || 'Ocurrió un error inesperado',
+
+          duration: 3000,
         });
       }
 
@@ -203,6 +204,7 @@ export function InventoryDashboard({
           variant: 'destructive',
           title: 'Error al eliminar producto',
           description: result.error || 'Ocurrió un error inesperado',
+          duration: 3000,
         });
         return;
       }
@@ -210,8 +212,10 @@ export function InventoryDashboard({
       setIsDeleteOpen(false);
       setSelectedProduct(null);
       toast({
+        variant: 'default',
         title: 'Producto eliminado',
         description: 'El producto se eliminó correctamente',
+        duration: 3000,
       });
     } catch (error) {
       console.error('Error deleting product:', error);

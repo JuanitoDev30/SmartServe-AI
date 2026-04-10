@@ -7,7 +7,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api'); // Establece el prefijo global para todas las rutas
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: 'http://localhost:3001',
   });
 
   app.useGlobalPipes(

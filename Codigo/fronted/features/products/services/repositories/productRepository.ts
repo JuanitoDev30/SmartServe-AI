@@ -33,7 +33,7 @@ class ProductRepository implements IProductRepository {
 
   async getById(id: string): Promise<ProductType> {
     const { data } = await api.get(`/producto/${id}`);
-    console.log('ESTA ES LA DATA DEL PRODUCTO', data);
+    // console.log('ESTA ES LA DATA DEL PRODUCTO', data);
     return data;
   }
 
@@ -44,7 +44,7 @@ class ProductRepository implements IProductRepository {
         data: any;
         error: string | null;
       }>('/producto', data);
-      console.log(response);
+      //console.log(response);
 
       if (!response.data.success) {
         return {

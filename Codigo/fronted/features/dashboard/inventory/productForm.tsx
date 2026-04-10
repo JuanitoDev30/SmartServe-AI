@@ -12,7 +12,6 @@ import {
   ProductStatus,
 } from '@/features/products/schemas/productSchema';
 import { cn } from '@/lib/utils';
-import { error } from 'console';
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -58,7 +57,7 @@ const defaultFormData: ProductFormData = {
 function getErrorField(
   error: string | null | undefined,
 ): 'nombre' | 'slug' | 'general' | null {
-  console.log(error);
+  // console.log(error);
   if (!error) return null;
   const lowerError = error.toLowerCase();
   if (lowerError.includes('nombre')) return 'nombre';

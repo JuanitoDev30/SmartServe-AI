@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { toast } from '@/hooks/useToast';
-
+import { useMemo } from 'react';
 import { ProductCard } from './productCard';
 import { ProductTable } from './productTable';
 import { ProductFormModal } from './productForm';
@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-import { getProductsAction } from '@/features/products/actions/getProductActions';
 import { createProductActions } from '@/features/products/actions/createProductActions';
 import { updateProductActions } from '@/features/products/actions/updateProductActions';
 import { deleteProductActions } from '@/features/products/actions/deleteProductActions';
@@ -53,7 +52,7 @@ export function InventoryDashboard({
   productsResponse,
 }: InventoryDashboardProps) {
   const [products, setProducts] = useState<ProductType[]>(productsResponse);
-  const [stats, setStats] = useState<Stats | null>(null);
+
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [search, setSearch] = useState('');
@@ -95,6 +94,19 @@ export function InventoryDashboard({
   // useEffect(() => {
   //   loadData();
   // }, [loadData]);
+
+  const stats = useMemo<Stats>(() => {
+    return {
+      total: productsResponse.length,
+      active: productsResponse.filter(p => p.stock > 0).length,
+      lowStock: productsResponse.filter(p => p.stock > 0 && p.stock < 5).length,
+      outOfStock: productsResponse.filter(p => p.stock === 0).length,
+      totalValue: productsResponse.reduce(
+        (acc, p) => acc + p.precio * p.stock,
+        0,
+      ),
+    };
+  }, [productsResponse]);
 
   const handleCreate = () => {
     setSelectedProduct(null);
@@ -144,20 +156,22 @@ export function InventoryDashboard({
         if (!result.success) {
           console.log('Error al actualizar', result.error);
           setFormError(result.error ?? null);
-          console.log("---->",result.success)
-         
+          console.log('---->', result.success);
+
           return;
         }
 
-         toast({
-            variant: result.success ? 'default' : 'destructive',
-            title: result.success
-              ? 'Producto actualizado'
-              : 'Error al actualizar el producto',
-            description: result.success
-              ? 'El producto se actualizó correctamente'
-              : result.error || 'Ocurrió un error inesperado',
-          });
+        toast({
+          variant: result.success ? 'default' : 'destructive',
+          title: result.success
+            ? 'Producto actualizado'
+            : 'Error al actualizar el producto',
+          description: result.success
+            ? 'El producto se actualizó correctamente'
+            : result.error || 'Ocurrió un error inesperado',
+
+          duration: 3000,
+        });
       } else {
         const cleanData: ProductFormData = {
           ...data,

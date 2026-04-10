@@ -63,7 +63,7 @@ export function ProductTable({
                 Producto
               </th>
               <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 hidden sm:table-cell">
-                SKU
+                SLUG
               </th>
               <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 hidden md:table-cell">
                 Categoria

@@ -22,21 +22,18 @@ export class ProductoController {
   create(@Body() createProductoDto: CreateProductoDto) {
     return this.productoService.create(createProductoDto);
   }
-
   // GET
 
   @Get()
   findAll(@Query() pagination: PaginationDto) {
     return this.productoService.findAll(pagination);
   }
-
   // GET ONE
 
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.productoService.findOne(id);
   }
-
   // UPDATE
 
   @Patch(':id')
@@ -46,7 +43,6 @@ export class ProductoController {
   ) {
     return this.productoService.update(id, updateProductDto);
   }
-
   // DELETE
 
   @Delete(':id')

@@ -8,9 +8,7 @@ const api = axios.create({
   },
 });
 
-// Interceptor: El "Portero" de tus peticiones
 api.interceptors.request.use(config => {
-  // Aquí puedes automatizar la inyección de tokens de seguridad
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   if (token) {

@@ -67,42 +67,17 @@ export function InventoryDashboard({
   );
   const { refresh } = useInventoryFormHandler({ isEdit: !!selectedProduct });
 
-  // const loadData = useCallback(async () => {
-  //   setIsLoading(true);
-
-  //   try {
-  //     //const products = await getProductsAction();
-
-  //     setProducts(products);
-
-  //     const statsCalculated = {
-  //       total: products.length,
-  //       active: products.filter(p => p.stock > 0).length,
-  //       lowStock: products.filter(p => p.stock > 0 && p.stock < 5).length,
-  //       outOfStock: products.filter(p => p.stock === 0).length,
-  //       totalValue: products.reduce((acc, p) => acc + p.precio * p.stock, 0),
-  //     };
-
-  //     setStats(statsCalculated);
-  //   } catch (error) {
-  //     console.error('Error al cargar los productos', error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   loadData();
-  // }, [loadData]);
-
   const stats = useMemo<Stats>(() => {
     return {
       total: productsResponse.length,
-      active: productsResponse.filter(p => p.stock > 0).length,
-      lowStock: productsResponse.filter(p => p.stock > 0 && p.stock < 5).length,
-      outOfStock: productsResponse.filter(p => p.stock === 0).length,
+      active: productsResponse.filter(p => p.stock && p.stock > 0).length,
+      lowStock: productsResponse.filter(
+        p => p.stock && p.stock > 0 && p.stock < 5,
+      ).length,
+      outOfStock: productsResponse.filter(p => !p.stock || p.stock === 0)
+        .length,
       totalValue: productsResponse.reduce(
-        (acc, p) => acc + p.precio * p.stock,
+        (acc, p) => acc + (p.precio && p.stock ? p.precio * p.stock : 0),
         0,
       ),
     };
@@ -184,15 +159,21 @@ export function InventoryDashboard({
 
         if (!result.success) {
           setFormError(result.error ?? null);
+
+          toast({
+            variant: 'destructive',
+            title: 'Error al crear producto',
+            description: result.error || 'Ocurrió un error inesperado',
+            duration: 3000,
+          });
+
+          return;
         }
 
         toast({
-          variant: result.success ? 'default' : 'destructive',
-          title: result.success ? 'Producto creado' : 'Error al crear producto',
-          description: result.success
-            ? 'El producto se creó correctamente'
-            : result.error || 'Ocurrió un error inesperado',
-
+          variant: 'default',
+          title: 'Producto creado',
+          description: 'El producto se creó correctamente',
           duration: 3000,
         });
       }

@@ -16,6 +16,7 @@ import { ChatHeader } from './chatHeader';
 import { MessageArea } from './messageArea';
 import { MessageInput } from './messageInput';
 import { EmptyChat } from './emptyChat';
+import { sendMessageUseCase } from '@/features/chat/services/useCases/sendMessageUseCase';
 
 export default function ChatApp() {
   const [activeContactId, setActiveContactId] = useState<string | null>(null);
@@ -57,7 +58,7 @@ export default function ChatApp() {
   }, []);
 
   const handleSendMessage = useCallback(
-    (text: string) => {
+    async (text: string) => {
       if (!activeContactId) return;
 
       const newMessage: Message = {
@@ -69,46 +70,40 @@ export default function ChatApp() {
         status: 'sent',
       };
 
+      // 1. Mostrar mensaje del usuario
       setAllMessages(prev => ({
         ...prev,
         [activeContactId]: [...(prev[activeContactId] || []), newMessage],
       }));
-      setAllConversations(prev =>
-        prev.map(conv =>
-          conv.contact.id === activeContactId
-            ? {
-                ...conv,
-                lastMessage: text,
-                lastMessageTime: newMessage.timestamp,
-              }
-            : conv,
-        ),
-      );
 
-      // Simulate message status updates
-      setTimeout(() => {
+      try {
+        // 2. Llamar al backend
+        const data = await sendMessageUseCase({
+          message: text,
+          contactId: activeContactId,
+          history: allMessages[activeContactId] || [],
+        });
+
+        // 3. Crear mensaje del bot
+        const botMessage: Message = {
+          id: `msg-${Date.now()}-bot`,
+          contactId: activeContactId,
+          text: data.reply || 'Sin respuesta',
+          timestamp: new Date().toISOString(),
+          sender: 'them',
+          status: 'read',
+        };
+
+        // 4. Insertar respuesta
         setAllMessages(prev => ({
           ...prev,
-          [activeContactId]: prev[activeContactId].map(msg =>
-            msg.id === newMessage.id
-              ? { ...msg, status: 'delivered' as const }
-              : msg,
-          ),
+          [activeContactId]: [...(prev[activeContactId] || []), botMessage],
         }));
-      }, 1000);
-
-      setTimeout(() => {
-        setAllMessages(prev => ({
-          ...prev,
-          [activeContactId]: prev[activeContactId].map(msg =>
-            msg.id === newMessage.id
-              ? { ...msg, status: 'read' as const }
-              : msg,
-          ),
-        }));
-      }, 2000);
+      } catch (error) {
+        console.error(error);
+      }
     },
-    [activeContactId],
+    [activeContactId, allMessages],
   );
   //console.log(activeContact);
 

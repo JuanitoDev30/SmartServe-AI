@@ -8,6 +8,7 @@ import { UsuarioModule } from './usuario/usuario.module';
 import { CommonModule } from './common/common.module';
 import { PedidoModule } from './pedido/pedido.module';
 import { VentasModule } from './ventas/ventas.module';
+import { CategoriaModule } from './categoria/categoria.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { VentasModule } from './ventas/ventas.module';
     CommonModule,
     PedidoModule,
     VentasModule,
+    CategoriaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

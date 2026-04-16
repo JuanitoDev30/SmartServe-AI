@@ -36,7 +36,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           )}
         >
           <span className="text-[10px] text-muted-foreground leading-none">
-            {message.time}
+            {message.timestamp}
           </span>
           {isMe && (
             <span className="text-muted-foreground">

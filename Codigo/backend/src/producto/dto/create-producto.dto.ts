@@ -7,13 +7,15 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  Matches,
   MinLength,
 } from 'class-validator';
 
 export class CreateProductoDto {
   @IsString()
   @MinLength(3) //el nombre del producto debe tener al menos 3 caracteres
-  nombre!: string; //el signo de exclamacion es para decirle a typescript que este campo es obligatorio, es decir, que no puede ser null o undefined
+ // @Matches(/^[a-zA-Z0-9\s]+$/)
+  nombre!: string; 
 
   @IsNumber() //el precio del producto debe ser un numero
   @IsPositive() //el precio del producto debe ser un numero positivo

@@ -27,6 +27,7 @@ export class ProductoService {
       const { nombre, slug } = createProductoDto;
 
       const responseSlug = await this.findOneBySlug(slug!);
+
       if (responseSlug)
         return {
           error: responseSlug.message,
@@ -34,6 +35,7 @@ export class ProductoService {
         };
 
       const responseName = await this.findOneByName(nombre!);
+      //console.log(responseName);
       if (responseName)
         return {
           error: responseName.message,
@@ -45,7 +47,7 @@ export class ProductoService {
       await this.productRepository.save(producto);
       return producto;
     } catch (error) {
-      this.handleExceptions(error);
+      throw this.handleExceptions(error);
     }
   }
 
@@ -59,7 +61,7 @@ export class ProductoService {
         skip: offset,
       });
     } catch (error) {
-      this.handleExceptions(error);
+      throw this.handleExceptions(error);
     }
   }
 
@@ -111,7 +113,7 @@ export class ProductoService {
       await this.productRepository.save(product);
       return product;
     } catch (error: any) {
-      this.handleExceptions(error);
+      throw this.handleExceptions(error);
     }
   }
 

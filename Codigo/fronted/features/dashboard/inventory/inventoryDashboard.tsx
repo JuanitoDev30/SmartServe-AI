@@ -70,11 +70,14 @@ export function InventoryDashboard({
   const stats = useMemo<Stats>(() => {
     return {
       total: productsResponse.length,
-      active: productsResponse.filter(p => p.stock > 0).length,
-      lowStock: productsResponse.filter(p => p.stock > 0 && p.stock < 5).length,
-      outOfStock: productsResponse.filter(p => p.stock === 0).length,
+      active: productsResponse.filter(p => p.stock && p.stock > 0).length,
+      lowStock: productsResponse.filter(
+        p => p.stock && p.stock > 0 && p.stock < 5,
+      ).length,
+      outOfStock: productsResponse.filter(p => !p.stock || p.stock === 0)
+        .length,
       totalValue: productsResponse.reduce(
-        (acc, p) => acc + p.precio * p.stock,
+        (acc, p) => acc + (p.precio && p.stock ? p.precio * p.stock : 0),
         0,
       ),
     };
@@ -156,15 +159,21 @@ export function InventoryDashboard({
 
         if (!result.success) {
           setFormError(result.error ?? null);
+
+          toast({
+            variant: 'destructive',
+            title: 'Error al crear producto',
+            description: result.error || 'Ocurrió un error inesperado',
+            duration: 3000,
+          });
+
+          return;
         }
 
         toast({
-          variant: result.success ? 'default' : 'destructive',
-          title: result.success ? 'Producto creado' : 'Error al crear producto',
-          description: result.success
-            ? 'El producto se creó correctamente'
-            : result.error || 'Ocurrió un error inesperado',
-
+          variant: 'default',
+          title: 'Producto creado',
+          description: 'El producto se creó correctamente',
           duration: 3000,
         });
       }

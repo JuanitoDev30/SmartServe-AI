@@ -14,7 +14,9 @@ export interface IProductRepository {
     search?: string;
   }): Promise<ProductType[]>;
   getById(id: string): Promise<ProductType>;
-  create(data: ProductFormData): Promise<ProductType>;
+  create(
+    data: ProductFormData,
+  ): Promise<{ success: boolean; data?: any; error?: string }>;
   update(id: string, data: ProductFormData): Promise<ProductType>;
   delete(id: string): Promise<void>;
 }

@@ -7,8 +7,12 @@ import { productRepository } from '../repositories/productRepository';
 class CreateProductsUseCase {
   constructor(private readonly productRepository: IProductRepository) {}
 
-  async execute(data: ProductFormData): Promise<void> {
-    await this.productRepository.create(data);
+  async execute(data: ProductFormData): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }> {
+    return await this.productRepository.create(data);
   }
 }
 

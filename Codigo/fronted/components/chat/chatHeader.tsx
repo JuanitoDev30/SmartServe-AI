@@ -90,7 +90,7 @@ export function ChatHeader({ contact, onBack, onSearch }: ChatHeaderProps) {
         </p>
       </div>
       <div className="flex items-center gap-0.5">
-        <button
+        {/* <button
           className="rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
           aria-label="Videollamada"
         >
@@ -101,7 +101,7 @@ export function ChatHeader({ contact, onBack, onSearch }: ChatHeaderProps) {
           aria-label="Llamar"
         >
           <Phone className="size-5" />
-        </button>
+        </button> */}
         <button
           onClick={onSearch}
           className="rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"

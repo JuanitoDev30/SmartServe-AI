@@ -67,34 +67,6 @@ export function InventoryDashboard({
   );
   const { refresh } = useInventoryFormHandler({ isEdit: !!selectedProduct });
 
-  // const loadData = useCallback(async () => {
-  //   setIsLoading(true);
-
-  //   try {
-  //     //const products = await getProductsAction();
-
-  //     setProducts(products);
-
-  //     const statsCalculated = {
-  //       total: products.length,
-  //       active: products.filter(p => p.stock > 0).length,
-  //       lowStock: products.filter(p => p.stock > 0 && p.stock < 5).length,
-  //       outOfStock: products.filter(p => p.stock === 0).length,
-  //       totalValue: products.reduce((acc, p) => acc + p.precio * p.stock, 0),
-  //     };
-
-  //     setStats(statsCalculated);
-  //   } catch (error) {
-  //     console.error('Error al cargar los productos', error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   loadData();
-  // }, [loadData]);
-
   const stats = useMemo<Stats>(() => {
     return {
       total: productsResponse.length,

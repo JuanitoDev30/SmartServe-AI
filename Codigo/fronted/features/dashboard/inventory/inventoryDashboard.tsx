@@ -156,6 +156,7 @@ export function InventoryDashboard({
         };
 
         result = await createProductActions(cleanData);
+        console.log('RESULT:', result); // 👈 ¿qué llega aquí?
 
         if (!result.success) {
           setFormError(result.error ?? null);

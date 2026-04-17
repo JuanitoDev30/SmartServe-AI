@@ -22,32 +22,22 @@ export class ProductoService {
     private readonly productRepository: Repository<Producto>,
   ) {}
 
+  // backend - productoService.ts
   async create(createProductoDto: CreateProductoDto) {
+    const { nombre, slug } = createProductoDto;
+
+    const responseSlug = await this.findOneBySlug(slug!);
+    if (responseSlug) throw new BadRequestException(responseSlug.message);
+
+    const responseName = await this.findOneByName(nombre!);
+    if (responseName) throw new BadRequestException(responseName.message);
+
     try {
-      const { nombre, slug } = createProductoDto;
-
-      const responseSlug = await this.findOneBySlug(slug!);
-
-      if (responseSlug)
-        return {
-          error: responseSlug.message,
-          success: false,
-        };
-
-      const responseName = await this.findOneByName(nombre!);
-      //console.log(responseName);
-      if (responseName)
-        return {
-          error: responseName.message,
-          success: false,
-        };
-
       const producto = this.productRepository.create(createProductoDto);
-
       await this.productRepository.save(producto);
       return producto;
     } catch (error) {
-      throw this.handleExceptions(error);
+      this.handleExceptions(error);
     }
   }
 

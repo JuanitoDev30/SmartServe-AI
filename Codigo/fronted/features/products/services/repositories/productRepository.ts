@@ -37,29 +37,28 @@ class ProductRepository implements IProductRepository {
     return data;
   }
 
-  async create(data: ProductFormData): Promise<any> {
+  async create(
+    data: ProductFormData,
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
-      const response = await api.post<{
-        success: boolean;
-        data: any;
-        error: string | null;
-      }>('/producto', data);
+      const response = await api.post('/producto', data);
+
       //console.log(response);
 
-      if (!response.data.success) {
-        return {
-          success: false,
-          error: response.data.error || 'Error creando producto',
-        };
-      }
+      // if (!response.data) {
+      //   return {
+      //     success: false,
+      //     error: response.data.error || 'Error creando producto',
+      //   };
+      // }
 
       return {
         success: true,
         data: response.data,
       };
     } catch (error: any) {
-      console.log('ERROR EN CREATE:', error?.response?.data);
-
+      //console.log('ERROR EN CREATE:', error?.response?.data);
+      // console.log(error?.response?.data?.message);
       return {
         success: false,
         error:

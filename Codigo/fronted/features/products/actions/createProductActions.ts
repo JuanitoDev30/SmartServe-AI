@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 export async function createProductActions(data: ProductFormData) {
   try {
     const result = await createProductsUseCase.execute(data);
+    console.log(result);
 
     if (!result.success) {
       return {

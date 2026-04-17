@@ -10,8 +10,9 @@ import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { Producto } from './entities/producto.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { Categoria } from 'src/categoria/entities/categoria.entity';
 
 @Injectable()
 export class ProductoService {
@@ -20,11 +21,14 @@ export class ProductoService {
   constructor(
     @InjectRepository(Producto)
     private readonly productRepository: Repository<Producto>,
+
+    @InjectRepository(Categoria)
+    private readonly categoriaRepository: Repository<Categoria>,
   ) {}
 
   // backend - productoService.ts
   async create(createProductoDto: CreateProductoDto) {
-    const { nombre, slug } = createProductoDto;
+    const { nombre, slug, categoriaId, ...rest } = createProductoDto;
 
     const responseSlug = await this.findOneBySlug(slug!);
     if (responseSlug) throw new BadRequestException(responseSlug.message);
@@ -34,6 +38,18 @@ export class ProductoService {
 
     try {
       const producto = this.productRepository.create(createProductoDto);
+
+      if (categoriaId) {
+        const categoria = await this.categoriaRepository.findOneBy({
+          id: categoriaId,
+        });
+        if (!categoria)
+          throw new NotFoundException(
+            `Categoría con id ${categoriaId} no encontrada`,
+          );
+        producto.categoria = categoria;
+      }
+
       await this.productRepository.save(producto);
       return producto;
     } catch (error) {
@@ -49,6 +65,9 @@ export class ProductoService {
       return this.productRepository.find({
         take: limit,
         skip: offset,
+        relations: {
+          categoria: true,
+        },
       });
     } catch (error) {
       throw this.handleExceptions(error);
@@ -58,7 +77,12 @@ export class ProductoService {
   // GET ONE
 
   async findOne(id: string) {
-    const product = await this.productRepository.findOneBy({ id });
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: {
+        categoria: true,
+      },
+    });
     if (!product)
       throw new NotFoundException(`Producto con id ${id} no encontrado`);
     return product;
@@ -89,15 +113,27 @@ export class ProductoService {
   async update(id: string, updateProductoDto: UpdateProductoDto) {
     //console.log('ID recibido en backend: ----> ', id);
 
+    const { categoriaId, ...rest } = updateProductoDto;
     const product = await this.productRepository.preload({
-      id: id,
-      ...updateProductoDto,
+      id,
+      ...rest,
     });
 
     //console.log('Producto encontrado:', product);
 
     if (!product)
       throw new NotFoundException(`Producto con id ${id} no encontrado`);
+
+    if (categoriaId) {
+      const categoria = await this.categoriaRepository.findOneBy({
+        id: categoriaId,
+      });
+      if (!categoria)
+        throw new NotFoundException(
+          `Categoría con id ${categoriaId} no encontrada`,
+        );
+      product.categoria = categoria;
+    }
 
     try {
       await this.productRepository.save(product);

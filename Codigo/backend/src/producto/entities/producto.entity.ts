@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Categoria } from 'src/categoria/entities/categoria.entity';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Producto {
@@ -40,10 +47,10 @@ export class Producto {
   })
   status?: string;
 
-  @Column('text', {
-    nullable: true,
+  @ManyToOne(() => Categoria, (categoria) => categoria.productos, {
+    eager: true,
   })
-  categoria?: string;
+  categoria?: Categoria;
   //Proveedor
   @Column('text', {
     nullable: true,

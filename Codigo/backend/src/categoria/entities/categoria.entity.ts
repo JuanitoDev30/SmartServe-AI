@@ -17,9 +17,9 @@ export class Categoria {
   imagen?: string;
 
   @Column('text', {
-    unique: true,
+    nullable: false,
   })
-  slug?: string;
+  descripcion?: string;
 
   @OneToMany(() => Producto, (producto) => producto.categoria)
   productos?: Producto[];

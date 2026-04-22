@@ -1,4 +1,5 @@
 import { categoryRepository } from '../repositorys/categoryRepository';
+import { CategoryRepositoryInterface } from '../repositorys/categotyRepositoryInterface';
 
 interface GetCategoriesProps {
   page: number;
@@ -6,19 +7,24 @@ interface GetCategoriesProps {
   search?: string;
 }
 
-export const getCategoriesUseCase = {
-  async execute({ page, pageSize, search }: GetCategoriesProps) {
-    try {
-      const categories = await categoryRepository.getAll({ page, pageSize, search });
-      return {
-        success: true,
-        data: categories
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.message || 'Error fetching categories'
-      };
-    }
+class GetCategoriesUseCase {
+  constructor(
+    private readonly categoryRepository: CategoryRepositoryInterface,
+  ) {}
+
+  async execute({
+    page,
+    pageSize,
+    search,
+  }: {
+    page: number;
+    pageSize: number;
+    search?: string;
+  }) {
+    return await this.categoryRepository.getAll({ page, pageSize, search });
   }
-};
+}
+
+export const getCategoriesUseCase = new GetCategoriesUseCase(
+  categoryRepository,
+);

@@ -1,16 +1,21 @@
 import { categoryRepository } from '../repositorys/categoryRepository';
 import { CategoryFormData } from '../../schemas/categorySchema';
+import { CategoryRepositoryInterface } from '../repositorys/categotyRepositoryInterface';
 
-export const createCategoryUseCase = {
-  async execute(data: CategoryFormData) {
-    try {
-      const result = await categoryRepository.create(data);
-      return result;
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.message || 'Error creating category'
-      };
-    }
+class CreateCategoryUseCase {
+  constructor(
+    private readonly categoryRepository: CategoryRepositoryInterface,
+  ) {}
+
+  async execute(data: CategoryFormData): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }> {
+    return await this.categoryRepository.create(data);
   }
-};
+}
+
+export const createCategoryUseCase = new CreateCategoryUseCase(
+  categoryRepository,
+);

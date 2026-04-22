@@ -13,22 +13,29 @@ import { createCategoryAction } from '@/features/categories/actions/createCatego
 import { updateCategoryAction } from '@/features/categories/actions/updateCategoryActions';
 import { deleteCategoryAction } from '@/features/categories/actions/deleteCategoryActions';
 
-import { CategoryType, CategoryFormData } from '@/features/categories/schemas/categorySchema';
+import {
+  CategoryType,
+  CategoryFormData,
+} from '@/features/categories/schemas/categorySchema';
 
 interface CategoryDashboardProps {
   categoriesResponse: CategoryType[];
 }
 
-export function CategoryDashboard({ categoriesResponse }: CategoryDashboardProps) {
+export function CategoryDashboard({
+  categoriesResponse,
+}: CategoryDashboardProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [search, setSearch] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(
+    null,
+  );
 
-  const filteredCategories = categoriesResponse.filter((category) =>
-    category.nombre.toLowerCase().includes(search.toLowerCase())
+  const filteredCategories = categoriesResponse.filter(category =>
+    category.nombre.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleCreate = () => {
@@ -56,7 +63,8 @@ export function CategoryDashboard({ categoriesResponse }: CategoryDashboardProps
       toast({
         variant: 'destructive',
         title: 'Nombre inválido',
-        description: 'El nombre de la categoría debe tener al menos 2 caracteres',
+        description:
+          'El nombre de la categoría debe tener al menos 2 caracteres',
       });
       setIsSubmitting(false);
       return;
@@ -64,7 +72,7 @@ export function CategoryDashboard({ categoriesResponse }: CategoryDashboardProps
 
     try {
       let result: { success: boolean; error?: string } = { success: false };
-      
+
       if (selectedCategory) {
         result = await updateCategoryAction(selectedCategory.id, data);
 
@@ -184,7 +192,7 @@ export function CategoryDashboard({ categoriesResponse }: CategoryDashboardProps
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             placeholder="Buscar categorías..."
             className="pl-10 h-10"
           />

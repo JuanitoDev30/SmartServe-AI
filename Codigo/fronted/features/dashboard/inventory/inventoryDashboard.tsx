@@ -33,6 +33,8 @@ import {
   ProductType,
 } from '@/features/products/schemas/productSchema';
 import useInventoryFormHandler from './hooks/useInventoryFormHandler';
+import Link from 'next/link';
+import { CategoryType } from '@/features/categories/schemas/categorySchema';
 
 type ViewMode = 'grid' | 'table';
 
@@ -46,10 +48,12 @@ interface Stats {
 
 interface InventoryDashboardProps {
   productsResponse: ProductType[];
+  categoriesResponse?: CategoryType[];
 }
 
 export function InventoryDashboard({
   productsResponse,
+  categoriesResponse,
 }: InventoryDashboardProps) {
   const [products, setProducts] = useState<ProductType[]>(productsResponse);
 
@@ -230,10 +234,19 @@ export function InventoryDashboard({
             Gestiona tus productos y controla el stock
           </p>
         </div>
-        <Button onClick={handleCreate} className="gap-2 shrink-0">
-          <Plus className="size-4" />
-          Nuevo producto
-        </Button>
+        <div>
+          <Button onClick={handleCreate} className="gap-2 shrink-0">
+            <Plus className="size-4" />
+            Nuevo producto
+          </Button>
+
+          <Link href="/dashboard/categorias" className="ml-2">
+            <Button className="gap-2 ml-2 shrink-0" variant="outline">
+              <Plus className="size-4" />
+              Nueva categoria
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
@@ -312,16 +325,11 @@ export function InventoryDashboard({
           onChange={e => setCategory(e.target.value as ProductCategory | '')}
           className="h-10 rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-[140px]"
         >
-          <option value="">Todas las categorias</option>
-          <option value="Aguardiente">Aguardiente</option>
-          <option value="Cerveza">Cerveza</option>
-          <option value="Snacks">Snacks</option>
-          <option value="Tequila">Tequila</option>
-          <option value="Whisky">Whisky</option>
-          <option value="Ron">Ron</option>
-          <option value="Vino tinto">Vino tinto</option>
-          <option value="Ginebra">Ginebra</option>
-          <option value="Vino">Vino</option>
+          {categoriesResponse?.map(cat => (
+            <option key={cat.id} value={cat.nombre}>
+              {cat.nombre}
+            </option>
+          ))}
         </select>
         <select
           value={status}
@@ -422,6 +430,7 @@ export function InventoryDashboard({
         product={selectedProduct}
         isLoading={isSubmitting}
         error={formError}
+        categories={categoriesResponse}
       />
 
       <DeleteConfirmModal

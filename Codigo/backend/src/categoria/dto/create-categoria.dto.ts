@@ -15,7 +15,7 @@ export class CreateCategoriaDto {
   @IsString()
   @MinLength(1)
   @MaxLength(20)
-  slug!: string;
+  descripcion!: string;
 
   @IsString()
   @IsOptional()

@@ -1,3 +1,4 @@
+import { getCategoriesAction } from '@/features/categories/actions/getCategoryActions';
 import { InventoryDashboard } from '@/features/dashboard/inventory/inventoryDashboard';
 import { getProductsAction } from '@/features/products/actions/getProductActions';
 
@@ -13,11 +14,26 @@ export default async function InventoryPage({
   searchParams,
 }: InventoryPageProps) {
   const params = await searchParams;
-  const getProducts = await getProductsAction({
-    page: params.page,
-    pageSize: params.pageSize,
-    search: params.search,
-  });
 
-  return <InventoryDashboard productsResponse={getProducts} />;
+  const [products, categories] = await Promise.all([
+    await getProductsAction({
+      page: params.page,
+      pageSize: params.pageSize,
+      search: params.search,
+    }),
+    await getCategoriesAction({
+      page: 1,
+      pageSize: 100,
+      search: '',
+    }),
+  ]);
+
+  console.log(products, categories);
+
+  return (
+    <InventoryDashboard
+      productsResponse={products}
+      categoriesResponse={categories}
+    />
+  );
 }

@@ -12,6 +12,7 @@ import {
   ProductStatus,
 } from '@/features/products/schemas/productSchema';
 import { cn } from '@/lib/utils';
+import { CategoryType } from '@/features/categories/schemas/categorySchema';
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -20,19 +21,8 @@ interface ProductFormModalProps {
   product?: ProductType | null;
   isLoading?: boolean;
   error?: string | null;
+  categories?: CategoryType[];
 }
-
-const categories: { value: ProductCategory; label: string }[] = [
-  { value: 'Aguardiente', label: 'Aguardiente' },
-  { value: 'Cerveza', label: 'Cerveza' },
-  { value: 'Snacks', label: 'Snacks' },
-  { value: 'Tequila', label: 'Tequila' },
-  { value: 'Whisky', label: 'Whisky' },
-  { value: 'Ron', label: 'Ron' },
-  { value: 'Vino tinto', label: 'Vino tinto' },
-  { value: 'Ginebra', label: 'Ginebra' },
-  { value: 'Vino', label: 'Vino' },
-];
 
 const statuses: { value: ProductStatus; label: string }[] = [
   { value: 'active', label: 'Activo' },
@@ -72,6 +62,7 @@ export function ProductFormModal({
   product,
   isLoading,
   error,
+  categories,
 }: ProductFormModalProps) {
   const [formData, setFormData] = useState<ProductFormData>(defaultFormData);
   const errorField = getErrorField(error);
@@ -228,9 +219,9 @@ export function ProductFormModal({
                   onChange={handleChange}
                   className="flex h-11 w-full rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  {categories.map(cat => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
+                  {categories?.map(cat => (
+                    <option key={cat.id} value={cat.nombre}>
+                      {cat.nombre}
                     </option>
                   ))}
                 </select>

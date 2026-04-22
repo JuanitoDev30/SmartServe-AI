@@ -10,6 +10,7 @@ import {
   Package,
   Settings,
   ShoppingCart,
+  Tags,
   User,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -47,6 +48,11 @@ const navItems = [
     label: 'Inventario',
     href: '/dashboard/inventario',
     icon: Archive,
+  },
+  {
+    label: 'Categorias',
+    href: '/dashboard/categorias',
+    icon: Tags,
   },
 
   // {

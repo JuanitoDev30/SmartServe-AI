@@ -32,7 +32,7 @@ export class CategoriaService {
     }
   }
   async findAll() {
-    return await this.categoriaRepository;
+    return await this.categoriaRepository.find();
   }
 
   findOne(id: number) {}

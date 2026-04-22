@@ -2,27 +2,23 @@
 import { deleteCategoryUseCase } from '../services/useCases/deleteCategoryUseCase';
 import { revalidatePath } from 'next/cache';
 
-export async function deleteCategoryAction(id: string) {
+type DeleteCategoryResponse =
+  | { success: true }
+  | { success: false; error: string };
+
+export async function deleteCategoryAction(
+  id: string,
+): Promise<DeleteCategoryResponse> {
   try {
-    const result = await deleteCategoryUseCase.execute(id);
-
-    if (!result.success) {
-      return {
-        success: false,
-        error: result.error || 'Error deleting category',
-      };
-    }
-
+    await deleteCategoryUseCase.execute(id);
     revalidatePath('/dashboard/categorias');
-
-    return {
-      success: true,
-    };
+    return { success: true };
   } catch (error: any) {
     console.error(error);
+
     return {
       success: false,
-      error: error.message || 'Error deleting category',
+      error: error?.message || 'Error al eliminar la categoría',
     };
   }
 }

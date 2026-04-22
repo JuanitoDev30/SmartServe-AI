@@ -15,29 +15,83 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class CategoriaService {
   private logger = new Logger('CategoriaService');
-  handleException: any;
 
   constructor(
     @InjectRepository(Categoria)
     private readonly categoriaRepository: Repository<Categoria>,
   ) {}
 
+  // CREATE
   async create(createCategoriaDto: CreateCategoriaDto) {
+    const { nombre } = createCategoriaDto;
+
+    const existe = await this.categoriaRepository.findOneBy({ nombre });
+
+    if (existe) {
+      throw new BadRequestException(
+        `La categoría '${nombre}' ya existe`,
+      );
+    }
+
     try {
       const categoria = this.categoriaRepository.create(createCategoriaDto);
-      await this.categoriaRepository.save(categoria);
-      return categoria;
+      return await this.categoriaRepository.save(categoria);
     } catch (error) {
-      this.handleException;
+      this.handleExceptions(error);
     }
   }
+
+  // GET ALL
   async findAll() {
     return await this.categoriaRepository.find();
   }
 
-  findOne(id: number) {}
+  // GET ONE
+  async findOne(id: string) {
+    const categoria = await this.categoriaRepository.findOneBy({ id });
 
-  update(id: number, updateCategoriaDto: UpdateCategoriaDto) {}
+    if (!categoria) {
+      throw new NotFoundException(
+        `Categoría con id ${id} no encontrada`,
+      );
+    }
 
-  remove(id: number) {}
+    return categoria;
+  }
+
+  // UPDATE
+  async update(id: string, updateCategoriaDto: UpdateCategoriaDto) {
+    const categoria = await this.categoriaRepository.preload({
+      id,
+      ...updateCategoriaDto,
+    });
+
+    if (!categoria) {
+      throw new NotFoundException(
+        `Categoría con id ${id} no encontrada`,
+      );
+    }
+
+    try {
+      return await this.categoriaRepository.save(categoria);
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+  }
+
+  // DELETE
+  async remove(id: string) {
+    const categoria = await this.findOne(id);
+    return await this.categoriaRepository.remove(categoria);
+  }
+
+  // MANEJO DE ERRORES
+  private handleExceptions(error: any) {
+    if (error.code === '23505') {
+      throw new BadRequestException('Categoría duplicada');
+    }
+
+    this.logger.error(error);
+    throw new InternalServerErrorException('Error en el servidor');
+  }
 }

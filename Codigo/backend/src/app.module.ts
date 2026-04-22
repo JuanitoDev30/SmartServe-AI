@@ -9,6 +9,7 @@ import { CommonModule } from './common/common.module';
 import { PedidoModule } from './pedido/pedido.module';
 import { VentasModule } from './ventas/ventas.module';
 import { CategoriaModule } from './categoria/categoria.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CategoriaModule } from './categoria/categoria.module';
     PedidoModule,
     VentasModule,
     CategoriaModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

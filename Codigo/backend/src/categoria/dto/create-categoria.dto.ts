@@ -15,7 +15,7 @@ export class CreateCategoriaDto {
   @IsString()
   @MinLength(1)
   @MaxLength(20)
-  descripcion!: string;
+  descripcion?: string;
 
   @IsString()
   @IsOptional()

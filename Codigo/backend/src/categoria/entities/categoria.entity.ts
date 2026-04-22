@@ -17,7 +17,7 @@ export class Categoria {
   imagen?: string;
 
   @Column('text', {
-    nullable: false,
+    nullable: true,
   })
   descripcion?: string;
 

@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CategoryType, CategoryFormData } from '@/features/categories/schemas/categorySchema';
+import {
+  CategoryType,
+  CategoryFormData,
+} from '@/features/categories/schemas/categorySchema';
 import { cn } from '@/lib/utils';
 
 interface CategoryFormModalProps {
@@ -21,13 +24,6 @@ const defaultFormData: CategoryFormData = {
   descripcion: '',
 };
 
-function getErrorField(error: string | null | undefined): 'nombre' | 'general' | null {
-  if (!error) return null;
-  const lowerError = error.toLowerCase();
-  if (lowerError.includes('nombre')) return 'nombre';
-  return 'general';
-}
-
 export function CategoryFormModal({
   isOpen,
   onClose,
@@ -37,7 +33,7 @@ export function CategoryFormModal({
   error,
 }: CategoryFormModalProps) {
   const [formData, setFormData] = useState<CategoryFormData>(defaultFormData);
-  const errorField = getErrorField(error);
+  const [errorField, setErrorField] = useState<string | null>(null);
 
   useEffect(() => {
     if (category) {
@@ -56,7 +52,7 @@ export function CategoryFormModal({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -87,7 +83,10 @@ export function CategoryFormModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="overflow-y-auto max-h-[calc(90vh-140px)]">
+        <form
+          onSubmit={handleSubmit}
+          className="overflow-y-auto max-h-[calc(90vh-140px)]"
+        >
           <div className="p-6 space-y-5">
             {errorField === 'general' && (
               <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2 rounded-lg">
@@ -107,7 +106,8 @@ export function CategoryFormModal({
                 required
                 className={cn(
                   'h-11',
-                  errorField === 'nombre' && 'border-red-500 focus:ring-red-500'
+                  errorField === 'nombre' &&
+                    'border-red-500 focus:ring-red-500',
                 )}
               />
               {errorField === 'nombre' && (
@@ -133,11 +133,20 @@ export function CategoryFormModal({
           </div>
 
           <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-muted/30">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isLoading}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Guardando...' : category ? 'Actualizar' : 'Crear categoría'}
+              {isLoading
+                ? 'Guardando...'
+                : category
+                  ? 'Actualizar'
+                  : 'Crear categoría'}
             </Button>
           </div>
         </form>

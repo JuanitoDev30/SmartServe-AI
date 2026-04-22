@@ -1,19 +1,13 @@
 import { categoryRepository } from '../repositorys/categoryRepository';
+import { CategoryRepositoryInterface } from '../repositorys/categotyRepositoryInterface';
 import { CategoryFormData } from '../../schemas/categorySchema';
 
-export const updateCategoryUseCase = {
-  async execute(id: string, data: CategoryFormData) {
-    try {
-      const result = await categoryRepository.update(id, data);
-      return {
-        success: true,
-        data: result
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.message || 'Error updating category'
-      };
-    }
+class UpdateCategoryUseCase {
+  constructor(private readonly categoryRepository: CategoryRepositoryInterface) {}
+
+  async execute(id: string, data: CategoryFormData): Promise<void> {
+    await this.categoryRepository.update(id, data);
   }
-};
+}
+
+export const updateCategoryUseCase = new UpdateCategoryUseCase(categoryRepository);

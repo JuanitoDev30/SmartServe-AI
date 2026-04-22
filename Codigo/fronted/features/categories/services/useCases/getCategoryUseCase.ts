@@ -1,16 +1,8 @@
-import { categoryRepository } from '../repositorys/categoryRepository';
-import { CategoryRepositoryInterface } from '../repositorys/categotyRepositoryInterface';
-
-interface GetCategoriesProps {
-  page: number;
-  pageSize: number;
-  search?: string;
-}
+import { categoryRepository } from "../repositorys/categoryRepository";   
+import { CategoryRepositoryInterface } from "../repositorys/categotyRepositoryInterface"; 
 
 class GetCategoriesUseCase {
-  constructor(
-    private readonly categoryRepository: CategoryRepositoryInterface,
-  ) {}
+  constructor(private readonly categoryRepository: CategoryRepositoryInterface) {}
 
   async execute({
     page,
@@ -25,6 +17,4 @@ class GetCategoriesUseCase {
   }
 }
 
-export const getCategoriesUseCase = new GetCategoriesUseCase(
-  categoryRepository,
-);
+export const getCategoriesUseCase = new GetCategoriesUseCase(categoryRepository);

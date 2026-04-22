@@ -1,17 +1,12 @@
 import { categoryRepository } from '../repositorys/categoryRepository';
+import { CategoryRepositoryInterface } from '../repositorys/categotyRepositoryInterface';
 
-export const deleteCategoryUseCase = {
-  async execute(id: string) {
-    try {
-      await categoryRepository.delete(id);
-      return {
-        success: true
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.message || 'Error deleting category'
-      };
-    }
+class DeleteCategoryUseCase {
+  constructor(private readonly categoryRepository: CategoryRepositoryInterface) {}
+
+  async execute(id: string): Promise<void> {
+    await this.categoryRepository.delete(id);
   }
-};
+}
+
+export const deleteCategoryUseCase = new DeleteCategoryUseCase(categoryRepository);

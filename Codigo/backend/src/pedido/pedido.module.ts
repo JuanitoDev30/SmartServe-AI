@@ -7,21 +7,8 @@ import { Producto } from '../producto/entities/producto.entity';
 import { Usuario } from '../usuario/entities/usuario.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      Pedido,
-      Producto, // 🔥 AGREGAR
-      Usuario,  // 🔥 AGREGAR
-    ]),
-  ],
+  imports: [TypeOrmModule.forFeature([Pedido, Producto, Usuario])],
   controllers: [PedidoController],
   providers: [PedidoService],
 })
 export class PedidoModule {}
-
-
-
-
-
-
-

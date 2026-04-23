@@ -29,6 +29,8 @@ export default function ChatApp() {
 
   const [showMobileChat, setShowMobilChat] = useState(false);
 
+  const [isTyping, setIsTyping] = useState(false);
+
   const activeContact = activeContactId
     ? contacts.find(contact => contact.id === activeContactId) || null
     : null;
@@ -77,18 +79,27 @@ export default function ChatApp() {
       }));
 
       try {
+        const updatedMessages = [
+          ...(allMessages[activeContactId] || []),
+          newMessage,
+        ];
+
+        setIsTyping(true);
+
         // 2. Llamar al backend
         const data = await sendMessageUseCase({
           message: text,
           contactId: activeContactId,
-          history: allMessages[activeContactId] || [],
+          history: updatedMessages,
         });
+
+        setIsTyping(false);
 
         // 3. Crear mensaje del bot
         const botMessage: Message = {
           id: `msg-${Date.now()}-bot`,
           contactId: activeContactId,
-          text: data.reply || 'Sin respuesta',
+          text: data || 'Sin respuesta',
           timestamp: new Date().toISOString(),
           sender: 'them',
           status: 'read',
@@ -145,7 +156,7 @@ export default function ChatApp() {
               onBack={handleBack}
               onSearch={() => {}}
             />
-            <MessageArea messages={currentMessage} />
+            <MessageArea messages={currentMessage} isTyping={isTyping} />
             <MessageInput onSend={handleSendMessage} />
           </>
         ) : (

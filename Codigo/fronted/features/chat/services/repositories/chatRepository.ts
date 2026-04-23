@@ -4,6 +4,9 @@ export const chatRepository = {
   async sendMessage(message: SendMessageInterface) {
     const response = await fetch('/api/chat', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(message),
     });
 
@@ -11,6 +14,10 @@ export const chatRepository = {
       throw new Error('Error sending message');
     }
 
-    return response.json();
+    const data = await response.json();
+
+    console.log('FRONT ', data);
+
+    return data.message;
   },
 };

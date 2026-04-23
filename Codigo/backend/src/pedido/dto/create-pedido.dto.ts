@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsUUID,
@@ -5,6 +6,9 @@ import {
   IsString,
   MinLength,
   IsOptional,
+  IsNumber,
+  IsPositive,
+  IsDate,
 } from 'class-validator';
 
 export class CreatePedidoDto {
@@ -25,15 +29,31 @@ export class CreatePedidoDto {
   direccion!: string;
 
   // Ciudad
-  @IsString()
-  ciudad!: string;
+  @IsNumber()
+  @IsPositive()
+  @Type(() => Number)
+  subTotal!: number;
 
-  // Teléfono
-  @IsString()
-  telefono!: string;
+  @IsNumber()
+  @IsPositive()
+  @Type(() => Number)
+  total!: number;
 
   // Notas 
   @IsOptional()
   @IsString()
   notas?: string;
+
+  @IsString()
+  @IsOptional()
+  //@IsDate()
+  fecha?: string;
+
+  @IsString()
+  metodoPago!: string;
+
+  @IsString()
+  estado!: string;
+
+
 }

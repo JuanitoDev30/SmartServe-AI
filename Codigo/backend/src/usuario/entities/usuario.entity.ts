@@ -38,7 +38,7 @@ export class Usuario {
   cedula!: string;
 
   @Column('text', {
-    nullable: true,
+    nullable: false,
   })
-  telefono?: string;
+  telefono!: string;
 }

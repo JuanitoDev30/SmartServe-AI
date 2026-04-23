@@ -1,5 +1,5 @@
-import { getUserActions } from '@/features/users/actions/getUsersActions';
-import UserListComponent from '@/features/users/components/list/UserListComponent';
+import { getUserActions } from '@/features/usuarios/actions/getUsersActions';
+import UserListComponent from '@/features/usuarios/components/list/UserListComponent';
 
 export default async function UserListPage() {
   const userListrResponse = await getUserActions();

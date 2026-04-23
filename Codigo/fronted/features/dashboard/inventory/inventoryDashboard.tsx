@@ -22,16 +22,16 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-import { createProductActions } from '@/features/products/actions/createProductActions';
-import { updateProductActions } from '@/features/products/actions/updateProductActions';
-import { deleteProductActions } from '@/features/products/actions/deleteProductActions';
+import { createProductActions } from '@/features/productos/actions/createProductActions';
+import { updateProductActions } from '@/features/productos/actions/updateProductActions';
+import { deleteProductActions } from '@/features/productos/actions/deleteProductActions';
 
 import {
   ProductCategory,
   ProductFormData,
   ProductStatus,
   ProductType,
-} from '@/features/products/schemas/productSchema';
+} from '@/features/productos/schemas/productSchema';
 import useInventoryFormHandler from './hooks/useInventoryFormHandler';
 import Link from 'next/link';
 import { CategoryType } from '@/features/categories/schemas/categorySchema';

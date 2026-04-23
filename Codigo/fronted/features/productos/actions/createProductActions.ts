@@ -1,5 +1,5 @@
 'use server';
-import { ProductFormData } from '@/features/products/schemas/productSchema';
+import { ProductFormData } from '@/features/productos/schemas/productSchema';
 import { createProductsUseCase } from '../services/useCases/createProductUseCase';
 import { revalidatePath } from 'next/cache';
 

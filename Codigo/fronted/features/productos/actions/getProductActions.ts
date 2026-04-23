@@ -1,4 +1,4 @@
-import { getProductsUseCase } from '@/features/products/services/useCases/getProductUseCase';
+import { getProductsUseCase } from '@/features/productos/services/useCases/getProductUseCase';
 
 interface ProductsActionsProps {
   page: number;

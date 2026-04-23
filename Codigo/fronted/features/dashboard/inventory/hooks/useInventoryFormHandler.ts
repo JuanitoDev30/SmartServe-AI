@@ -1,4 +1,4 @@
-import { refreshInventoryAction } from '@/features/products/actions/refreshInventoryActions';
+import { refreshInventoryAction } from '@/features/productos/actions/refreshInventoryActions';
 import { startTransition } from 'react';
 
 interface ProductFormDataProps {

@@ -9,7 +9,7 @@ import {
 import {
   ProductStatus,
   ProductType,
-} from '@/features/products/schemas/productSchema';
+} from '@/features/productos/schemas/productSchema';
 import { cn } from '@/lib/utils';
 
 import { Edit2, MoreVertical, Package, Trash2 } from 'lucide-react';

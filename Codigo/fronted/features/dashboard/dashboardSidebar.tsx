@@ -30,7 +30,7 @@ const navItems = [
   },
   {
     label: 'Pedidos',
-    href: '/dashboard/pedidos',
+    href: '/dashboard/pedido',
     icon: Package,
   },
   {

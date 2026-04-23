@@ -10,7 +10,7 @@ import {
   ProductFormData,
   ProductCategory,
   ProductStatus,
-} from '@/features/products/schemas/productSchema';
+} from '@/features/productos/schemas/productSchema';
 import { cn } from '@/lib/utils';
 import { CategoryType } from '@/features/categories/schemas/categorySchema';
 

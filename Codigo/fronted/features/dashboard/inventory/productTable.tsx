@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import {
   ProductStatus,
   ProductType,
-} from '@/features/products/schemas/productSchema';
+} from '@/features/productos/schemas/productSchema';
 
 interface ProductTableProps {
   productsResponse: ProductType[];

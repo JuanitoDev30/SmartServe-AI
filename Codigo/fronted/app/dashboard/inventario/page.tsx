@@ -1,6 +1,6 @@
 import { getCategoriesAction } from '@/features/categories/actions/getCategoryActions';
 import { InventoryDashboard } from '@/features/dashboard/inventory/inventoryDashboard';
-import { getProductsAction } from '@/features/products/actions/getProductActions';
+import { getProductsAction } from '@/features/productos/actions/getProductActions';
 
 interface InventoryPageProps {
   searchParams: Promise<{

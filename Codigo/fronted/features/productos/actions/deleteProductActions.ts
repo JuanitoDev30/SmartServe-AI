@@ -1,5 +1,5 @@
 'use server';
-import { deleteProductsUseCase } from '@/features/products/services/useCases/deleteProductUseCase';
+import { deleteProductsUseCase } from '@/features/productos/services/useCases/deleteProductUseCase';
 import { revalidatePath } from 'next/cache';
 
 type DeleteProductResponse =

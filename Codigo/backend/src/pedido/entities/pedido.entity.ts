@@ -10,9 +10,8 @@ import { Producto } from '../../producto/entities/producto.entity';
 import { Usuario } from 'src/usuario/entities/usuario.entity';
 @Entity()
 export class Pedido {
-<<<<<<< HEAD
   @PrimaryGeneratedColumn('uuid')
-  id?: string;
+  id!: string;
   @Column('numeric', {
     default: 0,
   })
@@ -21,30 +20,10 @@ export class Pedido {
     default: () => 'CURRENT_TIMESTAMP',
   })
   fecha!: Date;
-
   @ManyToMany(() => Producto)
   @JoinTable()
-  productos: Producto[];
-=======
-    @PrimaryGeneratedColumn('uuid')
-    id!: string;
-    @Column('numeric', {
-        default: 0,
-    })
-    total!: number;
-    @Column('timestamp', {
-        default: () => 'CURRENT_TIMESTAMP',
-    })
-    fecha!: Date;
-
-    @ManyToMany(() => Producto)
-    @JoinTable()
-    productos!: Producto[];
-    
-    @ManyToOne(() => Usuario)
-    usuario!: Usuario;
->>>>>>> 2ba5980 (Co-authored-by: MrUrbano753 <MrUrbano753@users.noreply.github.com>)
+  productos!: Producto[];
 
   @ManyToOne(() => Usuario)
-  usuario: Usuario;
+  usuario!: Usuario;
 }

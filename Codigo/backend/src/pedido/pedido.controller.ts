@@ -1,7 +1,7 @@
 import {
   Controller,
   Get,
-  Post, 
+  Post,
   Body,
   Patch,
   Param,
@@ -16,27 +16,30 @@ import { UpdatePedidoDto } from './dto/update-pedido.dto';
 export class PedidoController {
   constructor(private readonly pedidoService: PedidoService) {}
 
-  // CREATE
+  //  CREATE
   @Post()
   create(@Body() createPedidoDto: CreatePedidoDto) {
     return this.pedidoService.create(createPedidoDto);
   }
 
-  // GET ALL
+  //  GET ALL
   @Get()
   findAll() {
     return this.pedidoService.findAll();
   }
-  
-  // GET ONE
+
+  //  GET ONE
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.pedidoService.findOne(id);
   }
 
-  // UPDATE
+  //  UPDATE
   @Patch(':id')
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() updatePedidoDto: UpdatePedidoDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updatePedidoDto: UpdatePedidoDto,
+  ) {
     return this.pedidoService.update(id, updatePedidoDto);
   }
 

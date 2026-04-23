@@ -6,9 +6,9 @@ import {
   IsDateString,
   IsArray,
   IsUUID,
+  ArrayNotEmpty,
 } from 'class-validator';
-import { Producto } from 'src/producto/entities/producto.entity';
-import { Usuario } from 'src/usuario/entities/usuario.entity';
+
 export class CreatePedidoDto {
   @IsNumber() //el precio del producto debe ser un numero
   @IsPositive() //el precio del producto debe ser un numero positivo
@@ -18,10 +18,12 @@ export class CreatePedidoDto {
   @IsOptional() //la fecha del pedido es opcional, es decir, que puede ser null o undefined
   fecha?: string;
 
-  @IsArray() //el pedido debe tener un array de productos
-  @IsUUID(undefined, { each: true }) //cada elemento del array debe ser un UUID
-  productosIds: string[];
+  @IsArray({ message: 'productosIds debe ser un arreglo' })
+  @ArrayNotEmpty({ message: 'Debe enviar al menos un producto' })
+  @IsUUID('4', { each: true, message: 'Cada producto debe ser un UUID válido' })
+  productosIds!: string[]; 
 
-  @IsUUID() //el pedido debe tener un usuarioId que sea un UUID
-  usuarioId: string;
+  @IsUUID('4', { message: 'usuarioId debe ser un UUID válido' })
+  usuarioId!: string; 
+
 }

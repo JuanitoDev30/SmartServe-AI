@@ -33,20 +33,23 @@ export class PedidoService {
     try {
       const { productosIds, usuarioId, ...rest } = createPedidoDto;
 
+      // 🔹 validar productos
       const productos = await this.productoRepository.find({
         where: { id: In(productosIds) },
       });
 
-      if (productos.length === 0) {
-        throw new BadRequestException('No existen productos válidos');
+      if (productos.length !== productosIds.length) {
+        throw new BadRequestException('Algunos productos no existen');
       }
 
+      //  validar usuario
       const usuario = await this.usuarioRepository.findOneBy({ id: usuarioId });
 
       if (!usuario) {
         throw new NotFoundException('Usuario no encontrado');
       }
 
+      // 🔹 calcular total
       const total = productos.reduce(
         (sum, producto) => sum + producto.precio,
         0,
@@ -54,9 +57,9 @@ export class PedidoService {
 
       const pedido = this.pedidoRepository.create({
         ...rest,
-        total,
         productos,
         usuario,
+        total,
       });
 
       await this.pedidoRepository.save(pedido);
@@ -78,7 +81,7 @@ export class PedidoService {
     }
   }
 
-  // GET ONE
+  //  GET ONE
   async findOne(id: string) {
     try {
       const pedido = await this.pedidoRepository.findOne({
@@ -120,13 +123,15 @@ export class PedidoService {
     }
   }
 
-  // DELETE
+  //  DELETE
   async remove(id: string) {
     try {
       const result = await this.pedidoRepository.delete(id);
 
       if (result.affected === 0) {
-        throw new NotFoundException(`Pedido con id ${id} no encontrado`);
+        throw new NotFoundException(
+          `Pedido con id ${id} no encontrado`,
+        );
       }
 
       return { message: 'Pedido eliminado correctamente' };
@@ -135,7 +140,7 @@ export class PedidoService {
     }
   }
 
-  // MANEJO DE EXCEPCIONES
+  // MANEJO DE ERRORES
   private handleExceptions(error: any) {
     if (
       error instanceof BadRequestException ||

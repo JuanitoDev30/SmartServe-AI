@@ -1,6 +1,6 @@
 // use-cases/createProducts.usecase.ts
 
-import { ProductFormData } from '@/features/products/schemas/productSchema';
+import { ProductFormData } from '@/features/productos/schemas/productSchema';
 import { IProductRepository } from '../repositories/productRepositoryInterface';
 import { productRepository } from '../repositories/productRepository';
 
@@ -12,6 +12,7 @@ class CreateProductsUseCase {
     data?: any;
     error?: string;
   }> {
+    // console.log(data);
     return await this.productRepository.create(data);
   }
 }

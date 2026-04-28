@@ -16,7 +16,7 @@ export async function createProductActions(data: ProductFormData) {
     }
 
     revalidatePath('/dashboard/inventario');
-
+    // console.log('--->', data);
     return {
       success: true,
       data: result.data,

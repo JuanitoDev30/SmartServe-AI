@@ -1,7 +1,7 @@
 import {
   ProductFormData,
   ProductType,
-} from '@/features/products/schemas/productSchema';
+} from '@/features/productos/schemas/productSchema';
 
 export interface IProductRepository {
   getAll({

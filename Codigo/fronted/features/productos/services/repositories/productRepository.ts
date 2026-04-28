@@ -6,7 +6,7 @@ import { IProductRepository } from './productRepositoryInterface';
 import {
   ProductType,
   ProductFormData,
-} from '@/features/products/schemas/productSchema';
+} from '@/features/productos/schemas/productSchema';
 
 interface ProductsActionsProps {
   page: number;

@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import {
   ProductType,
   ProductFormData,
-  ProductCategory,
   ProductStatus,
 } from '@/features/productos/schemas/productSchema';
 import { cn } from '@/lib/utils';
@@ -39,7 +38,7 @@ const defaultFormData: ProductFormData = {
   stock: 0,
   proveedor: '',
   status: 'active',
-  categoria: 'Aguardiente',
+  categoriaId: '',
 
   //minStock: 5,
 };
@@ -49,7 +48,7 @@ function getErrorField(
 ): 'nombre' | 'slug' | 'general' | null {
   // console.log(error);
   if (!error) return null;
-  const lowerError = error.toLowerCase();
+  const lowerError = error;
   if (lowerError.includes('nombre')) return 'nombre';
   if (lowerError.includes('slug')) return 'slug';
   return 'general';
@@ -77,7 +76,7 @@ export function ProductFormModal({
         stock: product.stock || 0,
         proveedor: product.proveedor || '',
         status: product.status,
-        categoria: product.categoria,
+        categoriaId: product.categoria?.id || '',
       });
     } else {
       setFormData(defaultFormData);
@@ -100,8 +99,8 @@ export function ProductFormModal({
       [name]:
         type === 'number'
           ? parseFloat(value) || 0
-          : name === 'categoria'
-            ? (value as ProductCategory)
+          : name === 'categoriaId'
+            ? (value as string)
             : name === 'status'
               ? (value as ProductStatus)
               : value,
@@ -214,13 +213,13 @@ export function ProductFormModal({
                   Categoria
                 </label>
                 <select
-                  name="categoria"
-                  value={formData.categoria}
+                  name="categoriaId"
+                  value={formData.categoriaId}
                   onChange={handleChange}
                   className="flex h-11 w-full rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {categories?.map(cat => (
-                    <option key={cat.id} value={cat.nombre}>
+                    <option key={cat.id} value={cat.id}>
                       {cat.nombre}
                     </option>
                   ))}

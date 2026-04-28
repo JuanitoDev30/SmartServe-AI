@@ -36,18 +36,6 @@ const statusConfig: Record<
   },
 };
 
-const categoryLabels: Record<string, string> = {
-  Aguardiente: 'Aguardiente',
-  Cerveza: 'Cerveza',
-  Ron: 'Ron',
-  Tequila: 'Tequila',
-  Vino: 'Vino',
-  Whisky: 'Whisky',
-  Snacks: 'Snacks',
-  Ginebra: 'Ginebra',
-  VinoTinto: 'Vino Tinto',
-};
-
 export function ProductTable({
   productsResponse,
   onEdit,
@@ -115,7 +103,7 @@ export function ProductTable({
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
                     <span className="text-sm text-foreground">
-                      {categoryLabels[product.categoria]}
+                      {product.categoria?.nombre || 'Sin categoría'}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">

@@ -23,7 +23,7 @@ export class CreateProductoDto {
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber()
+  @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
   precio?: number;
 
@@ -50,5 +50,6 @@ export class CreateProductoDto {
   stock?: number;
   @IsString()
   @IsOptional()
+  @MaxLength(100)
   proveedor?: string;
 }

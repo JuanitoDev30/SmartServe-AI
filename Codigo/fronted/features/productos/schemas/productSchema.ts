@@ -7,31 +7,23 @@ export interface ProductType {
   stock?: number;
   proveedor?: string;
   status: ProductStatus;
-  categoria: ProductCategory;
-}
 
+  categoria?: {
+    id: string;
+    nombre: string;
+  };
+}
 export type ProductStatus =
   | 'active'
   | 'inactive'
   | 'low_stock'
   | 'out_of_stock';
 
-export type ProductCategory =
-  | 'Vino'
-  | 'Aguardiente'
-  | 'Snacks'
-  | 'Cerveza'
-  | 'Tequila'
-  | 'Whisky'
-  | 'Ron'
-  | 'Vino tinto'
-  | 'Ginebra';
-
 export interface ProductFormData {
   nombre: string;
   descripcion?: string;
   slug: string;
-  categoria: ProductCategory;
+  categoriaId: string;
   precio: number;
   //costPrice?: number;
   stock: number;

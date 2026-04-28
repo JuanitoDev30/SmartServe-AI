@@ -126,7 +126,7 @@ export function InventoryDashboard({
           ...data,
           precio: Number(data.precio),
           status: data.status || undefined,
-          categoria: data.categoria || undefined,
+          categoriaId: data.categoriaId || '',
         };
 
         //console.log('DATA ENVIADA:', data);
@@ -156,7 +156,7 @@ export function InventoryDashboard({
           ...data,
           precio: Number(data.precio),
           status: data.status || undefined,
-          categoria: data.categoria || undefined,
+          categoriaId: data.categoriaId || '',
         };
 
         result = await createProductActions(cleanData);

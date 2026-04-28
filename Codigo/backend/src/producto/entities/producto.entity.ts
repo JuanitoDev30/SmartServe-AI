@@ -17,7 +17,7 @@ export class Producto {
   })
   nombre!: string;
 
-  @Column('numeric', {
+  @Column('float', {
     default: 0,
   })
   precio!: number;

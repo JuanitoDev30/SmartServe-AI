@@ -37,16 +37,23 @@ export class ProductoService {
     if (responseName) throw new BadRequestException(responseName.message);
 
     try {
-      const producto = this.productRepository.create(createProductoDto);
+      const producto = this.productRepository.create({
+        nombre,
+        slug,
+        ...rest,
+      });
 
       if (categoriaId) {
         const categoria = await this.categoriaRepository.findOneBy({
           id: categoriaId,
         });
-        if (!categoria)
+
+        if (!categoria) {
           throw new NotFoundException(
             `Categoría con id ${categoriaId} no encontrada`,
           );
+        }
+
         producto.categoria = categoria;
       }
 
@@ -130,7 +137,7 @@ export class ProductoService {
       });
       if (!categoria)
         throw new NotFoundException(
-          `Categoría con id ${categoriaId} no encontrada`,
+          `Categoría con id ${categoria} no encontrada`,
         );
       product.categoria = categoria;
     }

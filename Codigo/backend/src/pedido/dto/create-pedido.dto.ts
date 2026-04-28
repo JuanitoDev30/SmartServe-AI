@@ -12,7 +12,6 @@ import {
 } from 'class-validator';
 
 export class CreatePedidoDto {
-
   // Productos
   @IsArray({ message: 'productosIds debe ser un arreglo' })
   @ArrayNotEmpty({ message: 'Debe enviar al menos un producto' })
@@ -39,7 +38,7 @@ export class CreatePedidoDto {
   @Type(() => Number)
   total!: number;
 
-  // Notas 
+  // Notas
   @IsOptional()
   @IsString()
   notas?: string;
@@ -54,6 +53,4 @@ export class CreatePedidoDto {
 
   @IsString()
   estado!: string;
-
-
 }

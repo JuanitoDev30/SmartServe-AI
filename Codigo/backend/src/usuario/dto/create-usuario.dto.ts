@@ -30,7 +30,8 @@ export class CreateUsuarioDto {
 
   @IsString()
   @MinLength(6)
-  cedula!: string;
+  @IsOptional()
+  cedula?: string;
 
   @IsString()
   telefono!: string;

@@ -59,12 +59,12 @@ export function CategoryDashboard({
     setIsSubmitting(true);
     setFormError(null);
 
-    if (data.nombre.trim().length < 2) {
+    if (data.nombre.trim().length < 3) {
       toast({
         variant: 'destructive',
         title: 'Nombre inválido',
         description:
-          'El nombre de la categoría debe tener al menos 2 caracteres',
+          'El nombre de la categoría debe tener al menos 3 caracteres',
       });
       setIsSubmitting(false);
       return;

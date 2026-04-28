@@ -33,9 +33,9 @@ export class Usuario {
 
   @Column('text', {
     unique: true,
-    nullable: false,
+    nullable: true,
   })
-  cedula!: string;
+  cedula?: string;
 
   @Column('text', {
     nullable: false,

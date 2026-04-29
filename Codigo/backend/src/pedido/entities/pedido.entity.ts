@@ -1,55 +1,56 @@
+// pedido.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToMany,
+  OneToMany,
   ManyToOne,
-  JoinTable,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
 } from 'typeorm';
-import { Producto } from '../../producto/entities/producto.entity';
-import { Usuario } from 'src/usuario/entities/usuario.entity';
+import { PedidoItem } from './pedidoItem.entity';
+import { Cliente } from 'src/cliente/entities/cliente.entity';
+import { EstadoPedido } from '../enum/pedidoEstado.enum';
+import { MetodoPago } from '../enum/metodoPago.enum';
+
 @Entity()
 export class Pedido {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
-  @Column('numeric', {
-    default: 0,
-  })
-  total!: number;
-  @Column('timestamp', {
-    default: () => 'CURRENT_TIMESTAMP',
-  })
-  fecha?: Date;
-  @ManyToMany(() => Producto)
-  @JoinTable()
-  productos!: Producto[];
 
-  @ManyToOne(() => Usuario)
-  usuario!: Usuario;
+  @Index() // Consultas frecuentes por usuario
+  @ManyToOne(() => Cliente, { nullable: false, eager: false })
+  cliente!: Cliente;
 
-  @Column('text', {
-    nullable: false,
+  @OneToMany(() => PedidoItem, (item) => item.pedido, {
+    cascade: true,
+    eager: true,
   })
-  direccion!: string;
+  items!: PedidoItem[];
 
-  @Column('text', {
-    nullable: true,
-  })
-  notas?: string;
-
-  @Column('numeric', {
-    default: 0,
-  })
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
   subTotal!: number;
 
-  @Column('text', {
-    nullable: false,
-  })
-  metodoPago!: string;
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  total!: number;
 
-  @Column('text', {
-    nullable: false,
-  })
-  estado!: string;
+  @Column('text')
+  direccion!: string;
 
+  @Column('text', { nullable: true })
+  notas?: string;
+
+  @Column({ type: 'enum', enum: MetodoPago })
+  metodoPago!: MetodoPago;
+
+  @Index() // Consultas frecuentes por estado
+  @Column({ type: 'enum', enum: EstadoPedido, default: EstadoPedido.PENDIENTE })
+  estado!: EstadoPedido;
+
+  @CreateDateColumn()
+  creadoEn!: Date;
+
+  @UpdateDateColumn()
+  actualizadoEn!: Date;
 }

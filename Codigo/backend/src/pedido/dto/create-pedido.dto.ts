@@ -1,3 +1,4 @@
+// create-pedido.dto.ts
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -6,51 +7,37 @@ import {
   IsString,
   MinLength,
   IsOptional,
-  IsNumber,
-  IsPositive,
-  IsDate,
+  IsEnum,
+  ValidateNested,
 } from 'class-validator';
+import { MetodoPago } from '../enum/metodoPago.enum';
+import { CreatePedidoItemDto } from './create-pedidoItem.dto';
 
 export class CreatePedidoDto {
-  // Productos
-  @IsArray({ message: 'productosIds debe ser un arreglo' })
+  // Productos con cantidad
+  @IsArray({ message: 'items debe ser un arreglo' })
   @ArrayNotEmpty({ message: 'Debe enviar al menos un producto' })
-  @IsUUID('4', { each: true, message: 'Cada producto debe ser un UUID válido' })
-  productosIds!: string[];
+  @ValidateNested({ each: true })
+  @Type(() => CreatePedidoItemDto)
+  items!: CreatePedidoItemDto[];
 
   // Usuario
   @IsUUID('4', { message: 'usuarioId debe ser un UUID válido' })
   usuarioId!: string;
 
-  // Dirección de entrega
+  // Dirección
   @IsString()
   @MinLength(5, { message: 'La dirección es muy corta' })
   direccion!: string;
 
-  // Ciudad
-  @IsNumber()
-  @IsPositive()
-  @Type(() => Number)
-  subTotal!: number;
-
-  @IsNumber()
-  @IsPositive()
-  @Type(() => Number)
-  total!: number;
-
-  // Notas
+  // Notas opcionales
   @IsOptional()
   @IsString()
   notas?: string;
 
-  @IsString()
-  @IsOptional()
-  //@IsDate()
-  fecha?: string;
-
-  @IsString()
-  metodoPago!: string;
-
-  @IsString()
-  estado!: string;
+  // Método de pago validado por enum
+  @IsEnum(MetodoPago, {
+    message: `metodoPago debe ser uno de: ${Object.values(MetodoPago).join(', ')}`,
+  })
+  metodoPago!: MetodoPago;
 }

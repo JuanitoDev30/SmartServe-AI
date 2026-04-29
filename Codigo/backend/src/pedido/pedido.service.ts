@@ -11,7 +11,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Pedido } from './entities/pedido.entity';
 import { Producto } from '../producto/entities/producto.entity';
-import { Usuario } from '../usuario/entities/usuario.entity';
+import { Cliente } from '../cliente/entities/cliente.entity';
+import { EstadoPedido } from './enum/pedidoEstado.enum';
+import { PedidoItem } from './entities/pedidoItem.entity';
+
+const TRANSICIONES_VALIDAS: Record<EstadoPedido, EstadoPedido[]> = {
+  [EstadoPedido.PENDIENTE]: [EstadoPedido.CONFIRMADO, EstadoPedido.CANCELADO],
+  [EstadoPedido.CONFIRMADO]: [
+    EstadoPedido.EN_PREPARACION,
+    EstadoPedido.CANCELADO,
+  ],
+  [EstadoPedido.EN_PREPARACION]: [EstadoPedido.EN_CAMINO],
+  [EstadoPedido.EN_CAMINO]: [EstadoPedido.ENTREGADO],
+  [EstadoPedido.ENTREGADO]: [],
+  [EstadoPedido.CANCELADO]: [],
+};
 
 @Injectable()
 export class PedidoService {
@@ -21,127 +35,170 @@ export class PedidoService {
     @InjectRepository(Pedido)
     private readonly pedidoRepository: Repository<Pedido>,
 
+    @InjectRepository(PedidoItem)
+    private readonly pedidoItemRepository: Repository<PedidoItem>,
+
     @InjectRepository(Producto)
     private readonly productoRepository: Repository<Producto>,
 
-    @InjectRepository(Usuario)
-    private readonly usuarioRepository: Repository<Usuario>,
+    @InjectRepository(Cliente)
+    private readonly clienteRepository: Repository<Cliente>,
   ) {}
 
   // CREATE
-  async create(createPedidoDto: CreatePedidoDto) {
+  async create(createPedidoDto: CreatePedidoDto): Promise<Pedido> {
     try {
-      const { productosIds, usuarioId, ...rest } = createPedidoDto;
+      const { items, usuarioId, direccion, notas, metodoPago } =
+        createPedidoDto;
 
-      // 🔹 validar productos
-      const productos = await this.productoRepository.find({
-        where: { id: In(productosIds) },
-      });
+      // Validar usuario
 
-      if (productos.length !== productosIds.length) {
-        throw new BadRequestException('Algunos productos no existen');
-      }
-
-      //  validar usuario
-      const usuario = await this.usuarioRepository.findOneBy({ id: usuarioId });
+      const usuario = await this.clienteRepository.findOneBy({ id: usuarioId });
 
       if (!usuario) {
-        throw new NotFoundException('Usuario no encontrado');
+        throw new NotFoundException(
+          `Usuario con id ${usuarioId} no encontrado`,
+        );
       }
 
-      // 🔹 calcular total
-      const total = productos.reduce(
-        (sum, producto) => sum + producto.precio,
-        0,
-      );
+      // Cargar productos y validar stock
 
-      const pedido = this.pedidoRepository.create({
-        ...rest,
-        productos,
-        usuario,
-        total,
+      const productoIds = items.map((item) => item.productoId);
+
+      const productos = await this.productoRepository.findBy({
+        id: In(productoIds),
       });
 
-      await this.pedidoRepository.save(pedido);
+      if (productos.length !== productoIds.length) {
+        const encontrados = productos.map((p) => p.id);
+        const faltantes = productoIds.filter((id) => !encontrados.includes(id));
+        throw new NotFoundException(
+          `Productos con ids ${faltantes.join(', ')} no encontrados`,
+        );
+      }
 
-      return pedido;
+      // Construir items del pedido y calcular subtotal
+
+      const productoMap = new Map(productos.map((p) => [p.id, p]));
+      let subTotal = 0;
+
+      const pedidoItems = items.map((item) => {
+        const producto = productoMap.get(item.productoId);
+        const subtotalItem = producto!.precio * item.cantidad;
+        subTotal += subtotalItem;
+
+        return this.pedidoItemRepository.create({
+          producto,
+          cantidad: item.cantidad,
+          precioUnitario: producto!.precio,
+          subtotalItem,
+        });
+      });
+
+      // Crear y guardar el pedido (cascade guarda los items automaticamente)
+
+      const pedido = this.pedidoRepository.create({
+        cliente: usuario,
+        items: pedidoItems,
+        subTotal,
+        total: subTotal, // Aquí podrías aplicar descuentos o impuestos si es necesario
+        direccion,
+        notas,
+        metodoPago,
+        estado: EstadoPedido.PENDIENTE,
+      });
+      return await this.pedidoRepository.save(pedido);
     } catch (error) {
       this.handleExceptions(error);
     }
   }
 
   // GET ALL
-  async findAll() {
-    try {
-      return await this.pedidoRepository.find({
-        relations: ['productos', 'usuario'],
-      });
-    } catch (error) {
-      this.handleExceptions(error);
-    }
+  async findAll(): Promise<Pedido[]> {
+    return this.pedidoRepository.find({
+      relations: {
+        cliente: true,
+        items: {
+          producto: true,
+        },
+      },
+      order: { creadoEn: 'DESC' },
+    });
   }
 
   //  GET ONE
-  async findOne(id: string) {
-    try {
-      const pedido = await this.pedidoRepository.findOne({
-        where: { id },
-        relations: ['productos', 'usuario'],
-      });
+  async findOne(id: string): Promise<Pedido> {
+    const pedido = await this.pedidoRepository.findOne({
+      where: { id },
+      relations: { cliente: true, items: { producto: true } },
+    });
 
-      if (!pedido) {
-        throw new NotFoundException(
-          `Pedido con id ${id} no encontrado`,
-        );
-      }
+    if (!pedido) throw new NotFoundException(`Pedido ${id} no encontrado`);
+    return pedido;
+  }
 
-      return pedido;
-    } catch (error) {
-      this.handleExceptions(error);
-    }
+  async findByEstado(estado: EstadoPedido): Promise<Pedido[]> {
+    return this.pedidoRepository.find({
+      where: { estado },
+      relations: { cliente: true, items: { producto: true } },
+      order: { creadoEn: 'DESC' },
+    });
+  }
+
+  async findByCliente(usuarioId: string): Promise<Pedido[]> {
+    return this.pedidoRepository.find({
+      where: { cliente: { id: usuarioId } },
+      relations: { cliente: true, items: { producto: true } },
+      order: { creadoEn: 'DESC' },
+    });
   }
 
   // UPDATE
-  async update(id: string, updatePedidoDto: UpdatePedidoDto) {
+  async update(id: string, updatePedidoDto: UpdatePedidoDto): Promise<Pedido> {
     try {
-      const pedido = await this.pedidoRepository.preload({
-        id,
-        ...updatePedidoDto,
-      });
+      const pedido = await this.findOne(id);
 
-      if (!pedido) {
-        throw new NotFoundException(
-          `Pedido con id ${id} no encontrado`,
-        );
+      //validar transicion de estado si se esta cambiadno
+
+      if (updatePedidoDto.estado && updatePedidoDto.estado !== pedido.estado) {
+        const permitidos = TRANSICIONES_VALIDAS[pedido.estado];
+
+        if (!permitidos.includes(updatePedidoDto.estado)) {
+          throw new BadRequestException(
+            `Transición inválida: ${pedido.estado} → ${updatePedidoDto.estado}. ` +
+              `Permitidos: ${permitidos.length ? permitidos.join(', ') : 'ninguno'}`,
+          );
+        }
       }
 
-      await this.pedidoRepository.save(pedido);
+      // Aplicar solo los campos que vienen en el DTO
 
-      return pedido;
+      Object.assign(pedido, updatePedidoDto);
+      return await this.pedidoRepository.save(pedido);
     } catch (error) {
       this.handleExceptions(error);
     }
   }
 
   //  DELETE
-  async remove(id: string) {
-    try {
-      const result = await this.pedidoRepository.delete(id);
+  // async remove(id: string) {
+  //   try {
+  //     const result = await this.pedidoRepository.delete(id);
 
-      if (result.affected === 0) {
-        throw new NotFoundException(
-          `Pedido con id ${id} no encontrado`,
-        );
-      }
+  //     if (result.affected === 0) {
+  //       throw new NotFoundException(
+  //         `Pedido con id ${id} no encontrado`,
+  //       );
+  //     }
 
-      return { message: 'Pedido eliminado correctamente' };
-    } catch (error) {
-      this.handleExceptions(error);
-    }
-  }
+  //     return { message: 'Pedido eliminado correctamente' };
+  //   } catch (error) {
+  //     this.handleExceptions(error);
+  //   }
+  // }
 
   // MANEJO DE ERRORES
-  private handleExceptions(error: any) {
+  private handleExceptions(error: any): never {
     if (
       error instanceof BadRequestException ||
       error instanceof NotFoundException
@@ -154,6 +211,6 @@ export class PedidoService {
     }
 
     this.logger.error(error);
-    throw new InternalServerErrorException('Error en el pedido');
+    throw new InternalServerErrorException('Error inesperado en pedidos');
   }
 }

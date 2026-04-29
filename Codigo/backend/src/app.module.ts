@@ -4,12 +4,13 @@ import { ConfigModule } from '@nestjs/config';
 import { AppService } from './app.service';
 import { ProductoModule } from './producto/producto.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsuarioModule } from './usuario/usuario.module';
+import { ClienteModule } from './cliente/cliente.module';
 import { CommonModule } from './common/common.module';
 import { PedidoModule } from './pedido/pedido.module';
 import { VentasModule } from './ventas/ventas.module';
 import { CategoriaModule } from './categoria/categoria.module';
 import { ChatModule } from './chat/chat.module';
+import { AdministradorModule } from './administrador/administrador.module';
 
 @Module({
   imports: [
@@ -26,12 +27,13 @@ import { ChatModule } from './chat/chat.module';
       synchronize: true,
     }),
     ProductoModule,
-    UsuarioModule,
+    ClienteModule,
     CommonModule,
     PedidoModule,
     VentasModule,
     CategoriaModule,
     ChatModule,
+    AdministradorModule,
   ],
   controllers: [AppController],
   providers: [AppService],

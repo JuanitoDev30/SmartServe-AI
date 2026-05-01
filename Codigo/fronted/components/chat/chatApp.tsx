@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  contacts,
-  conversations,
-  messagesData,
-  type Message,
-  type Conversation,
-} from '@/lib/chat-data';
+import { contacts, conversations } from '@/lib/chat-data';
 import { cn } from '@/lib/utils';
 import { useCallback, useState } from 'react';
 import { SidebarHeader } from './sidebarHeader';
@@ -17,13 +11,14 @@ import { MessageArea } from './messageArea';
 import { MessageInput } from './messageInput';
 import { EmptyChat } from './emptyChat';
 import { sendMessageUseCase } from '@/features/chat/services/useCases/sendMessageUseCase';
+import { Message } from '@/features/chat/schema/messageInterface';
 
 export default function ChatApp() {
   const [activeContactId, setActiveContactId] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [allMessages, setAllMessages] = useState(messagesData);
+  const [allMessages, setAllMessages] = useState<Record<string, Message[]>>({});
 
   const [allConversations, setAllConversations] = useState(conversations);
 
@@ -72,7 +67,6 @@ export default function ChatApp() {
         status: 'sent',
       };
 
-      // 1. Mostrar mensaje del usuario
       setAllMessages(prev => ({
         ...prev,
         [activeContactId]: [...(prev[activeContactId] || []), newMessage],
@@ -86,31 +80,37 @@ export default function ChatApp() {
 
         setIsTyping(true);
 
-        // 2. Llamar al backend
-        const data = await sendMessageUseCase({
+        // 2. Llamar al backend — ahora retorna ChatResponse
+        const response = await sendMessageUseCase({
           message: text,
           contactId: activeContactId,
           history: updatedMessages,
         });
 
+        //   console.log(response);
+        console.log('response completo:', JSON.stringify(response, null, 2));
+
         setIsTyping(false);
 
-        // 3. Crear mensaje del bot
+        // 3. Crear mensaje del bot con productos si vienen
         const botMessage: Message = {
           id: `msg-${Date.now()}-bot`,
           contactId: activeContactId,
-          text: data || 'Sin respuesta',
+          text: response.message || 'Sin respuesta',
           timestamp: new Date().toISOString(),
           sender: 'them',
           status: 'read',
+
+          ...(response.productos && { productos: response.productos }),
+          ...(response.cart && { cart: response.cart }),
         };
 
-        // 4. Insertar respuesta
         setAllMessages(prev => ({
           ...prev,
           [activeContactId]: [...(prev[activeContactId] || []), botMessage],
         }));
       } catch (error) {
+        setIsTyping(false);
         console.error(error);
       }
     },

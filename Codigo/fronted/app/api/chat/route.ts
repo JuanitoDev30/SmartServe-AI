@@ -13,12 +13,7 @@ export async function POST(request: NextRequest) {
     });
 
     const data = await response.json();
-
-    //console.log('BACKEND RAW', data);
-
-    return NextResponse.json({
-      message: data.message,
-    });
+    return NextResponse.json(data);
   } catch (error) {
     console.error('Error in chat API:', error);
 

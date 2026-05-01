@@ -1,21 +1,19 @@
+// usecases/sendMessageUseCase.ts
 import { chatRepository } from '../repositories/chatRepository';
+
+import { ChatResponse } from '../../schema/chatResponseInterface';
+import { HistoryMessage } from '../../schema/historyMessageInterface';
 
 interface Params {
   message: string;
   contactId: string;
-  history: any[];
+  history: HistoryMessage[];
 }
 
 export const sendMessageUseCase = async ({
   message,
   contactId,
   history,
-}: Params) => {
-  const response = await chatRepository.sendMessage({
-    message,
-    contactId,
-    history,
-  });
-
-  return response;
+}: Params): Promise<ChatResponse> => {
+  return chatRepository.sendMessage({ message, contactId, history });
 };

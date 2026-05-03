@@ -7,7 +7,13 @@ export interface Message {
   text: string;
   timestamp: string;
   sender: 'me' | 'them';
-  status: 'sent' | 'read';
+  status: 'sent' | 'delivered' | 'read';
   productos?: ProductType[];
   cart?: CartItem[];
+  clienteInfo?: {
+    nombre: string | null;
+    telefono: string | null;
+    direccion: string | null;
+    metodoPago: string | null;
+  };
 }

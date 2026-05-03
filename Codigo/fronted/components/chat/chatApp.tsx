@@ -96,14 +96,16 @@ export default function ChatApp() {
         const botMessage: Message = {
           id: `msg-${Date.now()}-bot`,
           contactId: activeContactId,
-          text: response.message || 'Sin respuesta',
+          text: (response.message || 'Sin respuesta').replace(/\\n/g, '\n'),
           timestamp: new Date().toISOString(),
           sender: 'them',
           status: 'read',
-
           ...(response.productos && { productos: response.productos }),
           ...(response.cart && { cart: response.cart }),
+          ...(response.clienteInfo && { clienteInfo: response.clienteInfo }),
         };
+
+        console.log('botMessage completo:', JSON.stringify(botMessage));
 
         setAllMessages(prev => ({
           ...prev,

@@ -1,25 +1,15 @@
-import { Order, OrderItem, OrderStatus } from '../../schemas/orderSchema';
+// features/dashboard/pedidos/services/repositories/orderRepositoryInterface.ts
+import { Pedido, EstadoPedido } from '../../schemas/orderSchema';
 
-export type CreateOrderDTO = {
-  usuarioId: string;
-  direccion: string;
-  metodoPago: string;
-  items: OrderItem[];
-  notas?: string;
-};
-
-export type UpdateOrderDTO = {
-  estado?: OrderStatus;
+export interface UpdatePedidoDTO {
+  estado?: EstadoPedido;
   direccion?: string;
   notas?: string;
-};
+}
 
 export interface OrderRepositoryInterface {
-  create(data: CreateOrderDTO): Promise<{ success: boolean; data?: Order; error?: string }>;
-  getAll(params: {
-    page: number;
-    pageSize: number;
-    search?: string;
-  }): Promise<Order[]>;
-  update(id: string, data: UpdateOrderDTO): Promise<Order>;
+  getAll(): Promise<Pedido[]>;
+  getById(id: string): Promise<Pedido>;
+  getByEstado(estado: EstadoPedido): Promise<Pedido[]>;
+  update(id: string, dto: UpdatePedidoDTO): Promise<Pedido>;
 }

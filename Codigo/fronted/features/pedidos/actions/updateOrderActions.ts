@@ -1,25 +1,15 @@
-import { updateOrderUseCase } from "../services/useCases/updateOrderUseCase";
-import { UpdateOrderDTO } from "../services/repositories/orderRepositoryInterface";
+'use server';
 
-export async function updateOrderAction(
-  id: string,
-  data: UpdateOrderDTO,
-) {
+import { updateOrderUseCase } from '../services/useCases/updateOrderUseCase';
+import { EstadoPedido } from '../schemas/orderSchema';
+
+export async function updateOrderAction(id: string, estado: EstadoPedido) {
   try {
-    await updateOrderUseCase.execute(id, data);
-
-    return {
-      success: true,
-      data: null,
-    };
+    const result = await updateOrderUseCase.execute(id, { estado });
+    return { success: true, data: result };
   } catch (error: unknown) {
     const message =
-      error instanceof Error ? error.message : "Error al actualizar el pedido";
-
-    return {
-      success: false,
-      error: message,
-    };
+      error instanceof Error ? error.message : 'Error al actualizar pedido';
+    return { success: false, error: message };
   }
 }
-

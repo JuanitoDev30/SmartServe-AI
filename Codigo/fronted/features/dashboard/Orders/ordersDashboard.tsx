@@ -1,60 +1,35 @@
 'use client';
 import { Input } from '@/components/ui/input';
-import { Order, OrderStatus } from '@/features/pedidos/schemas/orderSchema';
+import { EstadoPedido, Pedido } from '@/features/pedidos/schemas/orderSchema';
+import { usePedidosSocket } from '@/hooks/usePedidosSocket';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { cn } from '@/lib/utils';
 import {
   CheckCircle2,
   Clock,
   Package,
-  Plus,
   Search,
+  Wifi,
+  WifiOff,
   XCircle,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 // Status configuration
-const statusConfig: Record<
-  OrderStatus,
-  { label: string; color: string; bgColor: string }
-> = {
-  pending: {
-    label: 'Pendiente',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-500',
-  },
-  confirmed: {
-    label: 'Confirmado',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-500',
-  },
-  preparing: {
-    label: 'En Proceso',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-500',
-  },
-  ready: {
-    label: 'Listo',
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-500',
-  },
-  delivered: {
-    label: 'Completado',
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-500',
-  },
-  cancelled: {
-    label: 'Cancelado',
-    color: 'text-red-600',
-    bgColor: 'bg-red-500',
-  },
+const statusConfig: Record<EstadoPedido, { label: string; bgColor: string }> = {
+  PENDIENTE: { label: 'Pendiente', bgColor: 'bg-orange-500' },
+  CONFIRMADO: { label: 'Confirmado', bgColor: 'bg-blue-500' },
+  EN_PREPARACION: { label: 'En Preparación', bgColor: 'bg-blue-500' },
+  EN_CAMINO: { label: 'En Camino', bgColor: 'bg-purple-500' },
+  ENTREGADO: { label: 'Entregado', bgColor: 'bg-emerald-500' },
+  CANCELADO: { label: 'Cancelado', bgColor: 'bg-red-500' },
 };
 
-const tabFilters: { label: string; value: OrderStatus | 'all' }[] = [
+const tabFilters: { label: string; value: EstadoPedido | 'all' }[] = [
   { label: 'Todos', value: 'all' },
-  { label: 'Pendientes', value: 'pending' },
-  { label: 'En Proceso', value: 'preparing' },
-  { label: 'Completados', value: 'delivered' },
+  { label: 'Pendientes', value: 'PENDIENTE' },
+  { label: 'En Proceso', value: 'EN_PREPARACION' },
+  { label: 'Entregados', value: 'ENTREGADO' },
 ];
 
 interface StatsCardProps {
@@ -89,15 +64,22 @@ function StatsCard({
             {change}
           </p>
         </div>
+        <div
+          className={cn(
+            'size-10 rounded-full flex items-center justify-center',
+            iconBgColor,
+          )}
+        >
+          {icon}
+        </div>
       </div>
     </div>
   );
 }
 
 export function OrdersDashboard() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
+  const { pedidos, isLoading, isConnected } = usePedidosSocket();
+  const [activeTab, setActiveTab] = useState<EstadoPedido | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   //  useEffect(() => {
@@ -115,115 +97,114 @@ export function OrdersDashboard() {
   //   fetchOrders()
   // }, [])
 
-  const stats = useMemo(() => {
-    const total = orders.length;
-    const inProcess = orders.filter(
-      o => o.estado === 'preparing' || o.estado === 'confirmed',
-    ).length;
-    const completed = orders.filter(o => o.estado === 'delivered').length;
-    const cancelled = orders.filter(o => o.estado === 'cancelled').length;
-
-    return { total, inProcess, completed, cancelled };
-  }, [orders]);
+  const stats = useMemo(
+    () => ({
+      total: pedidos.length,
+      inProcess: pedidos.filter(
+        p => p.estado === 'EN_PREPARACION' || p.estado === 'CONFIRMADO',
+      ).length,
+      completed: pedidos.filter(p => p.estado === 'ENTREGADO').length,
+      cancelled: pedidos.filter(p => p.estado === 'CANCELADO').length,
+    }),
+    [pedidos],
+  );
 
   const filteredOrders = useMemo(() => {
-    let result = [...orders];
+    let result = [...pedidos];
 
-    // Filter by tab
     if (activeTab !== 'all') {
-      if (activeTab === 'preparing') {
+      if (activeTab === 'EN_PREPARACION') {
         result = result.filter(
-          o => o.estado === 'preparing' || o.estado === 'confirmed',
+          p => p.estado === 'EN_PREPARACION' || p.estado === 'CONFIRMADO',
         );
       } else {
-        result = result.filter(o => o.estado === activeTab);
+        result = result.filter(p => p.estado === activeTab);
       }
     }
 
-    // Filter by search
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
-        o =>
-          o.id.toLowerCase().includes(query) ||
-          o.usuarioNombre.toLowerCase().includes(query) ||
-          o.items.some(item => item.nombre.toLowerCase().includes(query)),
+        p =>
+          p.id.toLowerCase().includes(query) ||
+          p.cliente.nombre.toLowerCase().includes(query) ||
+          p.items.some(i => i.producto.nombre.toLowerCase().includes(query)),
       );
     }
 
     return result;
-  }, [orders, activeTab, searchQuery]);
+  }, [pedidos, activeTab, searchQuery]);
 
-  // Calculate total amount
-  const totalAmount = useMemo(() => {
-    return filteredOrders.reduce((sum, order) => sum + order.totalAmount, 0);
-  }, [filteredOrders]);
-
-  const handleDelete = async (orderId: string) => {
-    // In a real app, this would call the API
-    setOrders(prev => prev.filter(o => o.id !== orderId));
-  };
+  const totalAmount = useMemo(
+    () => filteredOrders.reduce((sum, p) => sum + Number(p.total), 0),
+    [filteredOrders],
+  );
 
   return (
     <div className="space-y-6">
-      {/* HEADER */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">
-            Gestion de Pedidos
+            Gestión de Pedidos
           </h1>
           <p className="text-muted-foreground mt-1">
             Administra y monitorea todos los pedidos
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
-          <Plus className="size-4" />
-          Nuevo Pedido
-        </button>
+        <div className="flex items-center gap-2 text-sm">
+          {isConnected ? (
+            <>
+              <Wifi className="size-4 text-emerald-500" />
+              <span className="text-emerald-500">En vivo</span>
+            </>
+          ) : (
+            <>
+              <WifiOff className="size-4 text-red-500" />
+              <span className="text-red-500">Desconectado</span>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Stats cards */}
-
+      {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Pedidos"
           value={stats.total.toLocaleString()}
-          change="+18% vs mes anterior"
+          icon={<Package className="size-5 text-muted-foreground" />}
+          change="+5% desde ayer"
           changeType="positive"
-          icon={<Package className="size-5 text-white" />}
-          iconBgColor="bg-primary"
+          iconBgColor="bg-muted"
         />
-
         <StatsCard
           title="En Proceso"
           value={stats.inProcess.toLocaleString()}
-          change="+12% vs mes anterior"
+          icon={<Clock className="size-5 text-orange-500" />}
+          change="+10% desde ayer"
           changeType="positive"
-          icon={<Clock className="size-5 text-white" />}
-          iconBgColor="bg-orange-500"
+          iconBgColor="bg-muted"
         />
         <StatsCard
           title="Completados"
           value={stats.completed.toLocaleString()}
-          change="+25% vs mes anterior"
+          icon={<CheckCircle2 className="size-5 text-emerald-500" />}
+          change="+3% desde ayer"
           changeType="positive"
-          icon={<CheckCircle2 className="size-5 text-white" />}
-          iconBgColor="bg-emerald-500"
+          iconBgColor="bg-muted"
         />
         <StatsCard
           title="Cancelados"
           value={stats.cancelled.toLocaleString()}
-          change="-8% vs mes anterior"
+          icon={<XCircle className="size-5 text-red-500" />}
+          change="-2% desde ayer"
           changeType="negative"
-          icon={<XCircle className="size-5 text-white" />}
-          iconBgColor="bg-red-500"
+          iconBgColor="bg-muted"
         />
       </div>
 
-      {/* Table Section */}
-
+      {/* Table */}
       <div className="rounded-xl border border-border bg-card">
-        {/* Tabs and Search */}
         <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
             {tabFilters.map(tab => (
@@ -241,13 +222,10 @@ export function OrdersDashboard() {
               </button>
             ))}
           </div>
-
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-
             <Input
-              type="text"
-              placeholder="Buscar Pedido..."
+              placeholder="Buscar pedido..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="w-full pl-9 sm:w-64"
@@ -255,43 +233,35 @@ export function OrdersDashboard() {
           </div>
         </div>
 
-        {/* Table */}
-
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-t border-border">
-                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                  ID Pedido
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                  Cliente
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                  Producto
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                  Cantidad
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                  Monto
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                  Estado
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                  Fecha
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
-                  Acciones
-                </th>
+                {[
+                  'ID Pedido',
+                  'Cliente',
+                  'Teléfono',
+                  'Producto',
+                  'Cantidad',
+                  'Total',
+                  'Estado',
+                  'Fecha',
+                  'Acciones',
+                ].map(h => (
+                  <th
+                    key={h}
+                    className="px-4 py-3 text-left text-sm font-medium text-muted-foreground"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {loading ? (
+              {isLoading ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="px-4 py-12 text-center text-muted-foreground"
                   >
                     <div className="flex items-center justify-center gap-2">
@@ -303,40 +273,43 @@ export function OrdersDashboard() {
               ) : filteredOrders.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="px-4 py-12 text-center text-muted-foreground"
                   >
                     No se encontraron pedidos
                   </td>
                 </tr>
               ) : (
-                filteredOrders.map(order => {
-                  const mainProduct = order.items[0];
-                  const totalQuantity = order.items.reduce(
-                    (sum, item) => sum + item.cantidad,
+                filteredOrders.map((pedido: Pedido) => {
+                  const mainProduct = pedido.items[0];
+                  const totalQuantity = pedido.items.reduce(
+                    (sum, i) => sum + i.cantidad,
                     0,
                   );
-                  const config = statusConfig[order.estado];
+                  const config = statusConfig[pedido.estado];
 
                   return (
                     <tr
-                      key={order.id}
+                      key={pedido.id}
                       className="hover:bg-muted/30 transition-colors"
                     >
                       <td className="px-4 py-4 text-sm font-medium text-foreground">
-                        #{order.id}
+                        #{pedido.id.slice(0, 8)}
                       </td>
                       <td className="px-4 py-4 text-sm text-foreground">
-                        {order.usuarioNombre}
+                        {pedido.cliente.nombre}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-muted-foreground">
+                        {pedido.cliente.telefono}
                       </td>
                       <td className="px-4 py-4 text-sm text-primary">
-                        {mainProduct?.nombre || '-'}
+                        {mainProduct?.producto.nombre || '-'}
                       </td>
                       <td className="px-4 py-4 text-sm text-muted-foreground text-center">
                         {totalQuantity}
                       </td>
                       <td className="px-4 py-4 text-sm font-medium text-foreground">
-                        {formatCurrency(order.totalAmount)}
+                        {formatCurrency(Number(pedido.total))}{' '}
                       </td>
                       <td className="px-4 py-4">
                         <span
@@ -349,34 +322,19 @@ export function OrdersDashboard() {
                         </span>
                       </td>
                       <td className="px-4 py-4 text-sm text-muted-foreground">
-                        {new Date(order.createdAt)
-                          .toLocaleDateString('es-ES', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                          })
-                          .replace(/\//g, '-')}
+                        {new Date(pedido.creadoEn).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                        })}
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <button
-                            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                            title="Ver"
-                          >
+                          <button className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                             Ver
                           </button>
-                          <button
-                            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                            title="Editar"
-                          >
+                          <button className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                             Editar
-                          </button>
-                          <button
-                            onClick={() => handleDelete(order.id)}
-                            className="text-sm text-muted-foreground hover:text-red-500 transition-colors"
-                            title="Eliminar"
-                          >
-                            Eliminar
                           </button>
                         </div>
                       </td>
@@ -385,17 +343,18 @@ export function OrdersDashboard() {
                 })
               )}
 
-              {/* Total Row */}
-              {!loading && filteredOrders.length > 0 && (
+              {!isLoading && filteredOrders.length > 0 && (
                 <tr className="bg-muted/30">
-                  <td className="px-4 py-4 text-sm font-semibold text-foreground">
+                  <td
+                    colSpan={5}
+                    className="px-4 py-4 text-sm font-semibold text-foreground"
+                  >
                     TOTAL
                   </td>
-                  <td colSpan={3}></td>
                   <td className="px-4 py-4 text-sm font-semibold text-primary">
                     {formatCurrency(totalAmount)}
                   </td>
-                  <td colSpan={3}></td>
+                  <td colSpan={3} />
                 </tr>
               )}
             </tbody>

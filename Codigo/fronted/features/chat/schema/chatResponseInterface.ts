@@ -12,4 +12,6 @@ export interface ChatResponse {
     direccion: string | null;
     metodoPago: string | null;
   };
+  pedidoId?: string;
+  estado?: string;
 }

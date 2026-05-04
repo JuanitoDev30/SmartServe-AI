@@ -103,6 +103,8 @@ export default function ChatApp() {
           ...(response.productos && { productos: response.productos }),
           ...(response.cart && { cart: response.cart }),
           ...(response.clienteInfo && { clienteInfo: response.clienteInfo }),
+          ...(response.pedidoId && { pedidoId: response.pedidoId }),
+          ...(response.estado && { estado: response.estado }),
         };
 
         console.log('botMessage completo:', JSON.stringify(botMessage));

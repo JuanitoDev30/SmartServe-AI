@@ -1,29 +1,41 @@
-export type OrderStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'preparing'
-  | 'ready'
-  | 'delivered'
-  | 'cancelled';
+// features/dashboard/pedidos/schemas/orderSchema.ts
+export type EstadoPedido =
+  | 'PENDIENTE'
+  | 'CONFIRMADO'
+  | 'EN_PREPARACION'
+  | 'EN_CAMINO'
+  | 'ENTREGADO'
+  | 'CANCELADO';
 
-export interface OrderItem {
-  nombre: string;
+export type MetodoPago = 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'PSE';
+
+export interface PedidoItem {
+  id: string;
   cantidad: number;
-  subTotal: number;
-  total: number;
+  precioUnitario: number;
+  subtotalItem: number;
+  producto: {
+    id: string;
+    nombre: string;
+    precio: number;
+  };
 }
 
-export interface Order {
+export interface Pedido {
   id: string;
-  usuarioId: string;
-  usuarioNombre: string;
-  usuarioTelefono?: string;
-  items: OrderItem[];
-  estado: OrderStatus;
+  estado: EstadoPedido;
+  subTotal: number;
+  total: number;
   direccion: string;
-  totalAmount: number;
-  createdAt: string;
-  updatedAt: string;
-  metodoPago: string;
+  metodoPago: MetodoPago;
   notas?: string;
+  items: PedidoItem[];
+  cliente: {
+    id: string;
+    nombre: string;
+    telefono: string;
+    email?: string;
+  };
+  creadoEn: string;
+  actualizadoEn: string;
 }

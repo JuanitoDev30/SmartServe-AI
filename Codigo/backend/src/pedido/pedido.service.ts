@@ -14,6 +14,7 @@ import { Producto } from '../producto/entities/producto.entity';
 import { Cliente } from '../cliente/entities/cliente.entity';
 import { EstadoPedido } from './enum/pedidoEstado.enum';
 import { PedidoItem } from './entities/pedidoItem.entity';
+import { PedidoGateway } from './pedido.gateway';
 
 const TRANSICIONES_VALIDAS: Record<EstadoPedido, EstadoPedido[]> = {
   [EstadoPedido.PENDIENTE]: [EstadoPedido.CONFIRMADO, EstadoPedido.CANCELADO],
@@ -43,6 +44,8 @@ export class PedidoService {
 
     @InjectRepository(Cliente)
     private readonly clienteRepository: Repository<Cliente>,
+
+    private readonly pedidoGateway: PedidoGateway,
   ) {}
 
   // CREATE
@@ -107,7 +110,14 @@ export class PedidoService {
         metodoPago,
         estado: EstadoPedido.PENDIENTE,
       });
-      return await this.pedidoRepository.save(pedido);
+
+      const pedidoGuardado = await this.pedidoRepository.save(pedido);
+
+      // Emitir evento WebSocket
+
+      this.pedidoGateway.emitirNuevoPedido(pedidoGuardado);
+
+      return pedidoGuardado;
     } catch (error) {
       this.handleExceptions(error);
     }
@@ -174,7 +184,9 @@ export class PedidoService {
       // Aplicar solo los campos que vienen en el DTO
 
       Object.assign(pedido, updatePedidoDto);
-      return await this.pedidoRepository.save(pedido);
+      const pedidoActualizado = await this.pedidoRepository.save(pedido);
+      this.pedidoGateway.emitirPedidoActualizado(pedidoActualizado);
+      return pedidoActualizado;
     } catch (error) {
       this.handleExceptions(error);
     }

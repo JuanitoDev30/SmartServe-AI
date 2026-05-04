@@ -8,11 +8,12 @@ import { Pedido } from './entities/pedido.entity';
 import { PedidoItem } from './entities/pedidoItem.entity';
 import { Producto } from '../producto/entities/producto.entity';
 import { Cliente } from '../cliente/entities/cliente.entity';
+import { PedidoGateway } from './pedido.gateway';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Pedido, PedidoItem, Producto, Cliente])],
   controllers: [PedidoController],
-  providers: [PedidoService],
-  exports: [PedidoService],
+  providers: [PedidoService, PedidoGateway],
+  exports: [PedidoService, PedidoGateway],
 })
 export class PedidoModule {}

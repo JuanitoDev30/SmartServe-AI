@@ -21,11 +21,14 @@ export const usePedidosStore = create<PedidosStore>(set => ({
   agregarPedido: pedido =>
     set(state => ({ pedidos: [...state.pedidos, pedido] })),
   actualizarPedido: pedidoActualizado =>
-    set(state => ({
-      pedidos: state.pedidos.map(pedido =>
-        pedido.id === pedidoActualizado.id ? pedidoActualizado : pedido,
-      ),
-    })),
+    set(state => {
+      console.log('🟡 actualizarPedido llamado:', pedidoActualizado.id); // 👈
+      return {
+        pedidos: state.pedidos.map(pedido =>
+          pedido.id === pedidoActualizado.id ? pedidoActualizado : pedido,
+        ),
+      };
+    }),
   setIsConnected: connected => set({ isConnected: connected }),
   setIsLoading: loading => set({ isLoading: loading }),
 }));

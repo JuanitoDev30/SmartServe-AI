@@ -164,15 +164,13 @@ export class PedidoService {
   }
 
   // UPDATE
+
   async update(id: string, updatePedidoDto: UpdatePedidoDto): Promise<Pedido> {
     try {
       const pedido = await this.findOne(id);
 
-      //validar transicion de estado si se esta cambiadno
-
       if (updatePedidoDto.estado && updatePedidoDto.estado !== pedido.estado) {
         const permitidos = TRANSICIONES_VALIDAS[pedido.estado];
-
         if (!permitidos.includes(updatePedidoDto.estado)) {
           throw new BadRequestException(
             `Transición inválida: ${pedido.estado} → ${updatePedidoDto.estado}. ` +
@@ -181,12 +179,23 @@ export class PedidoService {
         }
       }
 
-      // Aplicar solo los campos que vienen en el DTO
+      if (updatePedidoDto.cliente) {
+        const clienteActual = await this.clienteRepository.findOneBy({
+          id: pedido.cliente.id,
+        });
+        if (!clienteActual)
+          throw new NotFoundException('Cliente no encontrado');
+        Object.assign(clienteActual, updatePedidoDto.cliente);
+        await this.clienteRepository.save(clienteActual);
+      }
 
-      Object.assign(pedido, updatePedidoDto);
-      const pedidoActualizado = await this.pedidoRepository.save(pedido);
-      this.pedidoGateway.emitirPedidoActualizado(pedidoActualizado);
-      return pedidoActualizado;
+      const { cliente, ...camposPlanos } = updatePedidoDto;
+      Object.assign(pedido, camposPlanos);
+      await this.pedidoRepository.save(pedido);
+
+      const pedidoCompleto = await this.findOne(id);
+      this.pedidoGateway.emitirPedidoActualizado(pedidoCompleto);
+      return pedidoCompleto;
     } catch (error) {
       this.handleExceptions(error);
     }

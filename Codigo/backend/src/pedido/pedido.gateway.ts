@@ -44,6 +44,7 @@ export class PedidoGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   emitirPedidoActualizado(pedido: any) {
+    this.logger.log(`Emitiendo pedido.actualizado: ${pedido.id}`);
     this.server.to('sala.pedidos').emit('pedido.actualizado', pedido);
   }
 }

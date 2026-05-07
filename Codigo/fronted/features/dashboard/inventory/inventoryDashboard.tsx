@@ -27,7 +27,6 @@ import { updateProductActions } from '@/features/productos/actions/updateProduct
 import { deleteProductActions } from '@/features/productos/actions/deleteProductActions';
 
 import {
-  ProductCategory,
   ProductFormData,
   ProductStatus,
   ProductType,
@@ -60,7 +59,7 @@ export function InventoryDashboard({
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState<ProductCategory | ''>('');
+  const [category, setCategory] = useState<string>('');
   const [status, setStatus] = useState<ProductStatus | ''>('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -322,7 +321,7 @@ export function InventoryDashboard({
         </div>
         <select
           value={category}
-          onChange={e => setCategory(e.target.value as ProductCategory | '')}
+          onChange={e => setCategory(e.target.value as string | '')}
           className="h-10 rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-[140px]"
         >
           {categoriesResponse?.map(cat => (

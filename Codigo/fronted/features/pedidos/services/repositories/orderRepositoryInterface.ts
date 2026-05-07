@@ -1,11 +1,7 @@
-// features/dashboard/pedidos/services/repositories/orderRepositoryInterface.ts
+import { PedidoFormValues } from '@/lib/validations/order';
 import { Pedido, EstadoPedido } from '../../schemas/orderSchema';
 
-export interface UpdatePedidoDTO {
-  estado?: EstadoPedido;
-  direccion?: string;
-  notas?: string;
-}
+export type UpdatePedidoDTO = Partial<PedidoFormValues>;
 
 export interface OrderRepositoryInterface {
   getAll(): Promise<Pedido[]>;

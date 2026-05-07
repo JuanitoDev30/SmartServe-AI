@@ -218,6 +218,10 @@ export function ProductFormModal({
                   onChange={handleChange}
                   className="flex h-11 w-full rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
+                  <option value="" disabled>
+                    Selecciona la categoría
+                  </option>
+
                   {categories?.map(cat => (
                     <option key={cat.id} value={cat.id}>
                       {cat.nombre}

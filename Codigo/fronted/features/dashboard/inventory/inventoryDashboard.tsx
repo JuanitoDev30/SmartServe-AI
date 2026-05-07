@@ -86,6 +86,40 @@ export function InventoryDashboard({
     };
   }, [productsResponse]);
 
+  const filteredProducts = useMemo(() => {
+    return productsResponse.filter(product => {
+      // Buscar por nombre
+      const matchesSearch = product.nombre
+        .toLowerCase()
+        .includes(search.toLowerCase());
+
+      // Filtrar por categoría
+      const matchesCategory =
+        !category || product.categoria?.nombre === category;
+
+      // Filtrar por estado
+      let matchesStatus = true;
+
+      if (status === 'active') {
+        matchesStatus = product.stock > 0;
+      }
+
+      if (status === 'inactive') {
+        matchesStatus = product.status === 'inactive';
+      }
+
+      if (status === 'low_stock') {
+        matchesStatus = product.stock > 0 && product.stock < 5;
+      }
+
+      if (status === 'out_of_stock') {
+        matchesStatus = !product.stock || product.stock === 0;
+      }
+
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+  }, [productsResponse, search, category, status]);
+
   const handleCreate = () => {
     setSelectedProduct(null);
     setIsFormOpen(true);
@@ -321,9 +355,11 @@ export function InventoryDashboard({
         </div>
         <select
           value={category}
-          onChange={e => setCategory(e.target.value as string | '')}
-          className="h-10 rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-[140px]"
+          onChange={e => setCategory(e.target.value)}
+          className="h-10 rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-[180px]"
         >
+          <option value="">Todas las categorías</option>
+
           {categoriesResponse?.map(cat => (
             <option key={cat.id} value={cat.nombre}>
               {cat.nombre}
@@ -401,7 +437,7 @@ export function InventoryDashboard({
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {productsResponse.map(product => (
+          {filteredProducts.map(product => (
             <ProductCard
               key={product.id}
               product={product}
@@ -412,7 +448,7 @@ export function InventoryDashboard({
         </div>
       ) : (
         <ProductTable
-          productsResponse={productsResponse}
+          productsResponse={filteredProducts}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />

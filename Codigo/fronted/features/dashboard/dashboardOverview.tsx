@@ -3,6 +3,7 @@
 import { StatsCard } from './shared/statsCard';
 import { formatCurrency } from '@/lib/formatCurrency';
 import { ShoppingCart, DollarSign, Clock, CheckCircle } from 'lucide-react';
+
 export function DashboardOverview() {
   return (
     <div className="space-y-6">

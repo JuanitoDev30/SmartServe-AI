@@ -2,8 +2,10 @@
 import { getOrderAction } from '@/features/pedidos/actions/getOrderActions';
 import { Pedido } from '@/features/pedidos/schemas/orderSchema';
 import { usePedidosStore } from '@/store/pedidosStore';
+import { useNotificationStore } from '@/store/notificationStore';
 import { useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { toast } from './useToast';
 
 let socket: Socket | null = null;
 
@@ -50,6 +52,21 @@ export const usePedidosSocket = () => {
 
     socket.on('pedido.nuevo', (pedido: Pedido) => {
       usePedidosStore.getState().agregarPedido(pedido);
+
+      useNotificationStore.getState().addNotification({
+        id: crypto.randomUUID(),
+        title: 'Nuevo pedido',
+        message: `Pedido #${pedido.id.slice(0, 6)} recibido`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        type: 'pedido',
+      });
+
+      toast({
+        title: 'Nuevo pedido recibido',
+        description: `${pedido.cliente.nombre} realizó un pedido`,
+        duration: 5000,
+      });
     });
 
     socket.on('pedido.actualizado', (pedido: Pedido) => {

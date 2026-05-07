@@ -83,17 +83,33 @@ export class PedidoService {
       // Construir items del pedido y calcular subtotal
 
       const productoMap = new Map(productos.map((p) => [p.id, p]));
+
       let subTotal = 0;
 
       const pedidoItems = items.map((item) => {
         const producto = productoMap.get(item.productoId);
-        const subtotalItem = producto!.precio * item.cantidad;
+
+        if (!producto) {
+          throw new NotFoundException(
+            `Producto ${item.productoId} no encontrado`,
+          );
+        }
+
+        // VALIDAR STOCK
+        if ((producto.stock ?? 0) < item.cantidad) {
+          throw new BadRequestException(
+            `Stock insuficiente para ${producto.nombre}`,
+          );
+        }
+
+        const subtotalItem = producto.precio * item.cantidad;
+
         subTotal += subtotalItem;
 
         return this.pedidoItemRepository.create({
           producto,
           cantidad: item.cantidad,
-          precioUnitario: producto!.precio,
+          precioUnitario: producto.precio,
           subtotalItem,
         });
       });
@@ -104,7 +120,7 @@ export class PedidoService {
         cliente: usuario,
         items: pedidoItems,
         subTotal,
-        total: subTotal, // Aquí podrías aplicar descuentos o impuestos si es necesario
+        total: subTotal,
         direccion,
         notas,
         metodoPago,
@@ -171,11 +187,27 @@ export class PedidoService {
 
       if (updatePedidoDto.estado && updatePedidoDto.estado !== pedido.estado) {
         const permitidos = TRANSICIONES_VALIDAS[pedido.estado];
+
         if (!permitidos.includes(updatePedidoDto.estado)) {
           throw new BadRequestException(
-            `Transición inválida: ${pedido.estado} → ${updatePedidoDto.estado}. ` +
-              `Permitidos: ${permitidos.length ? permitidos.join(', ') : 'ninguno'}`,
+            `Transición inválida: ${pedido.estado} → ${updatePedidoDto.estado}`,
           );
+        }
+
+        // descontar stock al confirmar
+        if (
+          pedido.estado === EstadoPedido.PENDIENTE &&
+          updatePedidoDto.estado === EstadoPedido.CONFIRMADO
+        ) {
+          await this.descontarStockPedido(pedido);
+        }
+
+        // devolver stock al cancelar
+        if (
+          pedido.estado !== EstadoPedido.CANCELADO &&
+          updatePedidoDto.estado === EstadoPedido.CANCELADO
+        ) {
+          await this.devolverStockPedido(pedido);
         }
       }
 
@@ -233,5 +265,61 @@ export class PedidoService {
 
     this.logger.error(error);
     throw new InternalServerErrorException('Error inesperado en pedidos');
+  }
+
+  private async descontarStockPedido(pedido: Pedido) {
+    for (const item of pedido.items) {
+      const producto = await this.productoRepository.findOne({
+        where: { id: item.producto.id },
+      });
+
+      if (!producto) {
+        throw new NotFoundException(
+          `Producto ${item.producto.id} no encontrado`,
+        );
+      }
+
+      const stockActual = producto.stock ?? 0;
+
+      if (stockActual < item.cantidad) {
+        throw new BadRequestException(
+          `Stock insuficiente para ${producto.nombre}. Disponible: ${stockActual}`,
+        );
+      }
+
+      producto.stock = stockActual - item.cantidad;
+
+      // actualizar status automáticamente
+      if (producto.stock === 0) {
+        producto.status = 'out_of_stock';
+      } else if (producto.stock <= 5) {
+        producto.status = 'low_stock';
+      } else {
+        producto.status = 'active';
+      }
+
+      await this.productoRepository.save(producto);
+    }
+  }
+
+  private async devolverStockPedido(pedido: Pedido) {
+    for (const item of pedido.items) {
+      const producto = await this.productoRepository.findOne({
+        where: { id: item.producto.id },
+      });
+
+      if (!producto) continue;
+
+      producto.stock = (producto.stock ?? 0) + item.cantidad;
+
+      // restaurar estado
+      if ((producto.stock ?? 0) > 5) {
+        producto.status = 'active';
+      } else if ((producto.stock ?? 0) > 0) {
+        producto.status = 'low_stock';
+      }
+
+      await this.productoRepository.save(producto);
+    }
   }
 }

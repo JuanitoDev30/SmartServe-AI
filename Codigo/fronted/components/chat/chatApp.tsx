@@ -149,7 +149,7 @@ export default function ChatApp() {
       {/* Chat Area */}
       <main
         className={cn(
-          'flex-1 flex flex-col min-w-0',
+          'flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden',
           !showMobileChat ? 'hidden md:flex' : 'flex',
         )}
       >

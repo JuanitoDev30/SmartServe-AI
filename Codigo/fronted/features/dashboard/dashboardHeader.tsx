@@ -6,6 +6,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropDownMenu';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
+import { useNotificationStore } from '@/store/notificationStore';
 import { Bell, Menu, Search } from 'lucide-react';
 
 interface DashboardHeaderProps {
@@ -13,6 +14,9 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
+  const notifications = useNotificationStore(state => state.notifications);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
   return (
     <header className="flex items-center justify-between h-16 px-4 md:px-6 bg-card border-b border-border">
       {/* Left side */}
@@ -36,10 +40,54 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
       {/* Right side */}
       <div className="flex items-center gap-2">
-        <button className="relative rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
-          <Bell className="size-5" />
-          <span className="absolute top-1 right-1 size-2 rounded-full bg-destructive" />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="relative rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+              <Bell className="size-5" />
+
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 min-w-4 h-4 px-1 rounded-full bg-destructive text-white text-[10px] flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="w-80">
+            <div className="px-3 py-2 font-semibold text-sm">
+              Notificaciones
+            </div>
+
+            <DropdownMenuSeparator />
+
+            {notifications.length === 0 ? (
+              <div className="px-3 py-4 text-sm text-muted-foreground">
+                No hay notificaciones
+              </div>
+            ) : (
+              notifications.map(notification => (
+                <DropdownMenuItem
+                  key={notification.id}
+                  className="flex flex-col items-start py-3"
+                >
+                  <span className="text-sm font-medium">
+                    {notification.title}
+                  </span>
+
+                  <span className="text-xs text-muted-foreground">
+                    {notification.message}
+                  </span>
+
+                  <span className="text-[10px] text-muted-foreground mt-1">
+                    {new Date(notification.createdAt).toLocaleTimeString(
+                      'es-CO',
+                    )}
+                  </span>
+                </DropdownMenuItem>
+              ))
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* DROPDOWN MENU */}
         <DropdownMenu>

@@ -206,23 +206,37 @@ export function OrderFormModal({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">
-                    Telefono
-                  </label>
-                  <Input
-                    {...register('cliente.telefono')}
-                    placeholder="+57 300 123 4567"
-                    className={cn(
-                      errors.cliente?.telefono &&
-                        'border-destructive focus-visible:ring-destructive',
-                    )}
-                  />
-                  {errors.cliente?.telefono && (
-                    <p className="text-sm text-destructive">
-                      {errors.cliente.telefono.message}
-                    </p>
-                  )}
-                </div>
+  <label className="text-sm font-medium text-foreground">
+    Telefono
+  </label>
+
+  <Input
+    type="tel"
+    placeholder="1234567890"
+    {...register('cliente.telefono', {
+      onChange: e => {
+        e.target.value = e.target.value.replace(/\D/g, '');
+      },
+    })}
+    maxLength={10}
+    className={cn(
+      errors.cliente?.telefono &&
+        'border-destructive focus-visible:ring-destructive',
+    )}
+  />
+
+  {!errors.cliente?.telefono && (
+    <p className="text-xs text-muted-foreground">
+      Ingresa 10 digitos sin espacios ni caracteres especiales.
+    </p>
+  )}
+
+  {errors.cliente?.telefono && (
+    <p className="text-sm text-destructive">
+      {errors.cliente.telefono.message}
+    </p>
+  )}
+</div>
 
                 <div className="space-y-2 sm:col-span-2">
                   <label className="text-sm font-medium text-foreground">

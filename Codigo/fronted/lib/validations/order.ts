@@ -41,7 +41,9 @@ export const pedidoItemSchema = z.object({
 export const clienteSchema = z.object({
   id: z.string(),
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  telefono: z.string().min(7, 'El telefono debe tener al menos 7 digitos'),
+ telefono: z
+  .string()
+  .regex(/^\d{10}$/, 'El telefono debe tener exactamente 10 digitos numericos'),
   email: z.string().email('Email invalido').optional().or(z.literal('')),
 });
 
@@ -81,7 +83,9 @@ export const pedidoFormSchema = z.object({
   notas: z.string().optional(),
   cliente: z.object({
     nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-    telefono: z.string().min(7, 'El telefono debe tener al menos 7 digitos'),
+    telefono: z
+  .string()
+  .regex(/^\d{10}$/, 'El telefono debe tener exactamente 10 digitos numericos'),
     email: z.string().email('Email invalido').optional().or(z.literal('')),
   }),
 });

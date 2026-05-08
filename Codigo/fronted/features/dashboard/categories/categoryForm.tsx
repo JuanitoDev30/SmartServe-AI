@@ -1,12 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   CategoryType,
   CategoryFormData,
+  categorySchema,
 } from '@/features/categories/schemas/categorySchema';
 import { cn } from '@/lib/utils';
 
@@ -18,12 +22,10 @@ interface CategoryFormModalProps {
   isLoading?: boolean;
   error?: string | null;
 }
-
-const defaultFormData: CategoryFormData = {
+const defaultValues: CategoryFormData = {
   nombre: '',
   descripcion: '',
 };
-
 export function CategoryFormModal({
   isOpen,
   onClose,
@@ -32,34 +34,26 @@ export function CategoryFormModal({
   isLoading,
   error,
 }: CategoryFormModalProps) {
-  const [formData, setFormData] = useState<CategoryFormData>(defaultFormData);
-  const [errorField, setErrorField] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CategoryFormData>({
+    resolver: zodResolver(categorySchema),
+    defaultValues,
+  });
 
   useEffect(() => {
     if (category) {
-      setFormData({
+      reset({
         nombre: category.nombre,
         descripcion: category.descripcion || '',
       });
     } else {
-      setFormData(defaultFormData);
+      reset(defaultValues);
     }
-  }, [category, isOpen]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  }, [category, isOpen, reset]);
 
   if (!isOpen) return null;
 
@@ -75,6 +69,7 @@ export function CategoryFormModal({
           <h2 className="text-lg font-semibold text-foreground">
             {category ? 'Editar categoría' : 'Nueva categoría'}
           </h2>
+
           <button
             onClick={onClose}
             className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -84,11 +79,11 @@ export function CategoryFormModal({
         </div>
 
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
           className="overflow-y-auto max-h-[calc(90vh-140px)]"
         >
           <div className="p-6 space-y-5">
-            {errorField === 'general' && (
+            {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2 rounded-lg">
                 {error}
               </div>
@@ -98,22 +93,18 @@ export function CategoryFormModal({
               <label className="text-sm font-medium text-foreground">
                 Nombre de la categoría *
               </label>
+
               <Input
-                name="nombre"
-                value={formData.nombre}
-                onChange={handleChange}
                 placeholder="Ej: Bebidas, Snacks, Licores..."
-                required
                 className={cn(
                   'h-11',
-                  errorField === 'nombre' &&
-                    'border-red-500 focus:ring-red-500',
+                  errors.nombre && 'border-red-500 focus-visible:ring-red-500',
                 )}
+                {...register('nombre')}
               />
-              {errorField === 'nombre' && (
-                <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2 rounded-lg">
-                  {error}
-                </div>
+
+              {errors.nombre && (
+                <p className="text-sm text-red-500">{errors.nombre.message}</p>
               )}
             </div>
 
@@ -121,14 +112,23 @@ export function CategoryFormModal({
               <label className="text-sm font-medium text-foreground">
                 Descripción
               </label>
+
               <textarea
-                name="descripcion"
-                value={formData.descripcion || ''}
-                onChange={handleChange}
-                placeholder="Descripción de la categoría (opcional)..."
                 rows={3}
-                className="flex w-full rounded-lg border border-input bg-input px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                placeholder="Descripción de la categoría (opcional)..."
+                className={cn(
+                  'flex w-full rounded-lg border border-input bg-input px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none',
+                  errors.descripcion &&
+                    'border-red-500 focus-visible:ring-red-500',
+                )}
+                {...register('descripcion')}
               />
+
+              {errors.descripcion && (
+                <p className="text-sm text-red-500">
+                  {errors.descripcion.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -141,6 +141,7 @@ export function CategoryFormModal({
             >
               Cancelar
             </Button>
+
             <Button type="submit" disabled={isLoading}>
               {isLoading
                 ? 'Guardando...'

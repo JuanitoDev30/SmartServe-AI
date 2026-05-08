@@ -28,9 +28,7 @@ export class CategoriaService {
     const existe = await this.categoriaRepository.findOneBy({ nombre });
 
     if (existe) {
-      throw new BadRequestException(
-        `La categoría '${nombre}' ya existe`,
-      );
+      throw new BadRequestException(`La categoría '${nombre}' ya existe`);
     }
 
     try {
@@ -51,9 +49,7 @@ export class CategoriaService {
     const categoria = await this.categoriaRepository.findOneBy({ id });
 
     if (!categoria) {
-      throw new NotFoundException(
-        `Categoría con id ${id} no encontrada`,
-      );
+      throw new NotFoundException(`Categoría con id ${id} no encontrada`);
     }
 
     return categoria;
@@ -67,9 +63,7 @@ export class CategoriaService {
     });
 
     if (!categoria) {
-      throw new NotFoundException(
-        `Categoría con id ${id} no encontrada`,
-      );
+      throw new NotFoundException(`Categoría con id ${id} no encontrada`);
     }
 
     try {
@@ -82,7 +76,17 @@ export class CategoriaService {
   // DELETE
   async remove(id: string) {
     const categoria = await this.findOne(id);
-    return await this.categoriaRepository.remove(categoria);
+
+    try {
+      return await this.categoriaRepository.remove(categoria);
+    } catch (error: any) {
+      if (error.code === '23503') {
+        throw new BadRequestException(
+          'No se puede eliminar la categoría porque tiene productos asociados. Elimina o reasigna los productos primero.',
+        );
+      }
+      throw error;
+    }
   }
 
   // MANEJO DE ERRORES

@@ -102,11 +102,16 @@ export class ClienteService {
 
   // GET
   async findAll(paginationDto: PaginationDto): Promise<Cliente[]> {
-    const { limit = 10, offset = 0 } = paginationDto;
+    const { page = 1, pageSize = 10 } = paginationDto;
+
+    const offset = (page - 1) * pageSize;
+
     return this.clienteRepository.find({
-      take: limit,
+      take: pageSize,
       skip: offset,
-      order: { creadoEn: 'DESC' },
+      order: {
+        creadoEn: 'DESC',
+      },
     });
   }
 

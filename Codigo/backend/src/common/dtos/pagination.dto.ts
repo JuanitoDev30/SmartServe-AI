@@ -1,15 +1,26 @@
 import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsPositive, Min } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class PaginationDto {
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @IsPositive()
-  @Type(() => Number) // Es transformado a número, ya que los query params llegan como strings
-  limit?: number;
+  page?: number = 1;
+
   @IsOptional()
-  @IsNumber()
   @Type(() => Number)
-  @Min(0)
-  offset?: number;
+  @IsNumber()
+  @IsPositive()
+  pageSize?: number = 10;
+
+  @IsOptional()
+  @IsString()
+  search?: string = '';
 }

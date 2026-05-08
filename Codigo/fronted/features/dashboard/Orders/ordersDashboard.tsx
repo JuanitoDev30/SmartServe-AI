@@ -1,6 +1,6 @@
 'use client';
-import { Input } from '@/components/ui/input';
 
+import { Input } from '@/components/ui/input';
 import { usePedidosSocket } from '@/hooks/usePedidosSocket';
 import { usePedidosStore } from '@/store/pedidosStore';
 import { formatCurrency } from '@/lib/formatCurrency';

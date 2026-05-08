@@ -1,22 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   ProductType,
-  ProductFormData,
   ProductStatus,
 } from '@/features/productos/schemas/productSchema';
-import { cn } from '@/lib/utils';
+import {
+  productFormSchema,
+  ProductFormValues,
+} from '@/lib/validations/product';
 import { CategoryType } from '@/features/categories/schemas/categorySchema';
+import { cn } from '@/lib/utils';
 
 interface ProductFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: ProductFormData) => void;
+  onSubmit: (data: ProductFormValues) => void;
   product?: ProductType | null;
   isLoading?: boolean;
   error?: string | null;
@@ -30,7 +35,7 @@ const statuses: { value: ProductStatus; label: string }[] = [
   { value: 'out_of_stock', label: 'Sin stock' },
 ];
 
-const defaultFormData: ProductFormData = {
+const defaultValues: ProductFormValues = {
   nombre: '',
   precio: 0,
   descripcion: '',
@@ -39,18 +44,14 @@ const defaultFormData: ProductFormData = {
   proveedor: '',
   status: 'active',
   categoriaId: '',
-
-  //minStock: 5,
 };
 
-function getErrorField(
+function getServerErrorField(
   error: string | null | undefined,
 ): 'nombre' | 'slug' | 'general' | null {
-  // console.log(error);
   if (!error) return null;
-  const lowerError = error;
-  if (lowerError.includes('nombre')) return 'nombre';
-  if (lowerError.includes('slug')) return 'slug';
+  if (error.includes('nombre')) return 'nombre';
+  if (error.includes('slug')) return 'slug';
   return 'general';
 }
 
@@ -63,49 +64,36 @@ export function ProductFormModal({
   error,
   categories,
 }: ProductFormModalProps) {
-  const [formData, setFormData] = useState<ProductFormData>(defaultFormData);
-  const errorField = getErrorField(error);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ProductFormValues>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues,
+  });
 
   useEffect(() => {
+    if (!isOpen) return;
+
     if (product) {
-      setFormData({
+      reset({
         nombre: product.nombre,
         precio: Number(product.precio) || 0,
-        descripcion: product.descripcion || '',
-        slug: product.slug || '',
-        stock: product.stock || 0,
-        proveedor: product.proveedor || '',
+        descripcion: product.descripcion ?? '',
+        slug: product.slug ?? '',
+        stock: product.stock ?? 0,
+        proveedor: product.proveedor ?? '',
         status: product.status,
-        categoriaId: product.categoria?.id || '',
+        categoriaId: product.categoria?.id ?? '',
       });
     } else {
-      setFormData(defaultFormData);
+      reset(defaultValues);
     }
-  }, [product, isOpen]);
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-    //console.log(error);
-  };
+  }, [product, isOpen, reset]);
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
-  ) => {
-    const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]:
-        type === 'number'
-          ? parseFloat(value) || 0
-          : name === 'categoriaId'
-            ? (value as string)
-            : name === 'status'
-              ? (value as ProductStatus)
-              : value,
-    }));
-  };
+  const serverErrorField = getServerErrorField(error);
 
   if (!isOpen) return null;
 
@@ -134,104 +122,115 @@ export function ProductFormModal({
 
         {/* Form */}
         <form
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
           className="overflow-y-auto max-h-[calc(90vh-140px)]"
         >
           <div className="p-6 space-y-5">
-            {/* Error general */}
-            {errorField === 'general' && (
+            {/* Error general del servidor */}
+            {serverErrorField === 'general' && (
               <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2 rounded-lg">
                 {error}
               </div>
             )}
 
-            {/* Name */}
+            {/* Nombre */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
                 Nombre del producto
               </label>
               <Input
-                name="nombre"
-                value={formData.nombre}
-                onChange={handleChange}
+                {...register('nombre')}
                 placeholder="Ej: Aguardiente"
-                required
                 className={cn(
                   'h-11',
-                  errorField === 'nombre' &&
+                  (errors.nombre || serverErrorField === 'nombre') &&
                     'border-red-500 focus:ring-red-500',
                 )}
               />
-              {errorField === 'nombre' && (
+              {/* Error de validación local (Zod) */}
+              {errors.nombre && (
+                <p className="text-red-600 text-sm">{errors.nombre.message}</p>
+              )}
+              {/* Error de servidor relacionado al nombre */}
+              {!errors.nombre && serverErrorField === 'nombre' && (
                 <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2 rounded-lg">
                   {error}
                 </div>
               )}
             </div>
 
-            {/* Description */}
+            {/* Descripción */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
-                Descripcion
+                Descripción
               </label>
               <textarea
-                name="descripcion"
-                value={formData.descripcion || ''}
-                onChange={handleChange}
-                placeholder="Descripcion del producto..."
+                {...register('descripcion')}
+                placeholder="Descripción del producto..."
                 rows={3}
                 className="flex w-full rounded-lg border border-input bg-input px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
               />
+              {errors.descripcion && (
+                <p className="text-red-600 text-sm">
+                  {errors.descripcion.message}
+                </p>
+              )}
             </div>
 
-            {/* SKU & Category */}
+            {/* Slug & Categoría */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
                   SLUG
                 </label>
                 <Input
-                  name="slug"
-                  value={formData.slug}
-                  onChange={handleChange}
-                  placeholder="Ej: PROD-001"
-                  required
+                  {...register('slug')}
+                  placeholder="Ej: aguardiente-nariño"
                   className={cn(
                     'h-11 font-mono',
-                    errorField === 'slug' &&
+                    (errors.slug || serverErrorField === 'slug') &&
                       'border-red-500 focus:ring-red-500',
                   )}
                 />
-                {errorField === 'slug' && (
+                {errors.slug && (
+                  <p className="text-red-600 text-sm">{errors.slug.message}</p>
+                )}
+                {!errors.slug && serverErrorField === 'slug' && (
                   <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2 rounded-lg">
                     {error}
                   </div>
                 )}
               </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Categoria
+                  Categoría
                 </label>
                 <select
-                  name="categoriaId"
-                  value={formData.categoriaId}
-                  onChange={handleChange}
-                  className="flex h-11 w-full rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  {...register('categoriaId')}
+                  className={cn(
+                    'flex h-11 w-full rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    errors.categoriaId && 'border-red-500',
+                  )}
                 >
                   <option value="" disabled>
                     Selecciona la categoría
                   </option>
-
                   {categories?.map(cat => (
                     <option key={cat.id} value={cat.id}>
                       {cat.nombre}
                     </option>
                   ))}
                 </select>
+                {errors.categoriaId && (
+                  <p className="text-red-600 text-sm">
+                    {errors.categoriaId.message}
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* Price & Cost */}
+            {/* Precio & Stock */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
@@ -242,69 +241,71 @@ export function ProductFormModal({
                     $
                   </span>
                   <Input
+                    // valueAsNumber le dice a RHF que convierta el string del
+                    // input a number antes de pasarlo al schema — sin esto
+                    // Zod recibiría un string y fallaría la validación de number
+                    {...register('precio', { valueAsNumber: true })}
                     type="number"
-                    name="precio"
-                    value={formData.precio}
-                    onChange={handleChange}
                     min="0"
                     step="0.01"
-                    required
-                    className="h-11 pl-7"
+                    className={cn(
+                      'h-11 pl-7',
+                      errors.precio && 'border-red-500',
+                    )}
                   />
                 </div>
+                {errors.precio && (
+                  <p className="text-red-600 text-sm">
+                    {errors.precio.message}
+                  </p>
+                )}
               </div>
+
               <div className="space-y-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">
-                      Stock actual
-                    </label>
-                    <Input
-                      type="number"
-                      name="stock"
-                      value={formData.stock}
-                      onChange={handleChange}
-                      min="0"
-                      required
-                      className="h-11 w-50"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Stock & Min Stock */}
-
-              {/* <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Stock minimo
+                  Stock actual
                 </label>
                 <Input
+                  {...register('stock', { valueAsNumber: true })}
                   type="number"
-                  name="minStock"
-                  value={formData.minStock}
-                  onChange={handleChange}
                   min="0"
-                  required
-                  className="h-11"
+                  className={cn('h-11', errors.stock && 'border-red-500')}
                 />
-              </div> */}
+                {errors.stock && (
+                  <p className="text-red-600 text-sm">{errors.stock.message}</p>
+                )}
+              </div>
             </div>
 
-            {/* Status */}
+            {/* Proveedor */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Proveedor
+              </label>
+              <Input
+                {...register('proveedor')}
+                placeholder="Ej: Distribuidora XYZ"
+                className="h-11"
+              />
+              {errors.proveedor && (
+                <p className="text-red-600 text-sm">
+                  {errors.proveedor.message}
+                </p>
+              )}
+            </div>
+
+            {/* Estado */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
                 Estado
               </label>
               <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                defaultChecked={formData.status === 'active'}
+                {...register('status')}
                 className="flex h-11 w-full rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                {statuses.map(status => (
-                  <option key={status.value} value={status.value}>
-                    {status.label}
+                {statuses.map(s => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
                   </option>
                 ))}
               </select>

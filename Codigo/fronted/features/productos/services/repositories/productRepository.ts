@@ -20,15 +20,27 @@ class ProductRepository implements IProductRepository {
     pageSize,
     search,
   }: ProductsActionsProps): Promise<ProductType[]> {
-    const { data } = await api.get('/producto', {
-      params: {
+    try {
+      console.log('REQUEST PARAMS', {
         page,
         pageSize,
         search,
-      },
-    });
+      });
 
-    return data;
+      const { data } = await api.get('/producto', {
+        params: {
+          page,
+          pageSize,
+          search,
+        },
+      });
+
+      return data;
+    } catch (error: any) {
+      console.log('BACKEND ERROR:', error?.response?.data);
+
+      throw error;
+    }
   }
 
   async getById(id: string): Promise<ProductType> {

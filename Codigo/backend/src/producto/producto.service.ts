@@ -10,7 +10,7 @@ import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { Producto } from './entities/producto.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { ILike, In, Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Categoria } from 'src/categoria/entities/categoria.entity';
 
@@ -68,10 +68,20 @@ export class ProductoService {
 
   findAll(paginationDto: PaginationDto) {
     try {
-      const { limit = 10, offset = 0 } = paginationDto;
+      const { page = 1, pageSize = 10, search = '' } = paginationDto;
+
+      const offset = (page - 1) * pageSize;
+
       return this.productRepository.find({
-        take: limit,
+        take: pageSize,
         skip: offset,
+
+        where: search
+          ? {
+              nombre: ILike(`%${search}%`),
+            }
+          : {},
+
         relations: {
           categoria: true,
         },

@@ -19,12 +19,10 @@ export default async function InventoryPage({
     await getProductsAction({
       page: params.page,
       pageSize: params.pageSize,
-      search: params.search,
     }),
     await getCategoriesAction({
       page: 1,
       pageSize: 100,
-      search: '',
     }),
   ]);
 

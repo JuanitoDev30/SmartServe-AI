@@ -17,13 +17,16 @@ import {
   CategoryType,
   CategoryFormData,
 } from '@/features/categories/schemas/categorySchema';
+import { ProductType } from '@/features/productos/schemas/productSchema';
 
 interface CategoryDashboardProps {
   categoriesResponse: CategoryType[];
+  productsResponse: ProductType[];
 }
 
 export function CategoryDashboard({
   categoriesResponse,
+  productsResponse,
 }: CategoryDashboardProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [search, setSearch] = useState('');
@@ -220,6 +223,7 @@ export function CategoryDashboard({
       ) : (
         <CategoryTable
           categoriesResponse={filteredCategories}
+          products={productsResponse}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />

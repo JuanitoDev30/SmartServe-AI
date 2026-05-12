@@ -1,5 +1,7 @@
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { LogoutButton } from '@/components/sideBar/logoutButton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { AuthUser } from '@/types';
 import {
   Archive,
   BarChart3,
@@ -65,11 +67,13 @@ const navItems = [
 interface DashboardSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  user: AuthUser;
 }
 
 export function DashboardSidebar({
   collapsed,
   onToggle,
+  user,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
   return (
@@ -141,15 +145,7 @@ export function DashboardSidebar({
           <MessageSquare className="size-5 shrink-0" />
           {!collapsed && <span>Ir al chat</span>}
         </Link>
-        <button
-          className={cn(
-            'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors',
-            collapsed && 'justify-center px-2',
-          )}
-        >
-          <LogOut className="size-5 shrink-0" />
-          {!collapsed && <span>Cerrar sesion</span>}
-        </button>
+        <LogoutButton collapsed={collapsed} />
       </div>
 
       {/* USER */}
@@ -157,16 +153,20 @@ export function DashboardSidebar({
         <div className="border-t border-border p-4">
           <div className="flex items-center gap-3">
             <Avatar className="size-9">
-              <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
-                AD
-              </AvatarFallback>
+              {user?.image ? (
+                <AvatarImage src={user.image} />
+              ) : (
+                <AvatarFallback>
+                  {user?.name?.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              )}
             </Avatar>
             <div className="min-w-0">
               <p className="text-sm font-medium text-foreground truncate">
-                Admin User
+                {user?.name || 'Usuario'}
               </p>
               <p className="text-xs text-muted-foreground truncate">
-                admin@example.com
+                {user?.email || ' '}
               </p>
             </div>
           </div>

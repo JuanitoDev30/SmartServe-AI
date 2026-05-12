@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,12 +8,15 @@ import {
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { useNotificationStore } from '@/store/notificationStore';
 import { Bell, Menu, Search } from 'lucide-react';
+import { AuthUser } from '@/types';
+import { LogoutButton } from '@/components/sideBar/logoutButton';
 
 interface DashboardHeaderProps {
   onMenuClick: () => void;
+  user: AuthUser;
 }
 
-export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
+export function DashboardHeader({ onMenuClick, user }: DashboardHeaderProps) {
   const notifications = useNotificationStore(state => state.notifications);
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -94,9 +97,13 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           <DropdownMenuTrigger asChild>
             <button className="rounded-full">
               <Avatar className="size-9">
-                <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
-                  AD
-                </AvatarFallback>
+                {user?.image ? (
+                  <AvatarImage src={user.image} />
+                ) : (
+                  <AvatarFallback>
+                    {user?.name?.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                )}
               </Avatar>
             </button>
           </DropdownMenuTrigger>
@@ -105,7 +112,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             <DropdownMenuItem>Configuracion</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive">
-              Cerrar sesion
+              <LogoutButton dropdown={true} />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

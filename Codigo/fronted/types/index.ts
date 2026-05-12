@@ -1,3 +1,7 @@
+import { Session } from 'next-auth';
+
+export type AuthUser = Session['user'];
+
 // ============================================
 // CHAT TYPES
 // ============================================
@@ -78,15 +82,12 @@ export interface DashboardAnalytics {
 // PRODUCT/INVENTORY TYPES
 // ============================================
 
-
-
-
 export interface Product {
   id: string;
   name: string;
   description?: string;
   sku: string;
- // category: ProductCategory;
+  // category: ProductCategory;
   price: number;
   costPrice?: number;
   stock: number;

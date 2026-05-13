@@ -10,13 +10,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          console.log('❌ Credenciales vacías');
+          console.log(' Credenciales vacías');
           return null;
         }
 
         try {
           // console.log(
-          //   '🔄 Llamando al backend:',
+          //   ' Llamando al backend:',
           //   `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
           // );
 
@@ -32,16 +32,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
           );
 
-          //  console.log('📡 Respuesta del backend:', res.status);
+          //  console.log(' Respuesta del backend:', res.status);
 
           if (!res.ok) {
-            const error = await res.json();
-            console.log('❌ Error del backend:', error);
+            //const error = await res.json();
+            //console.log(' Error del backend:', error);
             return null;
           }
 
           const data = await res.json();
-          //  console.log('✅ Login exitoso:', data.admin);
+          //  console.log(' Login exitoso:', data.admin);
 
           return {
             id: data.admin.id,
@@ -50,7 +50,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             accessToken: data.access_token,
           };
         } catch (error) {
-          console.error('❌ Error en authorize:', error);
+          console.error(' Error en authorize:', error);
           return null;
         }
       },

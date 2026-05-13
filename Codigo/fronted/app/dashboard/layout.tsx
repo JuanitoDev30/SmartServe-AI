@@ -15,7 +15,7 @@ export default async function Layout({
   const session = await auth();
 
   if (!session?.user) {
-    redirect('/api/auth/signin');
+    redirect('/login');
   }
 
   return <DashboardLayout user={session.user}>{children}</DashboardLayout>;

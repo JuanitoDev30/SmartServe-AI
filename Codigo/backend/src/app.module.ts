@@ -11,6 +11,7 @@ import { VentasModule } from './ventas/ventas.module';
 import { CategoriaModule } from './categoria/categoria.module';
 import { ChatModule } from './chat/chat.module';
 import { AdministradorModule } from './administrador/administrador.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AdministradorModule } from './administrador/administrador.module';
     CategoriaModule,
     ChatModule,
     AdministradorModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

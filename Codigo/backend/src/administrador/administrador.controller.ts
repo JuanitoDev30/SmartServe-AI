@@ -1,15 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  ParseUUIDPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { AdministradorService } from './administrador.service';
 import { CreateAdministradorDto } from './dto/create-administrador.dto';
 import { UpdateAdministradorDto } from './dto/update-administrador.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('administrador')
 export class AdministradorController {
   constructor(private readonly administradorService: AdministradorService) {}
 
   @Post()
-  create(@Body() createAdministradorDto: CreateAdministradorDto) {
-    return this.administradorService.create(createAdministradorDto);
+  create(@Body() dto: CreateAdministradorDto) {
+    return this.administradorService.create(dto);
   }
 
   @Get()
@@ -18,17 +29,20 @@ export class AdministradorController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.administradorService.findOne(+id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.administradorService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAdministradorDto: UpdateAdministradorDto) {
-    return this.administradorService.update(+id, updateAdministradorDto);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateAdministradorDto,
+  ) {
+    return this.administradorService.update(id, dto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.administradorService.remove(+id);
+  @Patch(':id/deactivate')
+  deactivate(@Param('id', ParseUUIDPipe) id: string) {
+    return this.administradorService.deactivate(id);
   }
 }

@@ -104,7 +104,10 @@ export function CategoryDashboard({
           toast({
             variant: 'destructive',
             title: 'Error al crear la categoría',
-            description: result.error || 'Ocurrió un error inesperado',
+            description:
+              typeof result.error === 'string'
+                ? result.error
+                : 'Ocurrió un error inesperado',
             duration: 3000,
           });
           return;

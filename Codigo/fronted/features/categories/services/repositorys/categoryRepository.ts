@@ -33,14 +33,21 @@ class CategoryRepository implements CategoryRepositoryInterface {
   ): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
       const response = await api.post('/categoria', data);
-      return { success: true, data: response.data };
+
+      return {
+        success: true,
+        data: response.data,
+      };
     } catch (error: any) {
+      console.error(error);
+
+      const message = error?.response?.data?.message;
+
       return {
         success: false,
-        error:
-          error?.response?.data?.message ||
-          error.message ||
-          'Error creando categoría',
+        error: Array.isArray(message)
+          ? message.join(', ')
+          : message || error.message || 'Error creando categoría',
       };
     }
   }

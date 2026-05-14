@@ -408,7 +408,7 @@ export function OrdersDashboard() {
                       className="hover:bg-muted/30 transition-colors"
                     >
                       <td className="px-4 py-4 text-sm font-medium text-foreground">
-                        #{order.id}
+                        #{order.id.slice(0, 3)}...{order.id.slice(-3)}
                       </td>
                       <td className="px-4 py-4 text-sm text-foreground">
                         {order.cliente.nombre}

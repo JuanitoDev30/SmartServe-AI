@@ -5,14 +5,14 @@ export const categorySchema = z.object({
     .string()
     .trim()
     .min(3, 'El nombre debe tener al menos 3 caracteres')
-    .max(50, 'El nombre no puede superar los 50 caracteres')
+    .max(20, 'El nombre no puede superar los 20 caracteres')
     .regex(/^[a-zA-ZÀ-ÿ0-9\s]+$/, 'El nombre contiene caracteres inválidos')
     .transform(value => value.replace(/\s+/g, ' ')),
 
   descripcion: z
     .string()
     .trim()
-    .max(200, 'La descripción no puede superar los 200 caracteres')
+    .max(50, 'La descripción no puede superar los 50 caracteres')
     .transform(value => value.replace(/\s+/g, ' '))
     .optional()
     .or(z.literal('')),

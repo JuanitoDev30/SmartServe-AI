@@ -7,13 +7,13 @@ import {
 } from 'class-validator';
 
 export class CreateCategoriaDto {
-  @IsString( { message: 'El nombre debe ser una cadena de texto' })
+  @IsString({ message: 'El nombre debe ser una cadena de texto' })
   @MinLength(3, { message: 'El nombre es muy corto' })
-  @MaxLength(50, { message: 'El nombre es muy largo' })
+  @MaxLength(30, { message: 'El nombre es muy largo' })
   nombre!: string;
 
   @IsString({ message: 'La descripción debe ser una cadena de texto' })
-  @MaxLength(20, { message: 'La descripción es muy larga' })
+  @MaxLength(50, { message: 'La descripción es muy larga' })
   @IsOptional({ message: 'La descripción es opcional' })
   descripcion?: string;
 

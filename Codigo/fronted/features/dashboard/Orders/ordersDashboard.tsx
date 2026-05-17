@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   XCircle,
   Search,
-  Plus,
   Wifi,
   WifiOff,
 } from 'lucide-react';

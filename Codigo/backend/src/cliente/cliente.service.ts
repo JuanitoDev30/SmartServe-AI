@@ -101,18 +101,49 @@ export class ClienteService {
   }
 
   // GET
-  async findAll(paginationDto: PaginationDto): Promise<Cliente[]> {
-    const { page = 1, pageSize = 10 } = paginationDto;
+  async findAll(paginationDto: PaginationDto) {
+    const {
+      page = 1,
+      pageSize = 10,
+      search = '',
+      estado,
+      sortBy = 'creadoEn',
+      sortOrder = 'desc',
+    } = paginationDto;
 
     const offset = (page - 1) * pageSize;
 
-    return this.clienteRepository.find({
-      take: pageSize,
-      skip: offset,
-      order: {
-        creadoEn: 'DESC',
+    const query = this.clienteRepository.createQueryBuilder('cliente');
+
+    // Filtro de búsqueda
+    if (search) {
+      query.where(
+        'cliente.nombre ILIKE :search OR cliente.telefono ILIKE :search OR cliente.email ILIKE :search',
+        { search: `%${search}%` },
+      );
+    }
+
+    // Filtro de estado
+    if (estado) {
+      query.andWhere('cliente.estado = :estado', { estado });
+    }
+
+    query
+      .orderBy(`cliente.${sortBy}`, sortOrder.toUpperCase() as 'ASC' | 'DESC')
+      .take(pageSize)
+      .skip(offset);
+
+    const [data, total] = await query.getManyAndCount();
+
+    return {
+      data,
+      pagination: {
+        total,
+        page,
+        limit: pageSize,
+        totalPages: Math.ceil(total / pageSize),
       },
-    });
+    };
   }
 
   // GET ONE
@@ -179,6 +210,40 @@ export class ClienteService {
     } catch (error) {
       this.handleExceptions(error);
     }
+  }
+
+  async getStats() {
+    const [total, activos, inactivos, suspendidos] = await Promise.all([
+      this.clienteRepository.count(),
+      this.clienteRepository.countBy({ estado: EstadoCliente.ACTIVO }),
+      this.clienteRepository.countBy({ estado: EstadoCliente.INACTIVO }),
+      this.clienteRepository.countBy({ estado: EstadoCliente.SUSPENDIDO }),
+    ]);
+
+    // Total de pedidos sumando todos los clientes
+    const { sum } = await this.clienteRepository
+      .createQueryBuilder('cliente')
+      .select('SUM(cliente.totalPedidos)', 'sum')
+      .getRawOne();
+
+    // Nuevos este mes
+    const inicioMes = new Date();
+    inicioMes.setDate(1);
+    inicioMes.setHours(0, 0, 0, 0);
+
+    const nuevosEsteMes = await this.clienteRepository
+      .createQueryBuilder('cliente')
+      .where('cliente.creadoEn >= :inicioMes', { inicioMes })
+      .getCount();
+
+    return {
+      total,
+      activos,
+      inactivos,
+      suspendidos,
+      totalPedidos: parseInt(sum) || 0,
+      nuevosEsteMes,
+    };
   }
 
   // ─── MANEJO DE ERRORES ────────────────────────────────────────────────────

@@ -1,11 +1,12 @@
 import { Type } from 'class-transformer';
 import {
+  IsEnum,
   IsNumber,
   IsOptional,
   IsPositive,
   IsString,
-  Min,
 } from 'class-validator';
+import { EstadoCliente } from 'src/cliente/enum/usuarioEstado.enum';
 
 export class PaginationDto {
   @IsOptional()
@@ -23,4 +24,16 @@ export class PaginationDto {
   @IsOptional()
   @IsString()
   search?: string = '';
+
+  @IsOptional()
+  @IsEnum(EstadoCliente)
+  estado?: EstadoCliente;
+
+  @IsOptional()
+  @IsEnum(['nombre', 'creadoEn', 'totalPedidos'])
+  sortBy?: 'nombre' | 'creadoEn' | 'totalPedidos' = 'creadoEn';
+
+  @IsOptional()
+  @IsEnum(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc' = 'desc';
 }

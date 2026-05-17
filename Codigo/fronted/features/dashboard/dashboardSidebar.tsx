@@ -26,8 +26,8 @@ const navItems = [
   },
 
   {
-    label: 'Usuario',
-    href: '/dashboard/usuario',
+    label: 'Clientes',
+    href: '/dashboard/clientes',
     icon: User,
   },
   {

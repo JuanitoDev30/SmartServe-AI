@@ -63,4 +63,9 @@ export class ClienteController {
   desactivar(@Param('id', ParseUUIDPipe) id: string) {
     return this.clienteService.desactivar(id);
   }
+
+  @Get('stats')
+  getStats() {
+    return this.clienteService.getStats();
+  }
 }

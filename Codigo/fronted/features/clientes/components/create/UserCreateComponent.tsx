@@ -1,7 +1,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-import { Userschema } from '../../schemas/userSchema';
+import { Userschema } from '../../schemas/clientSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserType } from '../../types/userType';
 import { createUserActions } from '../../actions/createUserActions';

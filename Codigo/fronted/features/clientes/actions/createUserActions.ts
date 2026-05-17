@@ -1,6 +1,6 @@
 'use server'; //componente de servidor, se ejecuta en el servidor, no en el cliente
 
-import { Userschema } from '../schemas/userSchema';
+import { Userschema } from '../schemas/clientSchema';
 import { UserType } from '../types/userType';
 
 export async function createUserActions(data: UserType) {

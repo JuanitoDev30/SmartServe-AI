@@ -62,17 +62,18 @@ export class ClienteService {
     nombre: string,
     telefono: string,
     email?: string,
+    direccionPrincipal?: string, // 👈
   ): Promise<{ cliente: Cliente; esNuevo: boolean }> {
     try {
-      //Buscar primero por telefono
-
       const existente = await this.clienteRepository.findOneBy({ telefono });
-
       if (existente) {
+        // Si ya existe y ahora tiene direccion, actualizarla
+        if (direccionPrincipal && !existente.direccionPrincipal) {
+          existente.direccionPrincipal = direccionPrincipal;
+          await this.clienteRepository.save(existente);
+        }
         return { cliente: existente, esNuevo: false };
       }
-
-      // Si tiene email, buscar tambien por email
 
       if (email) {
         const existenteEmail = await this.clienteRepository.findOneBy({
@@ -83,23 +84,20 @@ export class ClienteService {
         }
       }
 
-      // No existe : crear nuevo cliente
-
       const nuevo = this.clienteRepository.create({
         nombre,
         telefono,
         email,
+        direccionPrincipal, // 👈
         estado: EstadoCliente.ACTIVO,
       });
 
       const clienteGuardado = await this.clienteRepository.save(nuevo);
-
       return { cliente: clienteGuardado, esNuevo: true };
     } catch (error) {
       this.handleExceptions(error);
     }
   }
-
   // GET
   async findAll(paginationDto: PaginationDto) {
     const {
@@ -113,9 +111,10 @@ export class ClienteService {
 
     const offset = (page - 1) * pageSize;
 
-    const query = this.clienteRepository.createQueryBuilder('cliente');
+    const query = this.clienteRepository
+      .createQueryBuilder('cliente')
+      .loadRelationCountAndMap('cliente.totalPedidos', 'cliente.pedidos'); // 👈
 
-    // Filtro de búsqueda
     if (search) {
       query.where(
         'cliente.nombre ILIKE :search OR cliente.telefono ILIKE :search OR cliente.email ILIKE :search',
@@ -123,15 +122,30 @@ export class ClienteService {
       );
     }
 
-    // Filtro de estado
     if (estado) {
       query.andWhere('cliente.estado = :estado', { estado });
     }
 
-    query
-      .orderBy(`cliente.${sortBy}`, sortOrder.toUpperCase() as 'ASC' | 'DESC')
-      .take(pageSize)
-      .skip(offset);
+    // sortBy de totalPedidos requiere subquery especial
+    if (sortBy === 'totalPedidos') {
+      query
+        .addSelect(
+          (subQuery) =>
+            subQuery
+              .select('COUNT(p.id)', 'cnt')
+              .from('pedido', 'p')
+              .where('p.clienteId = cliente.id'),
+          'pedidos_count',
+        )
+        .orderBy('pedidos_count', sortOrder.toUpperCase() as 'ASC' | 'DESC');
+    } else {
+      query.orderBy(
+        `cliente.${sortBy}`,
+        sortOrder.toUpperCase() as 'ASC' | 'DESC',
+      );
+    }
+
+    query.take(pageSize).skip(offset);
 
     const [data, total] = await query.getManyAndCount();
 
@@ -150,7 +164,19 @@ export class ClienteService {
   async findOne(id: string): Promise<Cliente> {
     const cliente = await this.clienteRepository.findOne({
       where: { id },
-      relations: { pedidos: true },
+      relations: {
+        pedidos: {
+          items: {
+            producto: true,
+          },
+        },
+      },
+
+      order: {
+        pedidos: {
+          creadoEn: 'DESC',
+        },
+      },
     });
 
     if (!cliente) throw new NotFoundException(`Cliente ${id} no encontrado`);
@@ -220,13 +246,12 @@ export class ClienteService {
       this.clienteRepository.countBy({ estado: EstadoCliente.SUSPENDIDO }),
     ]);
 
-    // Total de pedidos sumando todos los clientes
-    const { sum } = await this.clienteRepository
+    const { count } = await this.clienteRepository
       .createQueryBuilder('cliente')
-      .select('SUM(cliente.totalPedidos)', 'sum')
+      .innerJoin('cliente.pedidos', 'pedido')
+      .select('COUNT(pedido.id)', 'count')
       .getRawOne();
 
-    // Nuevos este mes
     const inicioMes = new Date();
     inicioMes.setDate(1);
     inicioMes.setHours(0, 0, 0, 0);
@@ -241,7 +266,7 @@ export class ClienteService {
       activos,
       inactivos,
       suspendidos,
-      totalPedidos: parseInt(sum) || 0,
+      totalPedidos: parseInt(count) || 0,
       nuevosEsteMes,
     };
   }

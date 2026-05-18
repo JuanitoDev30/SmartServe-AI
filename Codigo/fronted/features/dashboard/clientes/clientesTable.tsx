@@ -52,7 +52,11 @@ import {
   type PaginatedClientes,
   type ClienteFilters,
   type EstadoCliente,
+  UpdateClienteInput,
 } from '@/features/clientes/schemas/clientSchema';
+import { updateClientAction } from '@/features/clientes/actions/updateClientActions';
+import { ClienteEditModal } from './clientesEditModal';
+import { ClienteDetailModal } from './clientesDetailModal';
 
 interface ClientesTableProps {
   initialData: PaginatedClientes | null;
@@ -163,6 +167,15 @@ export function ClientesTable({
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState(initialFilters.search ?? '');
 
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedClienteId, setSelectedClienteId] = useState<string | null>(
+    null,
+  );
+
   const clientes = initialData?.data ?? [];
   const pagination = initialData?.pagination;
   const stats = initialStats;
@@ -221,6 +234,55 @@ export function ClientesTable({
     //   setIsDeleting(null);
     // }
   };
+
+  const handleEdit = (cliente: Cliente) => {
+    setSelectedCliente(cliente);
+    setEditModalOpen(true);
+  };
+
+  const handleEditSubmit = async (data: UpdateClienteInput) => {
+    if (!selectedCliente) return;
+    setIsSubmitting(true);
+    try {
+      const cleanData = {
+        ...data,
+        email: data.email === '' ? undefined : data.email,
+        direccionPrincipal:
+          data.direccionPrincipal === '' ? undefined : data.direccionPrincipal,
+      };
+
+      const result = await updateClientAction(selectedCliente.id, cleanData);
+
+      if (!result.success) {
+        toast({
+          variant: 'destructive',
+          title: 'Error al actualizar',
+          description: result.error,
+          duration: 3000,
+        });
+        return;
+      }
+
+      toast({
+        title: 'Cliente actualizado',
+        description: 'Los datos se actualizaron correctamente',
+        duration: 3000,
+      });
+      router.refresh();
+    } catch (error) {
+      console.error('Error updating cliente:', error);
+    } finally {
+      setIsSubmitting(false);
+      setEditModalOpen(false);
+      setSelectedCliente(null);
+    }
+  };
+
+  const handleView = (cliente: Cliente) => {
+    setSelectedClienteId(cliente.id);
+    setDetailModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       {/* Stats */}
@@ -392,11 +454,11 @@ export function ClientesTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleView(cliente)}>
                           <Eye className="w-4 h-4 mr-2" />
                           Ver detalles
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEdit(cliente)}>
                           <Edit className="w-4 h-4 mr-2" />
                           Editar
                         </DropdownMenuItem>
@@ -454,6 +516,26 @@ export function ClientesTable({
           </div>
         </div>
       )}
+
+      <ClienteEditModal
+        isOpen={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setSelectedCliente(null);
+        }}
+        onSubmit={handleEditSubmit}
+        cliente={selectedCliente}
+        isLoading={isSubmitting}
+      />
+
+      <ClienteDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false);
+          setSelectedClienteId(null);
+        }}
+        clienteId={selectedClienteId}
+      />
     </div>
   );
 }

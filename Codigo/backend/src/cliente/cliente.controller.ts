@@ -25,12 +25,19 @@ export class ClienteController {
   // Usado por el agente AI: POST /cliente/find-or-create
   @Post('find-or-create')
   findOrCreate(
-    @Body() body: { nombre: string; telefono: string; email?: string },
+    @Body()
+    body: {
+      nombre: string;
+      telefono: string;
+      email?: string;
+      direccionPrincipal?: string;
+    },
   ) {
     return this.clienteService.findOrCreate(
       body.nombre,
       body.telefono,
       body.email,
+      body.direccionPrincipal,
     );
   }
 

@@ -2,6 +2,7 @@ import { AxiosError } from 'axios';
 import { ClienteFilters } from '../schemas/clientSchema';
 import { getClientesUseCase } from '../services/useCases/getClientsUseCases';
 import { getClienteStatsUseCase } from '../services/useCases/createClientUseCases';
+import { clientRepository } from '../services/repositories/clientRepository';
 
 export async function getClientsActions(filters: ClienteFilters) {
   try {

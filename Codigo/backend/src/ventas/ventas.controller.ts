@@ -1,34 +1,55 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { VentasService } from './ventas.service';
 import { CreateVentaDto } from './dto/create-venta.dto';
 import { UpdateVentaDto } from './dto/update-venta.dto';
-
 @Controller('ventas')
 export class VentasController {
   constructor(private readonly ventasService: VentasService) {}
 
-  @Post()
-  create(@Body() createVentaDto: CreateVentaDto) {
-    return this.ventasService.create(createVentaDto);
+  @Get('resumen')
+  getResumen() {
+    return this.ventasService.getResumen();
   }
 
-  @Get()
-  findAll() {
-    return this.ventasService.findAll();
+  @Get('grafica')
+  getGrafica(@Query('periodo') periodo: 'dia' | 'semana' | 'mes' = 'semana') {
+    return this.ventasService.getGrafica(periodo);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ventasService.findOne(+id);
+  @Get('top-productos')
+  getTopProductos(
+    @Query('limit') limit = 5,
+    @Query('periodo') periodo: 'semana' | 'mes' | 'anio' | 'todo' = 'mes',
+  ) {
+    return this.ventasService.getTopProductos(Number(limit), periodo);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVentaDto: UpdateVentaDto) {
-    return this.ventasService.update(+id, updateVentaDto);
+  @Get('metodos-pago')
+  getMetodosPago() {
+    return this.ventasService.getMetodosPago();
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ventasService.remove(+id);
+  @Get('historial')
+  getHistorial(
+    @Query('page') page = 1,
+    @Query('pageSize') pageSize = 10,
+    @Query('fechaInicio') fechaInicio?: string,
+    @Query('fechaFin') fechaFin?: string,
+  ) {
+    return this.ventasService.getHistorial(
+      Number(page),
+      Number(pageSize),
+      fechaInicio,
+      fechaFin,
+    );
   }
 }

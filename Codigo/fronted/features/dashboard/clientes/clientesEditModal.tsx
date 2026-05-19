@@ -20,7 +20,6 @@ interface ClienteEditModalProps {
   cliente: Cliente | null;
   isLoading: boolean;
 }
-
 export function ClienteEditModal({
   isOpen,
   onClose,
@@ -28,7 +27,6 @@ export function ClienteEditModal({
   cliente,
   isLoading,
 }: ClienteEditModalProps) {
-  if (!isOpen || !cliente) return null;
   const {
     register,
     handleSubmit,
@@ -55,7 +53,8 @@ export function ClienteEditModal({
     }
   }, [cliente, reset]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !cliente) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}

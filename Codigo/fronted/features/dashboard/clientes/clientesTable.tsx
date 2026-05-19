@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { toast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
@@ -18,7 +18,6 @@ import {
   TrendingUp,
   Eye,
   Edit,
-  Trash2,
   ShoppingBag,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -36,7 +35,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropDownMenu';
 import {
@@ -57,6 +55,10 @@ import {
 import { updateClientAction } from '@/features/clientes/actions/updateClientActions';
 import { ClienteEditModal } from './clientesEditModal';
 import { ClienteDetailModal } from './clientesDetailModal';
+import { ClientePedidosModal } from './clientesPedidosModal';
+
+import { formatDate } from '@/lib/utils/formatters';
+import { ESTADO_CLIENTE_CONFIG } from '../shared/constants/pedidoConstants';
 
 interface ClientesTableProps {
   initialData: PaginatedClientes | null;
@@ -64,96 +66,12 @@ interface ClientesTableProps {
   initialFilters: ClienteFilters;
 }
 
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-  icon: React.ReactNode;
-  trend?: {
-    value: string;
-    positive: boolean;
-  };
-  delay?: number;
-}
-
-function StatCard({
-  title,
-  value,
-  subtitle,
-  icon,
-  trend,
-  delay = 0,
-}: StatCardProps) {
-  return (
-    <div
-      className={cn(
-        'bg-card border border-border rounded-xl p-5',
-        'transition-all duration-500 hover:shadow-lg hover:shadow-primary/5',
-        'animate-in fade-in slide-in-from-bottom-4',
-      )}
-      style={{ animationDelay: `${delay}ms`, animationFillMode: 'backwards' }}
-    >
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">{title}</p>
-          <p className="text-2xl font-bold text-foreground">{value}</p>
-          {subtitle && (
-            <p className="text-xs text-muted-foreground">{subtitle}</p>
-          )}
-          {trend && (
-            <p
-              className={cn(
-                'text-xs font-medium flex items-center gap-1',
-                trend.positive ? 'text-primary' : 'text-destructive',
-              )}
-            >
-              <TrendingUp
-                className={cn('w-3 h-3', !trend.positive && 'rotate-180')}
-              />
-              {trend.value}
-            </p>
-          )}
-        </div>
-        <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
-}
-function getEstadoBadgeVariant(estado: EstadoCliente) {
-  switch (estado) {
-    case 'ACTIVO':
-      return 'default';
-    case 'INACTIVO':
-      return 'secondary';
-    case 'SUSPENDIDO':
-      return 'destructive';
-    default:
-      return 'secondary';
-  }
-}
-
-function getEstadoLabel(estado: EstadoCliente) {
-  switch (estado) {
-    case 'ACTIVO':
-      return 'Activo';
-    case 'INACTIVO':
-      return 'Inactivo';
-    case 'SUSPENDIDO':
-      return 'Suspendido';
-    default:
-      return estado;
-  }
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat('es-CO', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(date);
-}
+// Un solo tipo discriminado reemplaza 6 useState de modales
+type ModalState =
+  | { type: 'none' }
+  | { type: 'detail'; clienteId: string }
+  | { type: 'pedidos'; clienteId: string }
+  | { type: 'edit'; cliente: Cliente };
 
 export function ClientesTable({
   initialData,
@@ -164,38 +82,24 @@ export function ClientesTable({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [modal, setModal] = useState<ModalState>({ type: 'none' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState(initialFilters.search ?? '');
 
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [detailModalOpen, setDetailModalOpen] = useState(false);
-  const [selectedClienteId, setSelectedClienteId] = useState<string | null>(
-    null,
-  );
+  const closeModal = () => setModal({ type: 'none' });
 
   const clientes = initialData?.data ?? [];
   const pagination = initialData?.pagination;
   const stats = initialStats;
 
-  // Actualiza los searchParams y Next.js re-fetcha desde el servidor
   const updateFilters = useCallback(
     (newFilters: Partial<ClienteFilters>) => {
       const params = new URLSearchParams(searchParams.toString());
-
       Object.entries(newFilters).forEach(([key, value]) => {
-        if (value === undefined || value === '') {
-          params.delete(key);
-        } else {
-          params.set(key, String(value));
-        }
+        if (value === undefined || value === '') params.delete(key);
+        else params.set(key, String(value));
       });
-
-      // Reset page al cambiar filtros
       if (!newFilters.page) params.set('page', '1');
-
       router.push(`${pathname}?${params.toString()}`);
     },
     [router, pathname, searchParams],
@@ -204,54 +108,31 @@ export function ClientesTable({
   const handleSearch = useCallback(
     (value: string) => {
       setSearchTerm(value);
-      const timeout = setTimeout(() => updateFilters({ search: value }), 400);
-      return () => clearTimeout(timeout);
+      updateFilters({ search: value });
     },
     [updateFilters],
   );
 
-  const handleEstadoFilter = (value: string) => {
+  const handleEstadoFilter = (value: string) =>
     updateFilters({
       estado: value === 'todos' ? undefined : (value as EstadoCliente),
     });
-  };
 
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = (newPage: number) =>
     updateFilters({ page: newPage });
-  };
 
-  const handleDesactivar = async (cliente: Cliente) => {
-    setIsDeleting(cliente.id);
-    // try {
-    //   const result = await deleteClienteAction(cliente.id);
-    //   if (!result.success) {
-    //     toast({ variant: 'destructive', title: 'Error', description: result.error, duration: 3000 });
-    //     return;
-    //   }
-    //   toast({ title: 'Cliente desactivado', description: `${cliente.nombre} fue desactivado`, duration: 3000 });
-    //   router.refresh(); // 👈 re-ejecuta la page server component
-    // } finally {
-    //   setIsDeleting(null);
-    // }
-  };
-
-  const handleEdit = (cliente: Cliente) => {
-    setSelectedCliente(cliente);
-    setEditModalOpen(true);
-  };
+  // — Acciones ———————————————————————————————————
 
   const handleEditSubmit = async (data: UpdateClienteInput) => {
-    if (!selectedCliente) return;
+    if (modal.type !== 'edit') return;
     setIsSubmitting(true);
     try {
-      const cleanData = {
+      const result = await updateClientAction(modal.cliente.id, {
         ...data,
         email: data.email === '' ? undefined : data.email,
         direccionPrincipal:
           data.direccionPrincipal === '' ? undefined : data.direccionPrincipal,
-      };
-
-      const result = await updateClientAction(selectedCliente.id, cleanData);
+      });
 
       if (!result.success) {
         toast({
@@ -262,25 +143,18 @@ export function ClientesTable({
         });
         return;
       }
-
       toast({
         title: 'Cliente actualizado',
         description: 'Los datos se actualizaron correctamente',
         duration: 3000,
       });
       router.refresh();
+      closeModal();
     } catch (error) {
       console.error('Error updating cliente:', error);
     } finally {
       setIsSubmitting(false);
-      setEditModalOpen(false);
-      setSelectedCliente(null);
     }
-  };
-
-  const handleView = (cliente: Cliente) => {
-    setSelectedClienteId(cliente.id);
-    setDetailModalOpen(true);
   };
 
   return (
@@ -341,7 +215,6 @@ export function ClientesTable({
               <SelectItem value="todos">Todos los estados</SelectItem>
               <SelectItem value="ACTIVO">Activos</SelectItem>
               <SelectItem value="INACTIVO">Inactivos</SelectItem>
-              <SelectItem value="SUSPENDIDO">Suspendidos</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -362,7 +235,7 @@ export function ClientesTable({
               <TableHead className="text-center">Pedidos</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead>Registrado</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[50px]" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -376,8 +249,9 @@ export function ClientesTable({
                 </TableCell>
               </TableRow>
             ) : (
-              clientes.map((cliente, index) => (
+              clientes.map(cliente => (
                 <TableRow key={cliente.id} className="group transition-colors">
+                  {/* Cliente */}
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm">
@@ -391,12 +265,14 @@ export function ClientesTable({
                         <p className="font-medium text-foreground">
                           {cliente.nombre}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          ID: {cliente.id.slice(0, 8)}
+                        <p className="text-xs text-muted-foreground truncate max-w-18">
+                          ID: {cliente.id}
                         </p>
                       </div>
                     </div>
                   </TableCell>
+
+                  {/* Contacto */}
                   <TableCell>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-sm">
@@ -413,6 +289,8 @@ export function ClientesTable({
                       )}
                     </div>
                   </TableCell>
+
+                  {/* Dirección */}
                   <TableCell>
                     {cliente.direccionPrincipal ? (
                       <div className="flex items-start gap-2 text-sm max-w-[200px]">
@@ -427,21 +305,31 @@ export function ClientesTable({
                       </span>
                     )}
                   </TableCell>
+
+                  {/* Pedidos */}
                   <TableCell className="text-center">
                     <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
                       {cliente.totalPedidos}
                     </div>
                   </TableCell>
+
+                  {/* Estado — usa ESTADO_CLIENTE_CONFIG en lugar de dos switch */}
                   <TableCell>
-                    <Badge variant={getEstadoBadgeVariant(cliente.estado)}>
-                      {getEstadoLabel(cliente.estado)}
+                    <Badge
+                      variant={ESTADO_CLIENTE_CONFIG[cliente.estado].variant}
+                    >
+                      {ESTADO_CLIENTE_CONFIG[cliente.estado].label}
                     </Badge>
                   </TableCell>
+
+                  {/* Fecha */}
                   <TableCell>
                     <span className="text-sm text-muted-foreground">
-                      {formatDate(new Date(cliente.creadoEn))}
+                      {formatDate(cliente.creadoEn)}
                     </span>
                   </TableCell>
+
+                  {/* Acciones */}
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -454,28 +342,24 @@ export function ClientesTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleView(cliente)}>
-                          <Eye className="w-4 h-4 mr-2" />
-                          Ver detalles
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(cliente)}>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <ShoppingBag className="w-4 h-4 mr-2" />
-                          Ver pedidos
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          disabled={isDeleting === cliente.id}
-                          onClick={() => handleDesactivar(cliente)}
+                          onClick={() =>
+                            setModal({ type: 'detail', clienteId: cliente.id })
+                          }
                         >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          {isDeleting === cliente.id
-                            ? 'Desactivando...'
-                            : 'Desactivar'}
+                          <Eye className="w-4 h-4 mr-2" /> Ver detalles
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setModal({ type: 'edit', cliente })}
+                        >
+                          <Edit className="w-4 h-4 mr-2" /> Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            setModal({ type: 'pedidos', clienteId: cliente.id })
+                          }
+                        >
+                          <ShoppingBag className="w-4 h-4 mr-2" /> Ver pedidos
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -517,25 +401,81 @@ export function ClientesTable({
         </div>
       )}
 
+      {/* Modales — el estado discriminado hace imposible abrir dos a la vez */}
       <ClienteEditModal
-        isOpen={editModalOpen}
-        onClose={() => {
-          setEditModalOpen(false);
-          setSelectedCliente(null);
-        }}
+        isOpen={modal.type === 'edit'}
+        onClose={closeModal}
         onSubmit={handleEditSubmit}
-        cliente={selectedCliente}
+        cliente={modal.type === 'edit' ? modal.cliente : null}
         isLoading={isSubmitting}
       />
-
       <ClienteDetailModal
-        isOpen={detailModalOpen}
-        onClose={() => {
-          setDetailModalOpen(false);
-          setSelectedClienteId(null);
-        }}
-        clienteId={selectedClienteId}
+        isOpen={modal.type === 'detail'}
+        onClose={closeModal}
+        clienteId={modal.type === 'detail' ? modal.clienteId : null}
       />
+      <ClientePedidosModal
+        isOpen={modal.type === 'pedidos'}
+        onClose={closeModal}
+        clienteId={modal.type === 'pedidos' ? modal.clienteId : null}
+      />
+    </div>
+  );
+}
+
+// — Subcomponentes ————————————————————————————————
+
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  icon: React.ReactNode;
+  trend?: { value: string; positive: boolean };
+  delay?: number;
+}
+
+function StatCard({
+  title,
+  value,
+  subtitle,
+  icon,
+  trend,
+  delay = 0,
+}: StatCardProps) {
+  return (
+    <div
+      className={cn(
+        'bg-card border border-border rounded-xl p-5',
+        'transition-all duration-500 hover:shadow-lg hover:shadow-primary/5',
+        'animate-in fade-in slide-in-from-bottom-4',
+      )}
+      style={{ animationDelay: `${delay}ms`, animationFillMode: 'backwards' }}
+    >
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">{title}</p>
+          <p className="text-2xl font-bold text-foreground">{value}</p>
+          {subtitle && (
+            <p className="text-xs text-muted-foreground">{subtitle}</p>
+          )}
+          {trend && (
+            <p
+              className={cn(
+                'text-xs font-medium flex items-center gap-1',
+                trend.positive ? 'text-primary' : 'text-destructive',
+              )}
+            >
+              <TrendingUp
+                className={cn('w-3 h-3', !trend.positive && 'rotate-180')}
+              />
+              {trend.value}
+            </p>
+          )}
+        </div>
+        <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
+          {icon}
+        </div>
+      </div>
     </div>
   );
 }

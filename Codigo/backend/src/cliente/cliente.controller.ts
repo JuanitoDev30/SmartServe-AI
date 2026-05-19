@@ -46,6 +46,11 @@ export class ClienteController {
     return this.clienteService.findAll(paginationDto);
   }
 
+  @Get('stats')
+  getStats() {
+    return this.clienteService.getStats();
+  }
+
   // GET /cliente/telefono/3001234567
   @Get('telefono/:telefono')
   findByTelefono(@Param('telefono') telefono: string) {
@@ -69,10 +74,5 @@ export class ClienteController {
   @Patch(':id/desactivar')
   desactivar(@Param('id', ParseUUIDPipe) id: string) {
     return this.clienteService.desactivar(id);
-  }
-
-  @Get('stats')
-  getStats() {
-    return this.clienteService.getStats();
   }
 }

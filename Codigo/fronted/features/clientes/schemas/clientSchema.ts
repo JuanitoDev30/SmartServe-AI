@@ -1,7 +1,8 @@
+import { Pedido } from '@/features/pedidos/schemas/orderSchema';
 import { z } from 'zod';
 
 // Enum de estados
-export const EstadoClienteEnum = z.enum(['ACTIVO', 'INACTIVO', 'SUSPENDIDO']);
+export const EstadoClienteEnum = z.enum(['ACTIVO', 'INACTIVO']);
 export type EstadoCliente = z.infer<typeof EstadoClienteEnum>;
 
 export const clienteSchema = z.object({
@@ -78,9 +79,12 @@ export const clienteStatsSchema = z.object({
   total: z.number(),
   activos: z.number(),
   inactivos: z.number(),
-  suspendidos: z.number(),
   totalPedidos: z.number(),
   nuevosEsteMes: z.number(),
 });
 
 export type ClienteStats = z.infer<typeof clienteStatsSchema>;
+
+export interface ClienteConPedidos extends Cliente {
+  pedidos: Pedido[];
+}

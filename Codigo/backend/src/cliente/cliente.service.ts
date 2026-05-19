@@ -13,6 +13,9 @@ import { Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { EstadoCliente } from './enum/usuarioEstado.enum';
 
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { LessThan, MoreThanOrEqual } from 'typeorm';
+
 @Injectable()
 export class ClienteService {
   private readonly logger = new Logger('ClienteService');
@@ -22,8 +25,6 @@ export class ClienteService {
     private readonly clienteRepository: Repository<Cliente>,
   ) {}
 
-  //TODO: USE TRY CATCH IN ALL METHODS
-  // CREATE
   async create(createClienteDto: CreateClienteDto): Promise<Cliente> {
     try {
       // validar telefoo duplicado
@@ -62,7 +63,7 @@ export class ClienteService {
     nombre: string,
     telefono: string,
     email?: string,
-    direccionPrincipal?: string, // 👈
+    direccionPrincipal?: string,
   ): Promise<{ cliente: Cliente; esNuevo: boolean }> {
     try {
       const existente = await this.clienteRepository.findOneBy({ telefono });
@@ -88,7 +89,7 @@ export class ClienteService {
         nombre,
         telefono,
         email,
-        direccionPrincipal, // 👈
+        direccionPrincipal,
         estado: EstadoCliente.ACTIVO,
       });
 
@@ -239,11 +240,10 @@ export class ClienteService {
   }
 
   async getStats() {
-    const [total, activos, inactivos, suspendidos] = await Promise.all([
+    const [total, activos, inactivos] = await Promise.all([
       this.clienteRepository.count(),
       this.clienteRepository.countBy({ estado: EstadoCliente.ACTIVO }),
       this.clienteRepository.countBy({ estado: EstadoCliente.INACTIVO }),
-      this.clienteRepository.countBy({ estado: EstadoCliente.SUSPENDIDO }),
     ]);
 
     const { count } = await this.clienteRepository
@@ -265,10 +265,82 @@ export class ClienteService {
       total,
       activos,
       inactivos,
-      suspendidos,
       totalPedidos: parseInt(count) || 0,
       nuevosEsteMes,
     };
+  }
+
+  /**
+   * Corre todos los días a las 2:00 AM.
+   * ACTIVO    → INACTIVO  : sin pedidos en los últimos 30 días
+   * INACTIVO  → ACTIVO    : hizo un pedido en los últimos 30 días
+   
+   */
+
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)
+  async actualizarEstadosCliente() {
+    this.logger.debug('Ejecutando tarea programada: actualizarEstadosCliente');
+
+    const hoy = new Date();
+    const hace30Dias = new Date(hoy);
+    const hace90Dias = new Date(hoy);
+    hace30Dias.setDate(hace30Dias.getDate() - 30);
+    hace90Dias.setDate(hace90Dias.getDate() - 90);
+
+    try {
+      //1 activo a inactivo
+
+      const clientesActivos = await this.clienteRepository.find({
+        where: { estado: EstadoCliente.ACTIVO },
+        relations: ['pedidos'],
+      });
+
+      const idsActivosAInactivar = clientesActivos
+        .filter((cliente) =>
+          cliente.pedidos.every(
+            (pedido) => new Date(pedido.creadoEn) < hace30Dias,
+          ),
+        )
+        .map((cliente) => cliente.id);
+
+      if (idsActivosAInactivar.length > 0) {
+        await this.clienteRepository.update(idsActivosAInactivar, {
+          estado: EstadoCliente.INACTIVO,
+        });
+        this.logger.debug(
+          `Actualizados ${idsActivosAInactivar.length} clientes de ACTIVO a INACTIVO`,
+        );
+      }
+
+      //2 inactivo a activo
+
+      const clientesInactivos = await this.clienteRepository.find({
+        where: { estado: EstadoCliente.INACTIVO },
+        relations: ['pedidos'],
+      });
+
+      const idsInactivosAActivar = clientesInactivos
+        .filter((cliente) =>
+          cliente.pedidos.some(
+            (pedido) => new Date(pedido.creadoEn) >= hace30Dias,
+          ),
+        )
+        .map((cliente) => cliente.id);
+
+      if (idsInactivosAActivar.length > 0) {
+        await this.clienteRepository.update(idsInactivosAActivar, {
+          estado: EstadoCliente.ACTIVO,
+        });
+        this.logger.debug(
+          `Actualizados ${idsInactivosAActivar.length} clientes de INACTIVO a ACTIVO`,
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        'Error en tarea programada actualizarEstadosCliente',
+        error,
+      );
+    }
   }
 
   // ─── MANEJO DE ERRORES ────────────────────────────────────────────────────

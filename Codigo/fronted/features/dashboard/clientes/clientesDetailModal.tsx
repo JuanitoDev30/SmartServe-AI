@@ -1,63 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import {
   X,
-  User,
   Phone,
   Mail,
   MapPin,
   ShoppingBag,
-  Calendar,
   DollarSign,
-  TrendingUp,
   Clock,
+  Calendar,
+  User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import {
-  type Cliente,
-  type EstadoCliente,
-} from '@/features/clientes/schemas/clientSchema';
-import { getClienteByIdAction } from '@/features/clientes/actions/getClientByIdActions';
+  ESTADO_CLIENTE_CONFIG,
+  ESTADO_PEDIDO_CONFIG,
+} from '@/features/dashboard/shared/constants/pedidoConstants';
 
+import { useClienteData } from '@/hooks/useClient';
+import { formatCurrency, formatDate } from '@/lib/utils/formatters';
+import { useMemo } from 'react';
+import { Pedido } from '@/lib/validations/order';
 interface ClienteDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   clienteId: string | null;
-}
-
-const estadoConfig: Record<
-  EstadoCliente,
-  { label: string; variant: 'default' | 'secondary' | 'destructive' }
-> = {
-  ACTIVO: { label: 'Activo', variant: 'default' },
-  INACTIVO: { label: 'Inactivo', variant: 'secondary' },
-  SUSPENDIDO: { label: 'Suspendido', variant: 'destructive' },
-};
-
-const pedidoEstadoConfig: Record<string, { label: string; color: string }> = {
-  PENDIENTE: { label: 'Pendiente', color: 'bg-orange-500' },
-  CONFIRMADO: { label: 'Confirmado', color: 'bg-blue-500' },
-  EN_PREPARACION: { label: 'En Preparación', color: 'bg-blue-500' },
-  EN_CAMINO: { label: 'En Camino', color: 'bg-cyan-500' },
-  ENTREGADO: { label: 'Entregado', color: 'bg-emerald-500' },
-  CANCELADO: { label: 'Cancelado', color: 'bg-red-500' },
-};
-
-function formatDate(date: string | Date) {
-  return new Intl.DateTimeFormat('es-CO', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(date));
-}
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(value);
 }
 
 export function ClienteDetailModal({
@@ -65,53 +33,33 @@ export function ClienteDetailModal({
   onClose,
   clienteId,
 }: ClienteDetailModalProps) {
-  const [cliente, setCliente] = useState<Cliente | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const { cliente, isLoading, reset } = useClienteData(clienteId, isOpen);
 
-  useEffect(() => {
-    if (!isOpen || !clienteId) return;
-
-    const fetchCliente = async () => {
-      setIsLoading(true);
-      try {
-        const result = await getClienteByIdAction(clienteId);
-        if (result.success && result.data) {
-          setCliente(result.data);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCliente();
-  }, [isOpen, clienteId]);
-
-  // Limpiar al cerrar
   const handleClose = () => {
-    setCliente(null);
+    reset();
     onClose();
   };
 
-  if (!isOpen) return null;
+  const pedidos = useMemo<Pedido[]>(() => cliente?.pedidos ?? [], [cliente]);
 
-  // Stats calculadas
-  const pedidos = (cliente as any)?.pedidos ?? [];
-  const totalGastado = pedidos.reduce(
-    (sum: number, p: any) => sum + Number(p.total),
-    0,
+  const { totalGastado, ultimoPedido, pedidosRecientes } = useMemo(
+    () => ({
+      totalGastado: pedidos.reduce((sum, p) => sum + Number(p.total), 0),
+      ultimoPedido: pedidos[0] ?? null,
+      pedidosRecientes: pedidos.slice(0, 5),
+    }),
+    [pedidos],
   );
-  const ultimoPedido = pedidos[0] ?? null;
-  const pedidosRecientes = pedidos.slice(0, 5);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={handleClose}
       />
 
-      {/* Modal */}
       <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-card shadow-2xl mx-4">
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-6 py-4">
@@ -145,18 +93,21 @@ export function ClienteDetailModal({
                     .split(' ')
                     .map(n => n[0])
                     .slice(0, 2)
-                    .join('')}
+                    .join('') || <User className="size-7" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 flex-wrap">
                     <h3 className="text-lg font-semibold text-foreground">
                       {cliente.nombre}
                     </h3>
-                    <Badge variant={estadoConfig[cliente.estado].variant}>
-                      {estadoConfig[cliente.estado].label}
+                    <Badge
+                      variant={ESTADO_CLIENTE_CONFIG[cliente.estado].variant}
+                    >
+                      {ESTADO_CLIENTE_CONFIG[cliente.estado].label}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-0.5">
+                  <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                    <Calendar className="size-3.5" />
                     Registrado el {formatDate(cliente.creadoEn)}
                   </p>
                 </div>
@@ -189,35 +140,30 @@ export function ClienteDetailModal({
 
               {/* Stats */}
               <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-xl border border-border p-4 text-center space-y-1">
-                  <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                    <ShoppingBag className="size-4 text-primary" />
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {pedidos.length}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Pedidos</p>
-                </div>
-                <div className="rounded-xl border border-border p-4 text-center space-y-1">
-                  <div className="size-8 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto">
-                    <DollarSign className="size-4 text-emerald-500" />
-                  </div>
-                  <p className="text-lg font-bold text-foreground">
-                    {formatCurrency(totalGastado)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Total gastado</p>
-                </div>
-                <div className="rounded-xl border border-border p-4 text-center space-y-1">
-                  <div className="size-8 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto">
-                    <Clock className="size-4 text-orange-500" />
-                  </div>
-                  <p className="text-sm font-bold text-foreground">
-                    {ultimoPedido
+                <StatBox
+                  icon={<ShoppingBag className="size-4 text-primary" />}
+                  iconBg="bg-primary/10"
+                  value={pedidos.length}
+                  label="Pedidos"
+                />
+                <StatBox
+                  icon={<DollarSign className="size-4 text-emerald-500" />}
+                  iconBg="bg-emerald-500/10"
+                  value={formatCurrency(totalGastado)}
+                  label="Total gastado"
+                  valueClassName="text-lg"
+                />
+                <StatBox
+                  icon={<Clock className="size-4 text-orange-500" />}
+                  iconBg="bg-orange-500/10"
+                  value={
+                    ultimoPedido
                       ? formatDate(ultimoPedido.creadoEn)
-                      : 'Sin pedidos'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Último pedido</p>
-                </div>
+                      : 'Sin pedidos'
+                  }
+                  label="Último pedido"
+                  valueClassName="text-sm"
+                />
               </div>
 
               {/* Pedidos recientes */}
@@ -231,8 +177,8 @@ export function ClienteDetailModal({
                   </div>
                 ) : (
                   <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
-                    {pedidosRecientes.map((pedido: any) => {
-                      const config = pedidoEstadoConfig[pedido.estado] ?? {
+                    {pedidosRecientes.map(pedido => {
+                      const config = ESTADO_PEDIDO_CONFIG[pedido.estado] ?? {
                         label: pedido.estado,
                         color: 'bg-gray-500',
                       };
@@ -272,6 +218,38 @@ export function ClienteDetailModal({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+interface StatBoxProps {
+  icon: React.ReactNode;
+  iconBg: string;
+  value: string | number;
+  label: string;
+  valueClassName?: string;
+}
+
+function StatBox({ icon, iconBg, value, label, valueClassName }: StatBoxProps) {
+  return (
+    <div className="rounded-xl border border-border p-4 text-center space-y-1">
+      <div
+        className={cn(
+          'size-8 rounded-full flex items-center justify-center mx-auto',
+          iconBg,
+        )}
+      >
+        {icon}
+      </div>
+      <p
+        className={cn(
+          'font-bold text-foreground',
+          valueClassName ?? 'text-2xl',
+        )}
+      >
+        {value}
+      </p>
+      <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }

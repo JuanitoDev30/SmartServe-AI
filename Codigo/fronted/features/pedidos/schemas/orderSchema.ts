@@ -1,11 +1,16 @@
 // features/dashboard/pedidos/schemas/orderSchema.ts
-export type EstadoPedido =
-  | 'PENDIENTE'
-  | 'CONFIRMADO'
-  | 'EN_PREPARACION'
-  | 'EN_CAMINO'
-  | 'ENTREGADO'
-  | 'CANCELADO';
+// Fuente única — tanto clientes como pedidos importan de aquí
+
+export const ESTADOS_PEDIDO = [
+  'PENDIENTE',
+  'CONFIRMADO',
+  'EN_PREPARACION',
+  'EN_CAMINO',
+  'ENTREGADO',
+  'CANCELADO',
+] as const;
+
+export type EstadoPedido = (typeof ESTADOS_PEDIDO)[number];
 
 export type MetodoPago = 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'PSE';
 

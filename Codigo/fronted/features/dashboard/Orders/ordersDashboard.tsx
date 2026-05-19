@@ -3,7 +3,7 @@
 import { Input } from '@/components/ui/input';
 import { usePedidosSocket } from '@/hooks/usePedidosSocket';
 import { usePedidosStore } from '@/store/pedidosStore';
-import { formatCurrency } from '@/lib/formatCurrency';
+
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/useToast';
 import {
@@ -25,8 +25,9 @@ import {
   type EstadoPedido,
 } from '@/features/pedidos/schemas/orderSchema';
 import { type PedidoFormValues } from '@/lib/validations/order';
-import { formatDate } from '@/lib/format';
+
 import { updateOrderAction } from '@/features/pedidos/actions/updateOrderActions';
+import { formatCurrency, formatDate } from '@/lib/utils/formatters';
 
 // Status configuration
 const statusConfig: Record<
@@ -406,8 +407,12 @@ export function OrdersDashboard() {
                       key={order.id}
                       className="hover:bg-muted/30 transition-colors"
                     >
-                      <td className="px-4 py-4 text-sm font-medium text-foreground">
-                        #{order.id.slice(0, 3)}...{order.id.slice(-3)}
+                      <td
+                        className="px-4 py-4 text-sm font-medium text-foreground truncate max-w-3"
+                        title={order.id}
+                      >
+                        {/* #{order.id.slice(0, 3)}...{order.id.slice(-3)} */}
+                        {order.id}
                       </td>
                       <td className="px-4 py-4 text-sm text-foreground">
                         {order.cliente.nombre}

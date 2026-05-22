@@ -4,23 +4,23 @@ import { getMetodosPagoAction } from '@/features/ventas/actions/getMetodoPagoVen
 import { getResumenVentasAction } from '@/features/ventas/actions/getResumenVentasActions';
 import { getTopProductosAction } from '@/features/ventas/actions/getTopProductosVentasActions';
 
-
-
 export const metadata = {
   title: 'Ventas - Panel Administrativo',
   description: 'Módulo de ventas e ingresos',
 };
 
 export default async function VentasPage() {
-  const [resumen, grafica, topProductos, metodosPago, historial] = await Promise.all([
-    getResumenVentasAction(),
-    getGraficaVentasAction('semana'),
-    getTopProductosAction(5, 'mes'),
-    getMetodosPagoAction(),
-    getHistorialVentasAction(1, 10),
-  ]);
+  const [resumen, grafica, topProductos, metodosPago, historial] =
+    await Promise.all([
+      getResumenVentasAction(),
+      getGraficaVentasAction('semana'),
+      getTopProductosAction(5, 'mes'),
+      getMetodosPagoAction(),
+      getHistorialVentasAction(1, 10),
+    ]);
 
   return (
+    <div></div>
     // <VentasDashboard
     //   initialResumen={resumen.success ? resumen.data ?? null : null}
     //   initialGrafica={grafica.success ? grafica.data ?? null : null}

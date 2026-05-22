@@ -13,6 +13,7 @@ import { ChatModule } from './chat/chat.module';
 import { AdministradorModule } from './administrador/administrador.module';
 import { AuthModule } from './auth/auth.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     AdministradorModule,
     AuthModule,
     ScheduleModule.forRoot(),
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

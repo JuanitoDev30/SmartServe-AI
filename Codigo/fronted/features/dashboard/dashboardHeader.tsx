@@ -10,6 +10,7 @@ import { useNotificationStore } from '@/store/notificationStore';
 import { Bell, Menu, Search } from 'lucide-react';
 import { AuthUser } from '@/types';
 import { LogoutButton } from '@/components/sideBar/logoutButton';
+import Link from 'next/link';
 
 interface DashboardHeaderProps {
   onMenuClick: () => void;
@@ -108,7 +109,9 @@ export function DashboardHeader({ onMenuClick, user }: DashboardHeaderProps) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem>Mi perfil</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/perfil">Mi perfil</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>Configuracion</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive">

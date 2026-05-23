@@ -6,14 +6,14 @@ import {
   Param,
   Body,
   ParseUUIDPipe,
-  UseGuards,
 } from '@nestjs/common';
 import { AdministradorService } from './administrador.service';
 import { CreateAdministradorDto } from './dto/create-administrador.dto';
 import { UpdateAdministradorDto } from './dto/update-administrador.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UpdatePerfilDto } from './dto/update-perfil.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { GetCurrentUser } from '../auth/decorators/getCurrentUser.decorator';
 
-@UseGuards(JwtAuthGuard)
 @Controller('administrador')
 export class AdministradorController {
   constructor(private readonly administradorService: AdministradorService) {}
@@ -26,6 +26,21 @@ export class AdministradorController {
   @Get()
   findAll() {
     return this.administradorService.findAll();
+  }
+
+  @Get('perfil')
+  getPerfil(@GetCurrentUser() user: any) {
+    return this.administradorService.getPerfil(user.id);
+  }
+
+  @Patch('perfil')
+  updatePerfil(@GetCurrentUser() user: any, @Body() dto: UpdatePerfilDto) {
+    return this.administradorService.updatePerfil(user.id, dto);
+  }
+
+  @Patch('perfil/password')
+  changePassword(@GetCurrentUser() user: any, @Body() dto: ChangePasswordDto) {
+    return this.administradorService.changePassword(user.id, dto);
   }
 
   @Get(':id')

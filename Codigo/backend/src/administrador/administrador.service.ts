@@ -1,10 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { CreateAdministradorDto } from './dto/create-administrador.dto';
 import { UpdateAdministradorDto } from './dto/update-administrador.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Administrador } from './entities/administrador.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AdministradorService {
@@ -75,5 +80,51 @@ export class AdministradorService {
     const admin = await this.findOne(id);
     admin.activo = false;
     return this.administradorRepository.save(admin);
+  }
+
+  async getPerfil(id: string): Promise<Omit<Administrador, 'password'>> {
+    const admin = await this.findOne(id);
+
+    const { password, ...perfil } = admin;
+
+    return perfil;
+  }
+
+  async updatePerfil(
+    id: string,
+    dto: UpdateAdministradorDto,
+  ): Promise<Omit<Administrador, 'password'>> {
+    const admin = await this.findOne(id);
+
+    if (dto.email && dto.email !== admin.email) {
+      const existe = await this.administradorRepository.findOneBy({
+        email: dto.email,
+      });
+      if (existe) throw new ConflictException('El email ya está en uso');
+    }
+
+    Object.assign(admin, dto);
+    const actualizado = await this.administradorRepository.save(admin);
+    const { password, ...perfil } = actualizado;
+    return perfil;
+  }
+
+  async changePassword(id: string, dto: ChangePasswordDto): Promise<void> {
+    if (dto.passwordNuevo !== dto.passwordConfirm) {
+      throw new BadRequestException('Las contraseñas no coinciden');
+    }
+
+    const admin = await this.findOne(id);
+    const passwordValido = await bcrypt.compare(
+      dto.passwordActual,
+      admin.password,
+    );
+
+    if (!passwordValido) {
+      throw new BadRequestException('La contraseña actual es incorrecta');
+    }
+
+    admin.password = await bcrypt.hash(dto.passwordNuevo, 10);
+    await this.administradorRepository.save(admin);
   }
 }

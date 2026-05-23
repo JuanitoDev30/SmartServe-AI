@@ -1,6 +1,6 @@
 // repositories/productRepository.ts
 
-import api from '@/db/axios';
+import { getApiWithAuth } from '@/db/apiWithAuth';
 import { IProductRepository } from './productRepositoryInterface';
 
 import {
@@ -27,6 +27,7 @@ class ProductRepository implements IProductRepository {
         search,
       });
 
+      const api = await getApiWithAuth();
       const { data } = await api.get('/producto', {
         params: {
           page,
@@ -44,6 +45,7 @@ class ProductRepository implements IProductRepository {
   }
 
   async getById(id: string): Promise<ProductType> {
+    const api = await getApiWithAuth();
     const { data } = await api.get(`/producto/${id}`);
     // console.log('ESTA ES LA DATA DEL PRODUCTO', data);
     return data;
@@ -53,6 +55,7 @@ class ProductRepository implements IProductRepository {
     data: ProductFormData,
   ): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
+      const api = await getApiWithAuth();
       const response = await api.post('/producto', data);
 
       //console.log(response);
@@ -83,6 +86,7 @@ class ProductRepository implements IProductRepository {
 
   async update(id: string, data: ProductFormData): Promise<any> {
     try {
+      const api = await getApiWithAuth();
       const response = await api.patch(`/producto/${id}`, data);
       return response.data;
     } catch (error: any) {
@@ -95,6 +99,7 @@ class ProductRepository implements IProductRepository {
     }
   }
   async delete(id: string): Promise<void> {
+    const api = await getApiWithAuth();
     await api.delete(`/producto/${id}`);
   }
 }

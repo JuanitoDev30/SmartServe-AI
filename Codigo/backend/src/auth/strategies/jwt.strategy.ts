@@ -17,16 +17,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: { sub: string; email: string; nombre: string }) {
-    const admin = await this.administradorService.findOne(payload.sub);
+    try {
+      const admin = await this.administradorService.findOne(payload.sub);
 
-    if (!admin || !admin.activo) {
-      throw new UnauthorizedException('Token inválido');
+      if (!admin || !admin.activo) {
+        throw new UnauthorizedException('Token inválido');
+      }
+
+      return {
+        id: admin.id,
+        email: admin.email,
+        nombre: admin.nombre,
+      };
+    } catch (error) {
+      throw error;
     }
-
-    return {
-      id: admin.id,
-      email: admin.email,
-      nombre: admin.nombre,
-    };
   }
 }

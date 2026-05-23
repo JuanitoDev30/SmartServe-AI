@@ -1,4 +1,4 @@
-import api from '@/db/axios';
+import { getApiWithAuth } from '@/db/apiWithAuth';
 import { CategoryType, CategoryFormData } from '../../schemas/categorySchema';
 import { CategoryRepositoryInterface } from './categotyRepositoryInterface';
 
@@ -14,6 +14,8 @@ class CategoryRepository implements CategoryRepositoryInterface {
     pageSize,
     search,
   }: CategoriesActionsProps): Promise<CategoryType[]> {
+    const api = await getApiWithAuth();
+
     const { data } = await api.get('/categoria', {
       params: {
         page,
@@ -24,6 +26,7 @@ class CategoryRepository implements CategoryRepositoryInterface {
     return data;
   }
   async getById(id: string): Promise<CategoryType> {
+    const api = await getApiWithAuth();
     const { data } = await api.get(`/categoria/${id}`);
     return data;
   }
@@ -32,6 +35,7 @@ class CategoryRepository implements CategoryRepositoryInterface {
     data: CategoryFormData,
   ): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
+      const api = await getApiWithAuth();
       const response = await api.post('/categoria', data);
 
       return {
@@ -54,6 +58,7 @@ class CategoryRepository implements CategoryRepositoryInterface {
 
   async update(id: string, data: CategoryFormData): Promise<any> {
     try {
+      const api = await getApiWithAuth();
       const response = await api.patch(`/categoria/${id}`, data);
       return response.data;
     } catch (error: any) {
@@ -66,6 +71,7 @@ class CategoryRepository implements CategoryRepositoryInterface {
   }
 
   async delete(id: string): Promise<void> {
+    const api = await getApiWithAuth();
     await api.delete(`/categoria/${id}`);
   }
 }

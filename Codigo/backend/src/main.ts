@@ -1,13 +1,15 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api'); // Establece el prefijo global para todas las rutas
   app.enableCors({
-    origin: 'http://localhost:3001',
+    origin: 'http://localhost:3000',
+    credentials: true,
   });
 
   app.useGlobalPipes(
@@ -17,6 +19,9 @@ async function bootstrap() {
       transform: true, // Transforma los payloads a los tipos definidos en los DTOs
     }),
   );
+
+  const reflector = app.get(Reflector);
+  app.useGlobalGuards(new JwtAuthGuard(reflector));
 
   await app.listen(process.env.PORT ?? 3001);
 }

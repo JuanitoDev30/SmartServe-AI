@@ -7,10 +7,11 @@ import {
 } from '@/components/ui/dropDownMenu';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { useNotificationStore } from '@/store/notificationStore';
-import { Bell, Menu, Search } from 'lucide-react';
+import { Bell, Menu, Search, Wifi, WifiOff } from 'lucide-react';
 import { AuthUser } from '@/types';
 import { LogoutButton } from '@/components/sideBar/logoutButton';
 import Link from 'next/link';
+import { usePedidosStore } from '@/store/pedidosStore';
 
 interface DashboardHeaderProps {
   onMenuClick: () => void;
@@ -19,6 +20,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ onMenuClick, user }: DashboardHeaderProps) {
   const notifications = useNotificationStore(state => state.notifications);
+  const isConnected = usePedidosStore(state => state.isConnected);
 
   const unreadCount = notifications.filter(n => !n.read).length;
   return (
@@ -44,6 +46,23 @@ export function DashboardHeader({ onMenuClick, user }: DashboardHeaderProps) {
 
       {/* Right side */}
       <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-sm mr-2">
+          {isConnected ? (
+            <>
+              <Wifi className="size-4 text-emerald-500" />
+              <span className="hidden sm:inline text-emerald-500 text-xs">
+                Conectado
+              </span>
+            </>
+          ) : (
+            <>
+              <WifiOff className="size-4 text-red-500" />
+              <span className="hidden sm:inline text-red-500 text-xs">
+                Desconectado
+              </span>
+            </>
+          )}
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="relative rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">

@@ -1,20 +1,12 @@
 'use client';
 
 import { Input } from '@/components/ui/input';
-import { usePedidosSocket } from '@/hooks/usePedidosSocket';
+
 import { usePedidosStore } from '@/store/pedidosStore';
 
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/useToast';
-import {
-  Package,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  Search,
-  Wifi,
-  WifiOff,
-} from 'lucide-react';
+import { Package, Clock, CheckCircle2, XCircle, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { OrderFormModal } from './orderFromModal';
@@ -114,9 +106,8 @@ function StatsCard({
 }
 
 export function OrdersDashboard() {
-  usePedidosSocket();
   const pedidos = usePedidosStore(state => state.pedidos);
-  const isConnected = usePedidosStore(state => state.isConnected);
+
   const isLoading = usePedidosStore(state => state.isLoading);
 
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
@@ -253,22 +244,7 @@ export function OrdersDashboard() {
             Administra y monitorea todos los pedidos
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          {/* Connection Status Indicator */}
-          <div className="flex items-center gap-2 text-sm">
-            {isConnected ? (
-              <>
-                <Wifi className="size-4 text-emerald-500" />
-                <span className="text-emerald-500">Conectado</span>
-              </>
-            ) : (
-              <>
-                <WifiOff className="size-4 text-red-500" />
-                <span className="text-red-500">Desconectado</span>
-              </>
-            )}
-          </div>
-        </div>
+        <div className="flex items-center gap-4"></div>
       </div>
 
       {/* Stats Cards */}

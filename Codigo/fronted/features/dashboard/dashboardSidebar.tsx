@@ -35,11 +35,11 @@ const navItems = [
     href: '/dashboard/pedido',
     icon: Package,
   },
-  {
-    label: 'Ventas',
-    href: '/dashboard/ventas',
-    icon: ShoppingCart,
-  },
+  // {
+  //   label: 'Ventas',
+  //   href: '/dashboard/ventas',
+  //   icon: ShoppingCart,
+  // },
 
   {
     label: 'Analytics',

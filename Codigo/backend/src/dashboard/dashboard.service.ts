@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
 import { Producto } from 'src/producto/entities/producto.entity';
 import { EstadoPedido } from 'src/pedido/enum/pedidoEstado.enum';
+import { VentasService } from 'src/ventas/ventas.service';
 
 @Injectable()
 export class DashboardService {
@@ -16,7 +17,10 @@ export class DashboardService {
     private readonly clienteRepository: Repository<Cliente>,
     @InjectRepository(Producto)
     private readonly productoRepository: Repository<Producto>,
+
+    private readonly ventasService: VentasService,
   ) {}
+
   async getOverview() {
     const ahora = new Date();
     const hoyInicio = new Date(ahora);
@@ -40,17 +44,24 @@ export class DashboardService {
       999,
     );
 
+    const semanaInicio = new Date(ahora);
+    semanaInicio.setDate(semanaInicio.getDate() - 6);
+    semanaInicio.setHours(0, 0, 0, 0);
+
     const [
       pedidosHoy,
       pedidosPendientes,
+      pedidosEnCamino,
       pedidosCompletados,
       ingresosHoy,
       ingresosMes,
+      ingresosSemana,
       ingresosMesAnterior,
       clientesTotal,
       clientesNuevos,
       productosStockBajo,
       pedidosRecientes,
+      resumenVentas,
     ] = await Promise.all([
       // Pedidos creados hoy
       this.pedidoRepository
@@ -64,6 +75,11 @@ export class DashboardService {
       // Pedidos pendientes
       this.pedidoRepository.count({
         where: { estado: EstadoPedido.PENDIENTE },
+      }),
+
+      // Pedidos en camino (nuevo)
+      this.pedidoRepository.count({
+        where: { estado: EstadoPedido.EN_CAMINO },
       }),
 
       // Pedidos completados total
@@ -86,8 +102,18 @@ export class DashboardService {
       this.pedidoRepository
         .createQueryBuilder('pedido')
         .select('SUM(pedido.total)', 'total')
+        .addSelect('COUNT(pedido.id)', 'count')
         .where('pedido.estado = :estado', { estado: EstadoPedido.ENTREGADO })
         .andWhere('pedido.actualizadoEn >= :inicio', { inicio: mesInicio })
+        .getRawOne(),
+
+      // Ingresos esta semana (nuevo)
+      this.pedidoRepository
+        .createQueryBuilder('pedido')
+        .select('SUM(pedido.total)', 'total')
+        .addSelect('COUNT(pedido.id)', 'count')
+        .where('pedido.estado = :estado', { estado: EstadoPedido.ENTREGADO })
+        .andWhere('pedido.actualizadoEn >= :inicio', { inicio: semanaInicio })
         .getRawOne(),
 
       // Ingresos mes anterior
@@ -110,7 +136,7 @@ export class DashboardService {
         .where('cliente.creadoEn >= :inicio', { inicio: mesInicio })
         .getCount(),
 
-      // Productos con stock bajo (menos de 5)
+      // Productos con stock bajo
       this.productoRepository
         .createQueryBuilder('producto')
         .where('producto.stock <= :stock', { stock: 5 })
@@ -129,11 +155,18 @@ export class DashboardService {
         .orderBy('pedido.creadoEn', 'DESC')
         .limit(5)
         .getMany(),
+
+      // Resumen de ventas de VentasService (incluye ticketPromedio real)
+      this.ventasService.getResumen(),
     ]);
 
-    const ingresosHoyTotal = parseFloat(ingresosHoy.total) || 0;
-    const ingresosMesTotal = parseFloat(ingresosMes.total) || 0;
-    const ingresosMesAnteriorTotal = parseFloat(ingresosMesAnterior.total) || 0;
+    const ingresosHoyTotal = parseFloat(ingresosHoy?.total) || 0;
+    const ingresosMesTotal = parseFloat(ingresosMes?.total) || 0;
+    const ingresosSemanaTotal = parseFloat(ingresosSemana?.total) || 0;
+    const ingresosMesAnteriorTotal =
+      parseFloat(ingresosMesAnterior?.total) || 0;
+    const pedidosMesCount = parseInt(ingresosMes?.count) || 0;
+    const pedidosSemanaCount = parseInt(ingresosSemana?.count) || 0;
 
     const variacionMes =
       ingresosMesAnteriorTotal > 0
@@ -146,18 +179,25 @@ export class DashboardService {
       pedidos: {
         hoy: pedidosHoy,
         pendientes: pedidosPendientes,
+        enCamino: pedidosEnCamino,
         completadosTotal: pedidosCompletados,
+        // Conteos por período para el filtro de tiempo en el frontend
+        semana: pedidosSemanaCount,
+        mes: pedidosMesCount,
       },
       ingresos: {
         hoy: ingresosHoyTotal,
         esteMes: ingresosMesTotal,
+        estaSemana: ingresosSemanaTotal,
         variacion: Math.round(variacionMes * 100) / 100,
-        tendencia: variacionMes >= 0 ? 'up' : 'down',
+        tendencia: variacionMes >= 0 ? ('up' as const) : ('down' as const),
       },
       clientes: {
         total: clientesTotal,
         nuevosEsteMes: clientesNuevos,
       },
+      // ticketPromedio real desde VentasService (mes.total / mes.count)
+      ticketPromedio: resumenVentas.ticketPromedio,
       productosStockBajo,
       pedidosRecientes,
     };

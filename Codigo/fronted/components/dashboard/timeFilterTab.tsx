@@ -1,24 +1,32 @@
-type TimeFilter = 'hoy' | 'semana' | 'mes';
+import { timeFilterLabels } from '@/features/dashboard/shared/constants/timeFilterLabels';
+import type { TimeFilter } from '../../features/overView/schemas/types';
+import { cn } from '@/lib/utils';
 
-const timeFilterLabels: Record<TimeFilter, string> = {
-  hoy: 'Hoy',
-  semana: 'Esta semana',
-  mes: 'Este mes',
-};
+interface TimeFilterTabsProps {
+  activeFilter: TimeFilter;
+  onFilterChange: (filter: TimeFilter) => void;
+}
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.05 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-};
-
-export const Filters = () => {
-  return <div>filters</div>;
-};
+export function TimeFilterTabs({
+  activeFilter,
+  onFilterChange,
+}: TimeFilterTabsProps) {
+  return (
+    <div className="inline-flex items-center rounded-lg border border-border bg-muted/50 p-1">
+      {(Object.keys(timeFilterLabels) as TimeFilter[]).map(filter => (
+        <button
+          key={filter}
+          onClick={() => onFilterChange(filter)}
+          className={cn(
+            'px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
+            activeFilter === filter
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          {timeFilterLabels[filter]}
+        </button>
+      ))}
+    </div>
+  );
+}

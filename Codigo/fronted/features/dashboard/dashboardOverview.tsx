@@ -9,13 +9,20 @@ import {
   TrendingUp,
   Users,
   Package,
+  Truck,
+  Receipt,
 } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useTransition } from 'react';
 import { formatCurrency } from '@/lib/utils/formatters';
 
 // Tus schemas originales — sin cambios
 import type { Overview } from '../overView/schemas/overViewSchema';
-import type { GraficaItem, TopProducto } from '../ventas/schemas/ventasSchema';
+import type {
+  GraficaItem,
+  PeriodoGrafica,
+  PeriodoTopProductos,
+  TopProducto,
+} from '../ventas/schemas/ventasSchema';
 import { TimeFilter } from '../overView/schemas/types';
 import {
   containerVariants,
@@ -29,8 +36,20 @@ import { IngresosChart } from '@/components/dashboard/ingresosChart';
 import { TopProductos } from '@/components/dashboard/topProductos';
 import { PedidosRecientes } from '@/components/dashboard/pedidosRecientes';
 import { StockBajo } from '@/components/dashboard/stockBajo';
+import { getGraficaVentasAction } from '../ventas/actions/getGraficaVentasActions';
+import { getTopProductosAction } from '../ventas/actions/getTopProductosVentasActions';
 
-const META_MENSUAL_DEFAULT = 10_000_000;
+const GRAFICA_PERIODO: Record<TimeFilter, PeriodoGrafica> = {
+  hoy: 'dia',
+  semana: 'semana',
+  mes: 'mes',
+};
+
+const TOP_PERIODO: Record<TimeFilter, PeriodoTopProductos> = {
+  hoy: 'semana',
+  semana: 'semana',
+  mes: 'mes',
+};
 
 interface DashboardOverviewProps {
   initialData: Overview | null;
@@ -46,15 +65,17 @@ export function DashboardOverview({
   initialTopProductos,
 }: DashboardOverviewProps) {
   const [data] = useState(initialData);
-  const [grafica] = useState(initialGrafica ?? []);
-  const [topProductos] = useState(initialTopProductos ?? []);
+  const [grafica, setGrafica] = useState(initialGrafica ?? []);
+  const [topProductos, setTopProductos] = useState(initialTopProductos ?? []);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('semana');
   const [showAlert, setShowAlert] = useState(true);
+  const [isPending, startTransition] = useTransition();
 
   const hora = new Date().getHours();
   const saludo =
     hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches';
 
+  // Formateo de fechas con timezone Colombia explícito para evitar el bug de +1 día
   const graficaFormateada = useMemo(
     () =>
       grafica.map(g => ({
@@ -62,20 +83,42 @@ export function DashboardOverview({
         label: new Intl.DateTimeFormat('es-CO', {
           day: '2-digit',
           month: 'short',
+          timeZone: 'America/Bogota',
         }).format(new Date(g.label)),
         total: Number(g.total),
       })),
     [grafica],
   );
 
-  // ── Métricas derivadas del schema existente ──────────────────────────────
+  // Cuando cambia el filtro: actualiza gráfica y top productos desde el servidor
+  function handleFilterChange(filter: TimeFilter) {
+    setTimeFilter(filter);
+    startTransition(async () => {
+      const [graficaRes, topRes] = await Promise.all([
+        getGraficaVentasAction(GRAFICA_PERIODO[filter]),
+        getTopProductosAction(5, TOP_PERIODO[filter]),
+      ]);
+      if (graficaRes.success && graficaRes.data) setGrafica(graficaRes.data);
+      if (topRes.success && topRes.data) setTopProductos(topRes.data);
+    });
+  }
 
-  const ticketPromedio =
-    data?.ingresos.hoy && data?.pedidos.hoy
-      ? data.ingresos.hoy / data.pedidos.hoy
-      : 0;
+  // Valores exactos del backend según filtro — sin aproximaciones
+  const ingresosSegunFiltro =
+    timeFilter === 'hoy'
+      ? (data?.ingresos.hoy ?? 0)
+      : timeFilter === 'semana'
+        ? (data?.ingresos.estaSemana ?? 0)
+        : (data?.ingresos.esteMes ?? 0);
 
-  // Pedidos urgentes = PENDIENTE de pedidosRecientes (any[])
+  const pedidosSegunFiltro =
+    timeFilter === 'hoy'
+      ? (data?.pedidos.hoy ?? 0)
+      : timeFilter === 'semana'
+        ? (data?.pedidos.semana ?? 0)
+        : (data?.pedidos.mes ?? 0);
+
+  // Alertas
   const pedidosUrgentes = useMemo(
     () =>
       (data?.pedidosRecientes ?? []).filter(
@@ -83,28 +126,10 @@ export function DashboardOverview({
       ),
     [data?.pedidosRecientes],
   );
-
-  // Stock crítico = stock <= 2 unidades
   const stockCritico = useMemo(
     () => (data?.productosStockBajo ?? []).filter(p => p.stock <= 2),
     [data?.productosStockBajo],
   );
-
-  // ── Valores según filtro de tiempo ───────────────────────────────────────
-  // El schema solo tiene hoy/esteMes; la semana la aproximamos multiplicando hoy × 7
-  const ingresosSegunFiltro =
-    timeFilter === 'hoy'
-      ? (data?.ingresos.hoy ?? 0)
-      : timeFilter === 'semana'
-        ? (data?.ingresos.hoy ?? 0) * 7
-        : (data?.ingresos.esteMes ?? 0);
-
-  const pedidosSegunFiltro =
-    timeFilter === 'hoy'
-      ? (data?.pedidos.hoy ?? 0)
-      : timeFilter === 'semana'
-        ? (data?.pedidos.hoy ?? 0) * 7
-        : (data?.pedidos.hoy ?? 0) * 30;
 
   return (
     <motion.div
@@ -114,7 +139,6 @@ export function DashboardOverview({
       className="space-y-6"
     >
       {/* Header */}
-
       <motion.div
         variants={itemVariants}
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
@@ -124,22 +148,23 @@ export function DashboardOverview({
             {saludo}, {userName ?? 'Administrador'} 👋
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Aqui tienes un resumen de tu negocio ·{' '}
+            Aquí tienes un resumen de tu negocio ·{' '}
             {new Date().toLocaleDateString('es-CO', {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
+              timeZone: 'America/Bogota',
             })}
           </p>
         </div>
         <TimeFilterTabs
           activeFilter={timeFilter}
-          onFilterChange={setTimeFilter}
+          onFilterChange={handleFilterChange}
+          isPending={isPending}
         />
       </motion.div>
 
-      {/* Banner de alertas */}
-
+      {/* Alertas */}
       <AnimatePresence>
         {showAlert && (
           <AlertBanner
@@ -151,20 +176,18 @@ export function DashboardOverview({
       </AnimatePresence>
 
       {/* Stats principales */}
-
       <motion.div
         variants={containerVariants}
         className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
       >
         <StatCard
-          titulo="Pedido"
+          titulo="Pedidos"
           valor={pedidosSegunFiltro}
-          descripcion={`${data?.pedidos.pendientes ?? 0} pendientes`}
+          descripcion={`${data?.pedidos.pendientes ?? 0} pendientes · ${data?.pedidos.enCamino ?? 0} en camino`}
           icon={<ShoppingCart className="size-5" />}
           iconBg="bg-primary/10"
           iconColor="text-primary"
         />
-
         <StatCard
           titulo="Ingresos"
           valor={formatCurrency(ingresosSegunFiltro)}
@@ -180,34 +203,15 @@ export function DashboardOverview({
                 }
               : undefined
           }
-          // Barra de meta solo visible en el filtro "mes"
-          meta={
-            timeFilter === 'mes'
-              ? {
-                  actual: data?.ingresos.esteMes ?? 0,
-                  objetivo: META_MENSUAL_DEFAULT,
-                }
-              : undefined
-          }
         />
-
         <StatCard
-          titulo="Ingresos Este Mes"
-          valor={formatCurrency(data?.ingresos.esteMes ?? 0)}
-          descripcion="Acumulado del mes"
-          icon={<TrendingUp className="size-5" />}
+          titulo="Ticket Promedio"
+          valor={formatCurrency(data?.ticketPromedio ?? 0)}
+          descripcion="Por pedido este mes"
+          icon={<Receipt className="size-5" />}
           iconBg="bg-blue-500/10"
           iconColor="text-blue-600"
-          trend={
-            data
-              ? {
-                  value: Math.abs(data.ingresos.variacion),
-                  isPositive: data.ingresos.tendencia === 'up',
-                }
-              : undefined
-          }
         />
-
         <StatCard
           titulo="Clientes"
           valor={data?.clientes.total ?? 0}
@@ -218,8 +222,7 @@ export function DashboardOverview({
         />
       </motion.div>
 
-      {/* mini stats */}
-
+      {/* Mini stats */}
       <motion.div
         variants={containerVariants}
         className="grid gap-4 grid-cols-2 lg:grid-cols-4"
@@ -241,12 +244,12 @@ export function DashboardOverview({
           sublabel="Requieren atención"
         />
         <MiniStatCard
-          icon={<DollarSign className="size-5" />}
-          iconBg="bg-blue-500/10"
-          iconColor="text-blue-600"
-          label="Ticket Promedio"
-          value={formatCurrency(ticketPromedio)}
-          sublabel="Por pedido"
+          icon={<Truck className="size-5" />}
+          iconBg="bg-cyan-500/10"
+          iconColor="text-cyan-600"
+          label="En Camino"
+          value={data?.pedidos.enCamino ?? 0}
+          sublabel="En ruta ahora"
         />
         <MiniStatCard
           icon={<Package className="size-5" />}
@@ -258,18 +261,16 @@ export function DashboardOverview({
         />
       </motion.div>
 
-      {/* Grafica y top Productos */}
-
+      {/* Gráfica + Top Productos — se actualizan con el filtro */}
       <motion.div
         variants={containerVariants}
-        className="grid gap-6 lg:grid-cols-3"
+        className={`grid gap-6 lg:grid-cols-3 transition-opacity duration-200 ${isPending ? 'opacity-50' : 'opacity-100'}`}
       >
         <IngresosChart data={graficaFormateada} />
         <TopProductos productos={topProductos} />
       </motion.div>
 
-      {/* Pedidos recientes - stock bajo */}
-
+      {/* Pedidos Recientes + Stock Bajo */}
       <motion.div
         variants={containerVariants}
         className="grid gap-6 lg:grid-cols-3"

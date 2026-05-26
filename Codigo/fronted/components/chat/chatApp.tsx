@@ -12,28 +12,22 @@ import { MessageInput } from './messageInput';
 import { EmptyChat } from './emptyChat';
 import { sendMessageUseCase } from '@/features/chat/services/useCases/sendMessageUseCase';
 import { Message } from '@/features/chat/schema/messageInterface';
+import { nowLocalISO } from '@/lib/utils/formatters';
 
 export default function ChatApp() {
   const [activeContactId, setActiveContactId] = useState<string | null>(null);
-
   const [searchQuery, setSearchQuery] = useState('');
-
   const [allMessages, setAllMessages] = useState<Record<string, Message[]>>({});
-
   const [allConversations, setAllConversations] = useState(conversations);
-
   const [showMobileChat, setShowMobilChat] = useState(false);
-
   const [isTyping, setIsTyping] = useState(false);
 
   const activeContact = activeContactId
-    ? contacts.find(contact => contact.id === activeContactId) || null
+    ? (contacts.find(c => c.id === activeContactId) ?? null)
     : null;
 
-  //1
-
   const currentMessage = activeContactId
-    ? allMessages[activeContactId] || []
+    ? (allMessages[activeContactId] ?? [])
     : [];
 
   const filteredConversations = searchQuery
@@ -58,46 +52,48 @@ export default function ChatApp() {
     async (text: string) => {
       if (!activeContactId) return;
 
+      const now = nowLocalISO(); // "2026-05-25T20:01:25" — hora Colombia, sin Z
+
       const newMessage: Message = {
         id: `msg-${Date.now()}`,
         contactId: activeContactId,
         text,
-        timestamp: new Date().toISOString(),
+        timestamp: now,
         sender: 'me',
         status: 'sent',
       };
 
-      setAllMessages(prev => ({
-        ...prev,
-        [activeContactId]: [...(prev[activeContactId] || []), newMessage],
-      }));
+      // Usamos el callback para leer el estado más reciente y evitar race condition
+      let historyForBackend: Message[] = [];
 
+      setAllMessages(prev => {
+        const prevMsgs = prev[activeContactId] ?? [];
+        historyForBackend = [...prevMsgs, newMessage];
+        return { ...prev, [activeContactId]: historyForBackend };
+      });
+
+      // Actualizamos el sidebar con el mensaje enviado
+      setAllConversations(prev =>
+        prev.map(conv =>
+          conv.contact.id === activeContactId
+            ? { ...conv, lastMessage: text, lastMessageTime: now }
+            : conv,
+        ),
+      );
+
+      setIsTyping(true);
       try {
-        const updatedMessages = [
-          ...(allMessages[activeContactId] || []),
-          newMessage,
-        ];
-
-        setIsTyping(true);
-
-        // 2. Llamar al backend — ahora retorna ChatResponse
         const response = await sendMessageUseCase({
           message: text,
           contactId: activeContactId,
-          history: updatedMessages,
+          history: historyForBackend,
         });
 
-        //   console.log(response);
-        console.log('response completo:', JSON.stringify(response, null, 2));
-
-        setIsTyping(false);
-
-        // 3. Crear mensaje del bot con productos si vienen
         const botMessage: Message = {
           id: `msg-${Date.now()}-bot`,
           contactId: activeContactId,
-          text: (response.message || 'Sin respuesta').replace(/\\n/g, '\n'),
-          timestamp: new Date().toISOString(),
+          text: (response.message ?? 'Sin respuesta').replace(/\\n/g, '\n'),
+          timestamp: nowLocalISO(),
           sender: 'them',
           status: 'read',
           ...(response.productos && { productos: response.productos }),
@@ -107,20 +103,31 @@ export default function ChatApp() {
           ...(response.estado && { estado: response.estado }),
         };
 
-        console.log('botMessage completo:', JSON.stringify(botMessage));
-
         setAllMessages(prev => ({
           ...prev,
-          [activeContactId]: [...(prev[activeContactId] || []), botMessage],
+          [activeContactId]: [...(prev[activeContactId] ?? []), botMessage],
         }));
+
+        // Actualizamos el sidebar con la respuesta del bot
+        setAllConversations(prev =>
+          prev.map(conv =>
+            conv.contact.id === activeContactId
+              ? {
+                  ...conv,
+                  lastMessage: botMessage.text,
+                  lastMessageTime: botMessage.timestamp,
+                }
+              : conv,
+          ),
+        );
       } catch (error) {
+        console.error('Error enviando mensaje:', error);
+      } finally {
         setIsTyping(false);
-        console.error(error);
       }
     },
-    [activeContactId, allMessages],
+    [activeContactId], // allMessages ya no es necesario en las deps
   );
-  //console.log(activeContact);
 
   const handleNewChat = useCallback(() => {
     setSearchQuery('');

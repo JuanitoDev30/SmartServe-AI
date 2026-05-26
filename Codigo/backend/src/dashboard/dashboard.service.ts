@@ -8,6 +8,45 @@ import { Producto } from 'src/producto/entities/producto.entity';
 import { EstadoPedido } from 'src/pedido/enum/pedidoEstado.enum';
 import { VentasService } from 'src/ventas/ventas.service';
 
+const TZ_OFFSET_MS = 5 * 60 * 60 * 1000;
+
+function getRangosLocalCO() {
+  const ahoraLocalStr = new Date().toLocaleString('sv-SE', {
+    timeZone: 'America/Bogota',
+  });
+  const ahoraLocal = new Date(ahoraLocalStr);
+
+  const y = ahoraLocal.getFullYear();
+  const m = ahoraLocal.getMonth();
+  const d = ahoraLocal.getDate();
+
+  const OFFSET = 5 * 60 * 60 * 1000;
+
+  const hoyInicio = new Date(Date.UTC(y, m, d, 0, 0, 0, 0) + OFFSET);
+  const hoyFin = new Date(Date.UTC(y, m, d, 23, 59, 59, 999) + OFFSET);
+
+  // semanaInicio = hace 6 días a las 00:00 Colombia
+  const semanaInicio = new Date(Date.UTC(y, m, d - 6, 0, 0, 0, 0) + OFFSET);
+
+  const mesInicio = new Date(Date.UTC(y, m, 1, 0, 0, 0, 0) + OFFSET);
+  const mesFin = new Date(Date.UTC(y, m + 1, 0, 23, 59, 59, 999) + OFFSET);
+
+  const mesAnteriorInicio = new Date(
+    Date.UTC(y, m - 1, 1, 0, 0, 0, 0) + OFFSET,
+  );
+  const mesAnteriorFin = new Date(Date.UTC(y, m, 0, 23, 59, 59, 999) + OFFSET);
+
+  return {
+    hoyInicio,
+    hoyFin,
+    semanaInicio,
+    mesInicio,
+    mesFin,
+    mesAnteriorInicio,
+    mesAnteriorFin,
+  };
+}
+
 @Injectable()
 export class DashboardService {
   constructor(
@@ -17,53 +56,37 @@ export class DashboardService {
     private readonly clienteRepository: Repository<Cliente>,
     @InjectRepository(Producto)
     private readonly productoRepository: Repository<Producto>,
-
     private readonly ventasService: VentasService,
   ) {}
 
   async getOverview() {
-    const ahora = new Date();
-    const hoyInicio = new Date(ahora);
-    hoyInicio.setHours(0, 0, 0, 0);
-    const hoyFin = new Date(ahora);
-    hoyFin.setHours(23, 59, 59, 999);
-
-    const mesInicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
-    const mesAnteriorInicio = new Date(
-      ahora.getFullYear(),
-      ahora.getMonth() - 1,
-      1,
-    );
-    const mesAnteriorFin = new Date(
-      ahora.getFullYear(),
-      ahora.getMonth(),
-      0,
-      23,
-      59,
-      59,
-      999,
-    );
-
-    const semanaInicio = new Date(ahora);
-    semanaInicio.setDate(semanaInicio.getDate() - 6);
-    semanaInicio.setHours(0, 0, 0, 0);
+    const {
+      hoyInicio,
+      hoyFin,
+      semanaInicio,
+      mesInicio,
+      mesFin,
+      mesAnteriorInicio,
+      mesAnteriorFin,
+    } = getRangosLocalCO();
 
     const [
-      pedidosHoy,
+      pedidosCreadosHoy,
       pedidosPendientes,
       pedidosEnCamino,
       pedidosCompletados,
       ingresosHoy,
-      ingresosMes,
       ingresosSemana,
+      ingresosMes,
       ingresosMesAnterior,
+      pedidosSemana,
+      pedidosMes,
       clientesTotal,
       clientesNuevos,
       productosStockBajo,
       pedidosRecientes,
       resumenVentas,
     ] = await Promise.all([
-      // Pedidos creados hoy
       this.pedidoRepository
         .createQueryBuilder('pedido')
         .where('pedido.creadoEn BETWEEN :inicio AND :fin', {
@@ -72,25 +95,21 @@ export class DashboardService {
         })
         .getCount(),
 
-      // Pedidos pendientes
       this.pedidoRepository.count({
         where: { estado: EstadoPedido.PENDIENTE },
       }),
-
-      // Pedidos en camino (nuevo)
       this.pedidoRepository.count({
         where: { estado: EstadoPedido.EN_CAMINO },
       }),
-
-      // Pedidos completados total
       this.pedidoRepository.count({
         where: { estado: EstadoPedido.ENTREGADO },
       }),
 
-      // Ingresos hoy
+      // Ingresos y pedidos ENTREGADOS hoy
       this.pedidoRepository
         .createQueryBuilder('pedido')
-        .select('SUM(pedido.total)', 'total')
+        .select('COALESCE(SUM(pedido.total), 0)', 'total')
+        .addSelect('COUNT(pedido.id)', 'count')
         .where('pedido.estado = :estado', { estado: EstadoPedido.ENTREGADO })
         .andWhere('pedido.actualizadoEn BETWEEN :inicio AND :fin', {
           inicio: hoyInicio,
@@ -98,28 +117,34 @@ export class DashboardService {
         })
         .getRawOne(),
 
-      // Ingresos este mes
+      // Ingresos semana
       this.pedidoRepository
         .createQueryBuilder('pedido')
-        .select('SUM(pedido.total)', 'total')
+        .select('COALESCE(SUM(pedido.total), 0)', 'total')
         .addSelect('COUNT(pedido.id)', 'count')
         .where('pedido.estado = :estado', { estado: EstadoPedido.ENTREGADO })
-        .andWhere('pedido.actualizadoEn >= :inicio', { inicio: mesInicio })
+        .andWhere('pedido.actualizadoEn BETWEEN :inicio AND :fin', {
+          inicio: semanaInicio,
+          fin: hoyFin,
+        })
         .getRawOne(),
 
-      // Ingresos esta semana (nuevo)
+      // Ingresos mes
       this.pedidoRepository
         .createQueryBuilder('pedido')
-        .select('SUM(pedido.total)', 'total')
+        .select('COALESCE(SUM(pedido.total), 0)', 'total')
         .addSelect('COUNT(pedido.id)', 'count')
         .where('pedido.estado = :estado', { estado: EstadoPedido.ENTREGADO })
-        .andWhere('pedido.actualizadoEn >= :inicio', { inicio: semanaInicio })
+        .andWhere('pedido.actualizadoEn BETWEEN :inicio AND :fin', {
+          inicio: mesInicio,
+          fin: mesFin,
+        })
         .getRawOne(),
 
-      // Ingresos mes anterior
+      // Ingresos mes anterior (para variación)
       this.pedidoRepository
         .createQueryBuilder('pedido')
-        .select('SUM(pedido.total)', 'total')
+        .select('COALESCE(SUM(pedido.total), 0)', 'total')
         .where('pedido.estado = :estado', { estado: EstadoPedido.ENTREGADO })
         .andWhere('pedido.actualizadoEn BETWEEN :inicio AND :fin', {
           inicio: mesAnteriorInicio,
@@ -127,16 +152,36 @@ export class DashboardService {
         })
         .getRawOne(),
 
-      // Total clientes
-      this.clienteRepository.count(),
-
-      // Clientes nuevos este mes
-      this.clienteRepository
-        .createQueryBuilder('cliente')
-        .where('cliente.creadoEn >= :inicio', { inicio: mesInicio })
+      // Conteo pedidos entregados semana
+      this.pedidoRepository
+        .createQueryBuilder('pedido')
+        .where('pedido.estado = :estado', { estado: EstadoPedido.ENTREGADO })
+        .andWhere('pedido.actualizadoEn BETWEEN :inicio AND :fin', {
+          inicio: semanaInicio,
+          fin: hoyFin,
+        })
         .getCount(),
 
-      // Productos con stock bajo
+      // Conteo pedidos entregados mes
+      this.pedidoRepository
+        .createQueryBuilder('pedido')
+        .where('pedido.estado = :estado', { estado: EstadoPedido.ENTREGADO })
+        .andWhere('pedido.actualizadoEn BETWEEN :inicio AND :fin', {
+          inicio: mesInicio,
+          fin: mesFin,
+        })
+        .getCount(),
+
+      this.clienteRepository.count(),
+
+      this.clienteRepository
+        .createQueryBuilder('cliente')
+        .where('cliente.creadoEn BETWEEN :inicio AND :fin', {
+          inicio: mesInicio,
+          fin: mesFin,
+        })
+        .getCount(),
+
       this.productoRepository
         .createQueryBuilder('producto')
         .where('producto.stock <= :stock', { stock: 5 })
@@ -146,7 +191,6 @@ export class DashboardService {
         .limit(5)
         .getMany(),
 
-      // Últimos 5 pedidos
       this.pedidoRepository
         .createQueryBuilder('pedido')
         .innerJoinAndSelect('pedido.cliente', 'cliente')
@@ -156,17 +200,16 @@ export class DashboardService {
         .limit(5)
         .getMany(),
 
-      // Resumen de ventas de VentasService (incluye ticketPromedio real)
       this.ventasService.getResumen(),
     ]);
 
     const ingresosHoyTotal = parseFloat(ingresosHoy?.total) || 0;
-    const ingresosMesTotal = parseFloat(ingresosMes?.total) || 0;
     const ingresosSemanaTotal = parseFloat(ingresosSemana?.total) || 0;
+    const ingresosMesTotal = parseFloat(ingresosMes?.total) || 0;
     const ingresosMesAnteriorTotal =
       parseFloat(ingresosMesAnterior?.total) || 0;
-    const pedidosMesCount = parseInt(ingresosMes?.count) || 0;
-    const pedidosSemanaCount = parseInt(ingresosSemana?.count) || 0;
+    // Pedidos entregados hoy — consistente con ingresos hoy
+    const pedidosEntregadosHoy = parseInt(ingresosHoy?.count) || 0;
 
     const variacionMes =
       ingresosMesAnteriorTotal > 0
@@ -177,18 +220,18 @@ export class DashboardService {
 
     return {
       pedidos: {
-        hoy: pedidosHoy,
+        hoy: pedidosEntregadosHoy, // entregados hoy (coherente con ingresos hoy)
+        creadosHoy: pedidosCreadosHoy, // creados hoy (cualquier estado)
         pendientes: pedidosPendientes,
         enCamino: pedidosEnCamino,
         completadosTotal: pedidosCompletados,
-        // Conteos por período para el filtro de tiempo en el frontend
-        semana: pedidosSemanaCount,
-        mes: pedidosMesCount,
+        semana: pedidosSemana,
+        mes: pedidosMes,
       },
       ingresos: {
         hoy: ingresosHoyTotal,
-        esteMes: ingresosMesTotal,
         estaSemana: ingresosSemanaTotal,
+        esteMes: ingresosMesTotal,
         variacion: Math.round(variacionMes * 100) / 100,
         tendencia: variacionMes >= 0 ? ('up' as const) : ('down' as const),
       },
@@ -196,7 +239,6 @@ export class DashboardService {
         total: clientesTotal,
         nuevosEsteMes: clientesNuevos,
       },
-      // ticketPromedio real desde VentasService (mes.total / mes.count)
       ticketPromedio: resumenVentas.ticketPromedio,
       productosStockBajo,
       pedidosRecientes,

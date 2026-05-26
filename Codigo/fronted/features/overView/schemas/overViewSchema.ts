@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const overviewSchema = z.object({
   pedidos: z.object({
     hoy: z.number(),
+    creadosHoy: z.number(),
     pendientes: z.number(),
     enCamino: z.number(),
     completadosTotal: z.number(),
@@ -11,8 +12,8 @@ export const overviewSchema = z.object({
   }),
   ingresos: z.object({
     hoy: z.number(),
-    esteMes: z.number(),
     estaSemana: z.number(),
+    esteMes: z.number(),
     variacion: z.number(),
     tendencia: z.enum(['up', 'down']),
   }),
@@ -20,7 +21,6 @@ export const overviewSchema = z.object({
     total: z.number(),
     nuevosEsteMes: z.number(),
   }),
-
   ticketPromedio: z.number(),
   productosStockBajo: z.array(
     z.object({

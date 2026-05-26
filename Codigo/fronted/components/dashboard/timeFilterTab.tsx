@@ -5,14 +5,21 @@ import { cn } from '@/lib/utils';
 interface TimeFilterTabsProps {
   activeFilter: TimeFilter;
   onFilterChange: (filter: TimeFilter) => void;
+  isPending?: boolean;
 }
 
 export function TimeFilterTabs({
   activeFilter,
   onFilterChange,
+  isPending,
 }: TimeFilterTabsProps) {
   return (
-    <div className="inline-flex items-center rounded-lg border border-border bg-muted/50 p-1">
+    <div
+      className={cn(
+        'inline-flex items-center rounded-lg border border-border bg-muted/50 p-1 transition-opacity',
+        isPending && 'opacity-60 pointer-events-none',
+      )}
+    >
       {(Object.keys(timeFilterLabels) as TimeFilter[]).map(filter => (
         <button
           key={filter}

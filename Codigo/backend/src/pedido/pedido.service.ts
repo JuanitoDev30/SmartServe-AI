@@ -233,23 +233,6 @@ export class PedidoService {
     }
   }
 
-  //  DELETE
-  // async remove(id: string) {
-  //   try {
-  //     const result = await this.pedidoRepository.delete(id);
-
-  //     if (result.affected === 0) {
-  //       throw new NotFoundException(
-  //         `Pedido con id ${id} no encontrado`,
-  //       );
-  //     }
-
-  //     return { message: 'Pedido eliminado correctamente' };
-  //   } catch (error) {
-  //     this.handleExceptions(error);
-  //   }
-  // }
-
   // MANEJO DE ERRORES
   private handleExceptions(error: any): never {
     if (

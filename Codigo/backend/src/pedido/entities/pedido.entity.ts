@@ -19,7 +19,7 @@ export class Pedido {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Index() // Consultas frecuentes por usuario
+  @Index()
   @ManyToOne(() => Cliente, { nullable: false, eager: false })
   cliente!: Cliente;
 
@@ -44,7 +44,7 @@ export class Pedido {
   @Column({ type: 'enum', enum: MetodoPago })
   metodoPago!: MetodoPago;
 
-  @Index() // Consultas frecuentes por estado
+  @Index()
   @Column({ type: 'enum', enum: EstadoPedido, default: EstadoPedido.PENDIENTE })
   estado!: EstadoPedido;
 
@@ -53,4 +53,9 @@ export class Pedido {
 
   @UpdateDateColumn()
   actualizadoEn!: Date;
+
+  //   // Se setea una sola vez cuando el pedido llega a ENTREGADO
+  //   @Index()
+  //   @Column({ type: 'timestamptz', nullable: true })
+  //   entregadoEn?: Date | null;
 }

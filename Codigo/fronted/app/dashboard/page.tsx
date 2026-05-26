@@ -8,12 +8,13 @@ export const metadata = {
   title: 'Overview - Panel Administrativo',
   description: 'Vista general del negocio',
 };
+
 export default async function DashboardPage() {
   const [result, graficaResult, topProductosResult, session] =
     await Promise.all([
       getOverviewAction(),
       getGraficaVentasAction('semana'),
-      getTopProductosAction(3, 'mes'),
+      getTopProductosAction(5, 'mes'),
       auth(),
     ]);
 

@@ -73,7 +73,7 @@ export function ProductCard({ onDelete, onEdit, product }: ProductCardProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="size-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="size-8 shrink-0 opacity-100 group-hover:opacity-100 transition-opacity"
             >
               <MoreVertical className="size-4" />
             </Button>

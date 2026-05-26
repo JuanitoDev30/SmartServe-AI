@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import {
   Search,
   Filter,
-  Plus,
   MoreHorizontal,
   Users,
   UserCheck,
@@ -207,8 +206,8 @@ export function ClientesTable({
             value={initialFilters.estado ?? 'todos'}
             onValueChange={handleEstadoFilter}
           >
-            <SelectTrigger className="w-full sm:w-44">
-              <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+            <SelectTrigger className="w-full sm:w-54">
+              <Filter className="w-6 h-6 mr-2 text-muted-foreground" />
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
@@ -218,10 +217,6 @@ export function ClientesTable({
             </SelectContent>
           </Select>
         </div>
-        <Button className="w-full sm:w-auto">
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Cliente
-        </Button>
       </div>
 
       {/* Tabla */}
@@ -313,7 +308,6 @@ export function ClientesTable({
                     </div>
                   </TableCell>
 
-                  {/* Estado — usa ESTADO_CLIENTE_CONFIG en lugar de dos switch */}
                   <TableCell>
                     <Badge
                       variant={ESTADO_CLIENTE_CONFIG[cliente.estado].variant}
@@ -336,7 +330,7 @@ export function ClientesTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="opacity-100 group-hover:opacity-100 transition-shadow"
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>

@@ -14,6 +14,7 @@ import { AdministradorModule } from './administrador/administrador.module';
 import { AuthModule } from './auth/auth.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ReportesModule } from './reportes/reportes.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     AuthModule,
     ScheduleModule.forRoot(),
     DashboardModule,
+    ReportesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

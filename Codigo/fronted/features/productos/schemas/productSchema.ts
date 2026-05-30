@@ -15,6 +15,7 @@ export interface ProductType {
   stock?: number;
   proveedor?: string;
   status: ProductStatus;
+  ivaPercent?: number;
   categoria?: {
     id: string;
     nombre: string;

@@ -56,4 +56,7 @@ export class Producto {
     nullable: true,
   })
   proveedor?: string;
+
+  @Column('float', { default: 19 })
+  ivaPercent!: number;
 }

@@ -22,7 +22,7 @@ export function TopProductos({ productos }: TopProductosProps) {
           <p className="text-xs text-muted-foreground mt-0.5">Este mes</p>
         </div>
         <Link
-          href="/dashboard/productos"
+          href="/dashboard/inventario"
           className="text-xs text-primary hover:underline font-medium"
         >
           Ver todos

@@ -44,6 +44,7 @@ const defaultValues: ProductFormValues = {
   proveedor: '',
   status: 'active',
   categoriaId: '',
+  ivaPercent: 19,
 };
 
 function getServerErrorField(
@@ -87,6 +88,7 @@ export function ProductFormModal({
         proveedor: product.proveedor ?? '',
         status: product.status,
         categoriaId: product.categoria?.id ?? '',
+        ivaPercent: product.ivaPercent ?? 19,
       });
     } else {
       reset(defaultValues);
@@ -275,6 +277,27 @@ export function ProductFormModal({
                   <p className="text-red-600 text-sm">{errors.stock.message}</p>
                 )}
               </div>
+            </div>
+
+            {/* IVA */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">IVA</label>
+              <select
+                {...register('ivaPercent', { valueAsNumber: true })}
+                className={cn(
+                  'flex h-11 w-full rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  errors.ivaPercent && 'border-red-500',
+                )}
+              >
+                <option value={0}>0% — Exento</option>
+                <option value={5}>5% — Tarifa reducida</option>
+                <option value={19}>19% — Tarifa general</option>
+              </select>
+              {errors.ivaPercent && (
+                <p className="text-red-600 text-sm">
+                  {errors.ivaPercent.message}
+                </p>
+              )}
             </div>
 
             {/* Proveedor */}

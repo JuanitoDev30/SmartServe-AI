@@ -66,18 +66,6 @@ export interface Order {
   notes?: string;
 }
 
-export interface DashboardAnalytics {
-  totalOrders: number;
-  totalRevenue: number;
-  pendingOrders: number;
-  completedOrders: number;
-  ordersToday: number;
-  revenueToday: number;
-  ordersByStatus: Record<OrderStatus, number>;
-  revenueByDay: { date: string; revenue: number }[];
-  topProducts: { name: string; quantity: number; revenue: number }[];
-}
-
 // ============================================
 // PRODUCT/INVENTORY TYPES
 // ============================================

@@ -38,6 +38,13 @@ export const productFormSchema = z.object({
     .optional(),
 
   status: z.enum(['active', 'inactive', 'low_stock', 'out_of_stock']),
+
+  ivaPercent: z
+    .number()
+    .refine(val => [0, 5, 19].includes(val), {
+      message: 'El IVA debe ser 0%, 5% o 19%',
+    })
+    .default(19),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

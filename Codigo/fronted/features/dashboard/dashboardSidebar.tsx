@@ -35,14 +35,9 @@ const navItems = [
     href: '/dashboard/pedido',
     icon: Package,
   },
-  // {
-  //   label: 'Ventas',
-  //   href: '/dashboard/ventas',
-  //   icon: ShoppingCart,
-  // },
 
   {
-    label: 'Analytics',
+    label: 'Reportes',
     href: '/dashboard/reportes',
     icon: BarChart3,
   },

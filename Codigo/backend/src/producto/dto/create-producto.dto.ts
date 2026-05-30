@@ -3,6 +3,7 @@
 
 import { Type } from 'class-transformer';
 import {
+  IsIn,
   IsInt,
   IsNumber,
   IsOptional,
@@ -52,4 +53,9 @@ export class CreateProductoDto {
   @IsOptional()
   @MaxLength(100)
   proveedor?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @IsIn([0, 5, 19], { message: 'El IVA debe ser 0, 5 o 19' })
+  ivaPercent?: number = 19;
 }

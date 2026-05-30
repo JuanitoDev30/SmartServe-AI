@@ -23,7 +23,7 @@ export function StockBajo({ productos }: StockBajoProps) {
           <h3 className="text-sm font-semibold text-foreground">Stock Bajo</h3>
         </div>
         <Link
-          href="/dashboard/productos"
+          href="/dashboard/inventario"
           className="text-xs text-primary hover:underline font-medium"
         >
           Ver todos

@@ -1,3 +1,4 @@
+'use server';
 import { AxiosError } from 'axios';
 import { getReporteContableUseCase } from '../services/useCases/getReporteContableUseCase';
 

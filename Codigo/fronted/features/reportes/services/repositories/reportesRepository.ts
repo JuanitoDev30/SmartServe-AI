@@ -16,6 +16,8 @@ class ReportesRepository implements ReportesRepositoryInterface {
     const { data } = await api.get('/reportes/ventas', {
       params: { fechaInicio, fechaFin, formato: 'json' },
     });
+
+    console.log('Reporte Ventas:', data);
     return data;
   }
 

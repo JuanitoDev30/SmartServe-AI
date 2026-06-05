@@ -3,7 +3,7 @@ import {
   getIvaColor,
   getStockStatus,
 } from '../../shared/constants/reporteConstants';
-import { Badge } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils/formatters';
 import { motion } from 'framer-motion';

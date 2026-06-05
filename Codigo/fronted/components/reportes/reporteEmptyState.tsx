@@ -14,7 +14,7 @@ export function ReporteEmptyState() {
       <motion.div
         initial={{ y: 10 }}
         animate={{ y: [10, -5, 10] }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 3 }}
         className="relative mx-auto w-fit"
       >
         <div className="absolute inset-0 blur-2xl bg-primary/20 rounded-full" />
@@ -24,7 +24,7 @@ export function ReporteEmptyState() {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ delay: 0.3, type: 'spring' }}
+          transition={{ delay: 0.3 }}
           className="absolute -right-2 -top-2 size-8 rounded-lg bg-primary/10 flex items-center justify-center"
         >
           <BarChart3 className="size-4 text-primary" />

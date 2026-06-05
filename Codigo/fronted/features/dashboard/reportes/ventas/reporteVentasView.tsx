@@ -1,13 +1,8 @@
 'use client';
 import { ReporteVentas } from '@/features/reportes/schemas/reportesSchema';
 import { formatCurrency, formatDate } from '@/lib/utils/formatters';
-import {
-  Badge,
-  DollarSign,
-  FileText,
-  ShoppingBag,
-  TrendingUp,
-} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { DollarSign, FileText, ShoppingBag, TrendingUp } from 'lucide-react';
 import { metodoPagoColors } from '../../shared/constants/reporteConstants';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';

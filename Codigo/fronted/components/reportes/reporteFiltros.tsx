@@ -5,7 +5,7 @@ import {
   type TabReporte,
   tabs,
 } from '@/features/dashboard/shared/constants/reporteConstants';
-import { Calendar, FileText, Download, Sparkles } from 'lucide-react';
+import { Download, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -83,7 +83,6 @@ export function ReportreFiltros({
                   Fecha Inicio
                 </label>
                 <div className="relative group">
-                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   <input
                     type="date"
                     value={fechaInicio}
@@ -102,7 +101,6 @@ export function ReportreFiltros({
                   Fecha Fin
                 </label>
                 <div className="relative group">
-                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   <input
                     type="date"
                     value={fechaFin}

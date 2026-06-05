@@ -2,14 +2,8 @@ import { DataTable } from '@/components/dashboard/dataTable';
 import { ReporteContable } from '@/features/reportes/schemas/reportesSchema';
 import { formatCurrency } from '@/lib/utils/formatters';
 import { motion } from 'framer-motion';
-import {
-  Badge,
-  BookOpen,
-  Landmark,
-  Percent,
-  Receipt,
-  TrendingUp,
-} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { BookOpen, Landmark, Percent, Receipt, TrendingUp } from 'lucide-react';
 import { metodoPagoColors } from '../../shared/constants/reporteConstants';
 import { cn } from '@/lib/utils';
 

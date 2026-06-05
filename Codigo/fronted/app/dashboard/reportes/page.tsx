@@ -1,8 +1,10 @@
-export default function Reportes() {
-  return (
-    <div>
-      <h1>Reportes</h1>
-      <p>Aquí puedes generar y visualizar tus reportes.</p>
-    </div>
-  );
+import { ReportesDashboard } from '@/features/dashboard/reportes/reportesDashboard';
+
+export const metadata = {
+  title: 'Reportes - Panel Administrativo',
+  description: 'Genera y visualiza tus reportes en el panel administrativo.',
+};
+
+export default function ReportesPage() {
+  return <ReportesDashboard />;
 }

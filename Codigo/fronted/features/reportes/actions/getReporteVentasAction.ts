@@ -7,6 +7,7 @@ export async function getReporteVentasAction(
 ) {
   try {
     const data = await getReporteVentasUseCase.execute(fechaInicio, fechaFin);
+
     return { success: true, data };
   } catch (error) {
     const message =

@@ -17,17 +17,18 @@ import { getReporteProductosAction } from '@/features/reportes/actions/getReport
 import { getReporteClientesAction } from '@/features/reportes/actions/getReporteClientesAction';
 import { getReporteContableAction } from '@/features/reportes/actions/getReporteContableActions';
 import { toast } from '@/hooks/useToast';
-import { file } from 'zod';
+
 import { descargarReporteUseCase } from '@/features/reportes/services/useCases/descargarReporteUseCase';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BarChart3 } from 'lucide-react';
+
 import { ReporteTabs } from '@/components/reportes/reporteTabs';
-import { ReportreFiltros } from '@/components/reportes/reporteFiltros';
+import { ReporteFiltros } from '@/components/reportes/reporteFiltros';
 import { ReporteVentasView } from './ventas/reporteVentasView';
 import { ReporteContableView } from './contable/reportesContableView';
 import { ReporteClientesView } from './clientes/reporteClientesView';
 import { ReporteProductosView } from './productos/reporteProductosView';
 import { ReporteEmptyState } from '@/components/reportes/reporteEmptyState';
+import { error } from 'console';
 
 export function ReportesDashboard() {
   const [activeTab, setActiveTab] = useState<TabReporte>('ventas');
@@ -137,6 +138,7 @@ export function ReportesDashboard() {
       }
 
       const blob = await descargarReporteUseCase.execute(tipo, params, formato);
+      console.log('---->', blob);
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = filename;
@@ -147,7 +149,8 @@ export function ReportesDashboard() {
         description: filename,
         duration: 3000,
       });
-    } catch {
+    } catch (err) {
+      console.error('Error al descargar el reporte', err);
       toast({
         variant: 'destructive',
         title: 'Error al descargar',
@@ -188,7 +191,7 @@ export function ReportesDashboard() {
 
       {/* Filtros */}
 
-      <ReportreFiltros
+      <ReporteFiltros
         activeTab={activeTab}
         fechaInicio={fechaInicio}
         fechaFin={fechaFin}

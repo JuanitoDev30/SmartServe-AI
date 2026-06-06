@@ -5,7 +5,7 @@ import {
   type TabReporte,
   tabs,
 } from '@/features/dashboard/shared/constants/reporteConstants';
-import { Download, Sparkles } from 'lucide-react';
+import { Calendar, Download, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -26,7 +26,7 @@ interface ReporteFiltrosProps {
   onDescargar: (formato: 'excel') => void;
 }
 
-export function ReportreFiltros({
+export function ReporteFiltros({
   activeTab,
   fechaInicio,
   fechaFin,
@@ -52,9 +52,8 @@ export function ReportreFiltros({
       transition={{ duration: 0.4 }}
       className="rounded-2xl border border-border bg-card p-6 shadow-sm"
     >
-      {/* Header  */}
-
-      <div className="flex item-center gap-3 mb-5">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-5">
         {Icon && (
           <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <Icon className="size-5 text-primary" />
@@ -70,7 +69,7 @@ export function ReportreFiltros({
 
       <div className="flex flex-col lg:flex-row gap-4 items-end">
         <AnimatePresence mode="wait">
-          {activeTab === 'contable' ? (
+          {activeTab !== 'contable' ? (
             <motion.div
               key="date-filters"
               initial={{ opacity: 0, x: -10 }}
@@ -82,13 +81,14 @@ export function ReportreFiltros({
                 <label className="text-sm font-medium text-foreground">
                   Fecha Inicio
                 </label>
-                <div className="relative group">
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <input
                     type="date"
                     value={fechaInicio}
                     onChange={e => onFechaInicioChange(e.target.value)}
                     className={cn(
-                      'w-full pl-10 h-11 rounded-xl border border-input bg-background px-4 text-sm',
+                      'w-full pl-10 h-11 rounded-xl border border-input bg-background pr-4 text-sm',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary',
                       'transition-all duration-200',
                     )}
@@ -100,13 +100,14 @@ export function ReportreFiltros({
                 <label className="text-sm font-medium text-foreground">
                   Fecha Fin
                 </label>
-                <div className="relative group">
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <input
                     type="date"
                     value={fechaFin}
                     onChange={e => onFechaFinChange(e.target.value)}
                     className={cn(
-                      'w-full pl-10 h-11 rounded-xl border border-input bg-background px-4 text-sm',
+                      'w-full pl-10 h-11 rounded-xl border border-input bg-background pr-4 text-sm',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary',
                       'transition-all duration-200',
                     )}
@@ -142,6 +143,7 @@ export function ReportreFiltros({
                   ))}
                 </select>
               </div>
+
               <div className="space-y-2 flex-1">
                 <label className="text-sm font-medium text-foreground">
                   Año

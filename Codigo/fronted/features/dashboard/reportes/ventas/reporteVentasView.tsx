@@ -16,27 +16,27 @@ interface ReporteVentasViewProps {
 export function ReporteVentasView({ data }: ReporteVentasViewProps) {
   const stats = [
     {
-      label: 'Total Ventas',
-      value: data.totalVentas.toString(),
-      icon: ShoppingBag,
+      titulo: 'Total Ventas',
+      valor: data.totalVentas.toString(),
+      icon: <ShoppingBag />,
       iconBg: 'bg-gradient-to-br from-primary to-primary/80',
     },
     {
-      label: 'Ingresos Brutos',
-      value: formatCurrency(data.totalBruto),
-      icon: DollarSign,
+      titulo: 'Ingresos Brutos',
+      valor: formatCurrency(data.totalBruto),
+      icon: <DollarSign />,
       iconBg: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
     },
     {
-      label: 'Total IVA',
-      value: formatCurrency(data.totalIva),
-      icon: FileText,
+      titulo: 'Total IVA',
+      valor: formatCurrency(data.totalIva),
+      icon: <FileText />,
       iconBg: 'bg-gradient-to-br from-amber-500 to-amber-600',
     },
     {
-      label: 'Ingresos Netos',
-      value: formatCurrency(data.totalNeto),
-      icon: TrendingUp,
+      titulo: 'Ingresos Netos',
+      valor: formatCurrency(data.totalNeto),
+      icon: <TrendingUp />,
       iconBg: 'bg-gradient-to-br from-blue-500 to-blue-600',
     },
   ];
@@ -131,8 +131,8 @@ export function ReporteVentasView({ data }: ReporteVentasViewProps) {
       {/*  stats */}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, i) => (
-          <StatCard key={stat.label} {...stat} index={i} />
+        {stats.map(stat => (
+          <StatCard key={stat.titulo} {...stat} />
         ))}
       </div>
 

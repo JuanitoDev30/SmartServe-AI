@@ -371,7 +371,7 @@ export class ReportesService {
       .addGroupBy('cliente.nombre')
       .addGroupBy('cliente.telefono')
       .addGroupBy('cliente.email')
-      .orderBy('totalGastado', 'DESC')
+      .orderBy('"totalGastado"', 'DESC')
       .getRawMany();
 
     const resumen = {

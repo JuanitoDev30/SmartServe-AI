@@ -6,6 +6,7 @@ import {
   ReporteVentas,
 } from '../../schemas/reportesSchema';
 import { ReportesRepositoryInterface } from './reportesRepositoryInterface';
+import { AxiosResponse } from 'axios';
 
 class ReportesRepository implements ReportesRepositoryInterface {
   async getReporteVentas(
@@ -58,13 +59,16 @@ class ReportesRepository implements ReportesRepositoryInterface {
     tipo: string,
     params: Record<string, string>,
     formato: 'excel' | 'pdf',
-  ): Promise<Blob> {
+  ): Promise<AxiosResponse<ArrayBuffer>> {
     const api = await getApiWithAuth();
-    const { data } = await api.get(`/reportes/${tipo}`, {
-      params: { ...params, formato },
-      responseType: 'blob',
+
+    return api.get<ArrayBuffer>(`/reportes/${tipo}`, {
+      params: {
+        ...params,
+        formato,
+      },
+      responseType: 'arraybuffer',
     });
-    return data;
   }
 }
 

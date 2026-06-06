@@ -18,7 +18,6 @@ import { getReporteClientesAction } from '@/features/reportes/actions/getReporte
 import { getReporteContableAction } from '@/features/reportes/actions/getReporteContableActions';
 import { toast } from '@/hooks/useToast';
 
-import { descargarReporteUseCase } from '@/features/reportes/services/useCases/descargarReporteUseCase';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { ReporteTabs } from '@/components/reportes/reporteTabs';
@@ -28,7 +27,6 @@ import { ReporteContableView } from './contable/reportesContableView';
 import { ReporteClientesView } from './clientes/reporteClientesView';
 import { ReporteProductosView } from './productos/reporteProductosView';
 import { ReporteEmptyState } from '@/components/reportes/reporteEmptyState';
-import { error } from 'console';
 
 export function ReportesDashboard() {
   const [activeTab, setActiveTab] = useState<TabReporte>('ventas');
@@ -137,20 +135,39 @@ export function ReportesDashboard() {
         filename = `reporte_contable_${meses[mesContable - 1]}_${anioContable}.${formato === 'excel' ? 'xlsx' : 'pdf'}`;
       }
 
-      const blob = await descargarReporteUseCase.execute(tipo, params, formato);
-      console.log('---->', blob);
+      const query = new URLSearchParams({
+        tipo,
+        formato,
+        ...params,
+      });
+
+      const response = await fetch(
+        `/api/reportes/descargar?${query.toString()}`,
+      );
+
+      if (!response.ok) {
+        throw new Error('Error al descargar reporte');
+      }
+
+      const blob = await response.blob();
+
+      const url = URL.createObjectURL(blob);
+
       const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
+      link.href = url;
       link.download = filename;
+
+      document.body.appendChild(link);
       link.click();
-      URL.revokeObjectURL(link.href);
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(url);
       toast({
         title: 'Descarga iniciada',
         description: filename,
         duration: 3000,
       });
-    } catch (err) {
-      console.error('Error al descargar el reporte', err);
+    } catch {
       toast({
         variant: 'destructive',
         title: 'Error al descargar',

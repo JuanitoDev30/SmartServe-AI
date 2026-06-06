@@ -59,17 +59,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   callbacks: {
     async jwt({ token, user }) {
-      // Al hacer login, user tiene los datos — los guardamos en el token
       if (user) {
-        token.accessToken = (user as any).accessToken;
+        token.accessToken = user.accessToken;
         token.id = user.id;
       }
+
       return token;
     },
     async session({ session, token }) {
-      // Exponemos el token y el id en la sesión
-      session.user.id = token.id as string;
-      (session as any).accessToken = token.accessToken;
+      session.user.id = token.id ?? '';
+      session.accessToken = token.accessToken;
+
       return session;
     },
   },

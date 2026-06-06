@@ -23,7 +23,7 @@ interface ReporteFiltrosProps {
   onMesContableChange: (value: number) => void;
   onAnioContableChange: (value: number) => void;
   onGenerar: () => void;
-  onDescargar: (formato: 'excel') => void;
+  onDescargar: (formato: 'excel' | 'pdf') => void;
 }
 
 export function ReporteFiltros({
@@ -196,23 +196,42 @@ export function ReporteFiltros({
 
           <AnimatePresence>
             {hasData && (
-              <motion.button
+              <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                onClick={() => onDescargar('excel')}
-                disabled={isDownloading}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={cn(
-                  'inline-flex items-center gap-2.5 rounded-xl border border-border bg-card px-5 h-11 text-sm font-medium text-foreground',
-                  'hover:bg-muted transition-all duration-200',
-                  'disabled:opacity-50 disabled:cursor-not-allowed',
-                )}
+                className="flex gap-2"
               >
-                <Download className="size-4" />
-                {isDownloading ? 'Descargando...' : 'Excel'}
-              </motion.button>
+                <motion.button
+                  onClick={() => onDescargar('excel')}
+                  disabled={isDownloading}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={cn(
+                    'inline-flex items-center gap-2.5 rounded-xl border border-border bg-card px-5 h-11 text-sm font-medium text-foreground',
+                    'hover:bg-muted transition-all duration-200',
+                    'disabled:opacity-50 disabled:cursor-not-allowed',
+                  )}
+                >
+                  <Download className="size-4" />
+                  Excel
+                </motion.button>
+
+                <motion.button
+                  onClick={() => onDescargar('pdf')}
+                  disabled={isDownloading}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={cn(
+                    'inline-flex items-center gap-2.5 rounded-xl border border-border bg-card px-5 h-11 text-sm font-medium text-foreground',
+                    'hover:bg-muted transition-all duration-200',
+                    'disabled:opacity-50 disabled:cursor-not-allowed',
+                  )}
+                >
+                  <Download className="size-4" />
+                  PDF
+                </motion.button>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>

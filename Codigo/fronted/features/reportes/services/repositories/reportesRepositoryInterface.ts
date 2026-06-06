@@ -1,3 +1,4 @@
+import { AxiosResponse } from 'axios';
 import {
   ReporteClientes,
   ReporteContable,
@@ -27,5 +28,5 @@ export interface ReportesRepositoryInterface {
     tipo: string,
     params: Record<string, string>,
     formato: 'excel' | 'pdf',
-  ): Promise<Blob>;
+  ): Promise<AxiosResponse<ArrayBuffer>>;
 }

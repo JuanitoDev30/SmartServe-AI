@@ -1,3 +1,4 @@
+//import 'server-only';
 import axios from 'axios';
 import { getAuthToken } from '@/lib/authToken/getAuthToken';
 export async function getApiWithAuth() {

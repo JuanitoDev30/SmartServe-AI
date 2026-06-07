@@ -4,6 +4,7 @@ import {
   getHoy,
   getPrimerDiaMes,
   meses,
+  REPORTE_TABS,
   TabReporte,
 } from '../shared/constants/reporteConstants';
 import {
@@ -20,13 +21,14 @@ import { toast } from '@/hooks/useToast';
 
 import { AnimatePresence, motion } from 'framer-motion';
 
-import { ReporteTabs } from '@/components/reportes/reporteTabs';
 import { ReporteFiltros } from '@/components/reportes/reporteFiltros';
 import { ReporteVentasView } from './ventas/reporteVentasView';
 import { ReporteContableView } from './contable/reportesContableView';
 import { ReporteClientesView } from './clientes/reporteClientesView';
 import { ReporteProductosView } from './productos/reporteProductosView';
 import { ReporteEmptyState } from '@/components/reportes/reporteEmptyState';
+
+import { TabsSelector } from '@/components/ui/tabSelector';
 
 export function ReportesDashboard() {
   const [activeTab, setActiveTab] = useState<TabReporte>('ventas');
@@ -204,7 +206,11 @@ export function ReportesDashboard() {
       </div>
 
       {/* tabs */}
-      <ReporteTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      <TabsSelector
+        tabs={REPORTE_TABS}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       {/* Filtros */}
 

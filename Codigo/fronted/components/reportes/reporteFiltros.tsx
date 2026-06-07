@@ -2,8 +2,8 @@
 
 import {
   meses,
+  REPORTE_TABS,
   type TabReporte,
-  tabs,
 } from '@/features/dashboard/shared/constants/reporteConstants';
 import { Calendar, Download, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -42,7 +42,7 @@ export function ReporteFiltros({
   onGenerar,
   onDescargar,
 }: ReporteFiltrosProps) {
-  const currentTab = tabs.find(t => t.value === activeTab);
+  const currentTab = REPORTE_TABS.find(t => t.value === activeTab);
   const Icon = currentTab?.icon;
 
   return (

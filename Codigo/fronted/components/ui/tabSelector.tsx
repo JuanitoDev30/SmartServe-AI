@@ -1,22 +1,33 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import {
-  tabs,
-  type TabReporte,
-} from '@/features/dashboard/shared/constants/reporteConstants';
+import { type LucideIcon } from 'lucide-react';
 
-interface ReporteTabsProps {
-  activeTab: TabReporte;
-  onTabChange: (tab: TabReporte) => void;
+import { cn } from '@/lib/utils';
+
+export interface TabItem<T extends string> {
+  value: T;
+  label: string;
+  icon?: LucideIcon;
+  description?: string;
 }
 
-export function ReporteTabs({ activeTab, onTabChange }: ReporteTabsProps) {
-  return (
-    <div className="relative ">
-      {/* Dekstop tabs */}
+interface TabsSelectorProps<T extends string> {
+  tabs: TabItem<T>[];
+  activeTab: T;
+  onTabChange: (tab: T) => void;
+  className?: string;
+}
 
+export function TabsSelector<T extends string>({
+  tabs,
+  activeTab,
+  onTabChange,
+  className,
+}: TabsSelectorProps<T>) {
+  return (
+    <div className={cn('relative', className)}>
+      {/* Desktop */}
       <div className="hidden sm:flex items-center gap-1 rounded-2xl bg-muted/50 p-1.5 w-fit backdrop-blur-lg border border-border/50">
         {tabs.map(tab => {
           const Icon = tab.icon;
@@ -39,16 +50,24 @@ export function ReporteTabs({ activeTab, onTabChange }: ReporteTabsProps) {
                 <motion.div
                   layoutId="activeTab"
                   className="absolute inset-0 bg-card rounded-xl shadow-sm border border-border/50"
-                  transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                  transition={{
+                    type: 'spring',
+                    bounce: 0.2,
+                    duration: 0.6,
+                  }}
                 />
               )}
+
               <span className="relative flex items-center gap-2.5">
-                <Icon
-                  className={cn(
-                    'size-4 transition-colors',
-                    isActive && 'text-primary',
-                  )}
-                />
+                {Icon && (
+                  <Icon
+                    className={cn(
+                      'size-4 transition-colors',
+                      isActive && 'text-primary',
+                    )}
+                  />
+                )}
+
                 <span>{tab.label}</span>
               </span>
             </motion.button>
@@ -56,12 +75,11 @@ export function ReporteTabs({ activeTab, onTabChange }: ReporteTabsProps) {
         })}
       </div>
 
-      {/* Mobile dropdown */}
-
+      {/* Mobile */}
       <div className="sm:hidden">
         <select
           value={activeTab}
-          onChange={e => onTabChange(e.target.value as TabReporte)}
+          onChange={e => onTabChange(e.target.value as T)}
           className="w-full h-12 rounded-xl border-border bg-card px-4 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           {tabs.map(tab => (

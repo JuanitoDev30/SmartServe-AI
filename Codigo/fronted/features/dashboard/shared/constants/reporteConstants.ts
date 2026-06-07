@@ -1,14 +1,9 @@
-import { TrendingUp, Package, Users, BookOpen } from 'lucide-react';
+import { TrendingUp, Package, Users, BookOpen, LucideIcon } from 'lucide-react';
 
 // ─── TIPOS ───────────────────────────────────────────────────────────────────
 export type TabReporte = 'ventas' | 'productos' | 'clientes' | 'contable';
 
-export const tabs: {
-  value: TabReporte;
-  label: string;
-  icon: typeof TrendingUp;
-  description: string;
-}[] = [
+export const REPORTE_TABS = [
   {
     value: 'ventas',
     label: 'Ventas',
@@ -33,7 +28,12 @@ export const tabs: {
     icon: BookOpen,
     description: 'Declaración de IVA',
   },
-];
+] satisfies {
+  value: TabReporte;
+  label: string;
+  icon: LucideIcon;
+  description: string;
+}[];
 
 export const meses = [
   'Enero',

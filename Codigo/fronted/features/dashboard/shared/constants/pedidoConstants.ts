@@ -31,3 +31,31 @@ export const ESTADO_PEDIDO_FILTROS = [
     value,
   })),
 ];
+
+export type PedidoTabFilter =
+  | 'all'
+  | 'PENDIENTE'
+  | 'EN_PREPARACION'
+  | 'ENTREGADO';
+
+export const PEDIDO_TAB_FILTERS: {
+  label: string;
+  value: PedidoTabFilter;
+}[] = [
+  {
+    label: 'Todos',
+    value: 'all',
+  },
+  {
+    label: 'Pendientes',
+    value: 'PENDIENTE',
+  },
+  {
+    label: 'En Proceso',
+    value: 'EN_PREPARACION',
+  },
+  {
+    label: 'Completados',
+    value: 'ENTREGADO',
+  },
+];

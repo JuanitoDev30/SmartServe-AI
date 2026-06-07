@@ -20,6 +20,11 @@ import { type PedidoFormValues } from '@/lib/validations/order';
 
 import { updateOrderAction } from '@/features/pedidos/actions/updateOrderActions';
 import { formatCurrency, formatDate } from '@/lib/utils/formatters';
+import {
+  PEDIDO_TAB_FILTERS,
+  PedidoTabFilter,
+} from '../shared/constants/pedidoConstants';
+import { TabsSelector } from '@/components/ui/tabSelector';
 
 // Status configuration
 const statusConfig: Record<
@@ -57,15 +62,6 @@ const statusConfig: Record<
     bgColor: 'bg-red-500',
   },
 };
-
-type TabFilter = 'all' | 'PENDIENTE' | 'EN_PREPARACION' | 'ENTREGADO';
-
-const tabFilters: { label: string; value: TabFilter }[] = [
-  { label: 'Todos', value: 'all' },
-  { label: 'Pendientes', value: 'PENDIENTE' },
-  { label: 'En Proceso', value: 'EN_PREPARACION' },
-  { label: 'Completados', value: 'ENTREGADO' },
-];
 
 interface StatsCardProps {
   title: string;
@@ -110,7 +106,7 @@ export function OrdersDashboard() {
 
   const isLoading = usePedidosStore(state => state.isLoading);
 
-  const [activeTab, setActiveTab] = useState<TabFilter>('all');
+  const [activeTab, setActiveTab] = useState<PedidoTabFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -287,22 +283,11 @@ export function OrdersDashboard() {
       <div className="rounded-xl border border-border bg-card">
         {/* Tabs and Search */}
         <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
-            {tabFilters.map(tab => (
-              <button
-                key={tab.value}
-                onClick={() => setActiveTab(tab.value)}
-                className={cn(
-                  'rounded-md px-4 py-2 text-sm font-medium transition-colors',
-                  activeTab === tab.value
-                    ? 'bg-card text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          <TabsSelector
+            tabs={PEDIDO_TAB_FILTERS}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

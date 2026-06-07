@@ -6,6 +6,8 @@ import { DashboardHeader } from './dashboardHeader';
 import { DashboardSidebar } from './dashboardSidebar';
 import { AuthUser } from '@/types';
 import { PedidosSocketProvider } from '@/lib/providers/pedidosSocketProvider';
+import { useNotificationStore } from '@/store/notificationStore';
+import { usePedidosStore } from '@/store/pedidosStore';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -15,6 +17,10 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const [sideBarCollapsed, setSideBarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const notifications = useNotificationStore(state => state.notifications);
+
+  const isConnected = usePedidosStore(state => state.isConnected);
 
   return (
     <PedidosSocketProvider>
@@ -51,6 +57,8 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
           <DashboardHeader
             onMenuClick={() => setMobileMenuOpen(true)}
             user={user}
+            notifications={notifications}
+            isConnected={isConnected}
           />
           <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
         </div>

@@ -69,7 +69,7 @@ export function ProductCard({ onDelete, onEdit, product }: ProductCardProps) {
         </div>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger>
             <Button
               variant="ghost"
               size="icon"

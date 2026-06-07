@@ -42,7 +42,7 @@ export function SidebarHeader({ onNewChat }: SideBarHeaderProps) {
           <MessageCirclePlus className="size-5" />
         </button>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger>
             <button
               className="rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
               aria-label="Menu"

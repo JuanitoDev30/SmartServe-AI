@@ -7,6 +7,7 @@ import { Cliente } from '../cliente/entities/cliente.entity';
 import { Producto } from '../producto/entities/producto.entity';
 import { EstadoPedido } from '../pedido/enum/pedidoEstado.enum';
 import * as ExcelJS from 'exceljs';
+import PDFDocument from 'pdfkit';
 
 @Injectable()
 export class ReportesService {
@@ -49,6 +50,110 @@ export class ReportesService {
     workbook.lastModifiedBy = 'Sistema de Gestión';
     workbook.created = new Date();
     workbook.title = titulo;
+  }
+
+  private createPdfBase(titulo: string, subtitulo: string): PDFKit.PDFDocument {
+    const doc = new PDFDocument({
+      margin: 40,
+      size: 'A4',
+      bufferPages: true,
+    });
+
+    doc.rect(0, 0, doc.page.width, 80).fill('#1a1a2e');
+    doc
+      .fillColor('#ffffff')
+      .fontSize(18)
+      .font('Helvetica-Bold')
+      .text(titulo, 40, 25);
+
+    doc.fontSize(10).font('Helvetica').text(subtitulo, 40, 50);
+    doc.fillColor('#000000').moveDown(3);
+    return doc;
+  }
+
+  private addPdfTableHeader(
+    doc: PDFKit.PDFDocument,
+    headers: string[],
+    widths: number[],
+    y: number,
+  ): number {
+    const x = 40;
+    let currentX = x;
+    doc.rect(x, y, doc.page.width - 80, 20).fill('#f0f0f0');
+    doc.fillColor('#333333').fontSize(8).font('Helvetica-Bold');
+
+    headers.forEach((header, i) => {
+      doc.text(header, currentX + 3, y + 6, {
+        width: widths[i],
+        ellipsis: true,
+      });
+      currentX += widths[i];
+    });
+
+    doc.fillColor('#000000').font('Helvetica');
+    return y + 22;
+  }
+
+  private addPdfTableRow(
+    doc: PDFKit.PDFDocument,
+    values: string[],
+    widths: number[],
+    y: number,
+    isEven: boolean,
+  ): number {
+    const x = 40;
+    let currentX = x;
+
+    if (isEven) {
+      doc.rect(x, y, doc.page.width - 80, 18).fill('#fafafa');
+    }
+    doc.fillColor('#333333').fontSize(7.5).font('Helvetica');
+
+    values.forEach((value, i) => {
+      doc.text(value ?? '-', currentX + 3, y + 5, {
+        width: widths[i] - 6,
+        ellipsis: true,
+      });
+      currentX += widths[i];
+    });
+    doc.fillColor('#0000000');
+    return y + 20;
+  }
+
+  private addPdfTotalRow(
+    doc: PDFKit.PDFDocument,
+    values: string[],
+    widths: number[],
+    y: number,
+  ): number {
+    const x = 40;
+    let currentX = x;
+
+    doc.rect(x, y, doc.page.width - 80, 20).fill('#1a1a2e');
+    doc.fillColor('#ffffff').fontSize(8).font('Helvetica-Bold');
+
+    values.forEach((value, i) => {
+      doc.text(value ?? '', currentX + 3, y + 6, {
+        width: widths[i] - 6,
+        ellipsis: true,
+      });
+      currentX += widths[i];
+    });
+
+    doc.fillColor('#000000').font('Helvetica');
+    return y + 22;
+  }
+
+  private checkNewPage(
+    doc: PDFKit.PDFDocument,
+    y: number,
+    threshold = 750,
+  ): number {
+    if (y > threshold) {
+      doc.addPage();
+      return 40;
+    }
+    return y;
   }
 
   // ─── REPORTE DE VENTAS ───────────────────────────────────────────────────
@@ -123,6 +228,10 @@ export class ReportesService {
 
     if (formato === 'excel') {
       return this.exportVentasExcel(resumen, res);
+    }
+
+    if (formato === 'pdf') {
+      return this.exportVentasPdf(resumen, res);
     }
   }
 
@@ -231,6 +340,100 @@ export class ReportesService {
     res.end();
   }
 
+  // pdf Ventas
+
+  private exportVentasPdf(resumen: any, res: Response) {
+    const doc = this.createPdfBase(
+      'Reporte de Ventas',
+      `Período: ${resumen.periodo.inicio} al ${resumen.periodo.fin}`,
+    );
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=reporte-ventas-${resumen.periodo.inicio}-${resumen.periodo.fin}.pdf`,
+    );
+    doc.pipe(res);
+
+    //resumen
+
+    let y = 100;
+    doc.fontSize(11).font('Helvetica-Bold').text('RESUMEN GENERAL', 40, y);
+    y += 20;
+
+    const resumenItems = [
+      ['Total Ventas', resumen.totalVentas.toString()],
+      ['Ingresos Brutos', this.formatCurrency(resumen.totalBruto)],
+      ['Total IVA', this.formatCurrency(resumen.totalIva)],
+      ['Ingresos Netos (sin IVA)', this.formatCurrency(resumen.totalNeto)],
+    ];
+
+    resumenItems.forEach(([label, value], i) => {
+      doc.rect(40, y, 250, 18).fill(i % 2 === 0 ? '#f0f0f0' : '#fafafa');
+      doc
+        .fillColor('#333')
+        .fontSize(9)
+        .font('Helvetica-Bold')
+        .text(label, 45, y + 5);
+      doc.font('Helvetica').text(value, 200, y + 5);
+      doc.fillColor('#000');
+      y += 20;
+    });
+    y += 20;
+
+    // Tabla detalle
+
+    doc.fontSize(11).font('Helvetica-Bold').text('DETALLE DE VENTAS', 40, y);
+    y += 15;
+    const headers = [
+      'Fecha',
+      'Cliente',
+      'Productos',
+      'Método',
+      'Base',
+      'IVA',
+      'Total',
+    ];
+    const widths = [65, 90, 120, 55, 55, 45, 55];
+    y = this.addPdfTableHeader(doc, headers, widths, y);
+
+    resumen.ventas.forEach((v: any, i: number) => {
+      y = this.checkNewPage(doc, y);
+      y = this.addPdfTableRow(
+        doc,
+        [
+          new Date(v.fecha).toLocaleDateString('es-CO'),
+          v.cliente,
+          v.productos.map((p: any) => `${p.nombre} x${p.cantidad}`).join(', '),
+          v.metodoPago,
+          this.formatCurrency(v.subtotal),
+          this.formatCurrency(v.iva),
+          this.formatCurrency(v.total),
+        ],
+        widths,
+        y,
+        i % 2 === 0,
+      );
+    });
+
+    y = this.addPdfTotalRow(
+      doc,
+      [
+        '',
+        'TOTALES',
+        '',
+        '',
+        this.formatCurrency(resumen.totalNeto),
+        this.formatCurrency(resumen.totalIva),
+        this.formatCurrency(resumen.totalBruto),
+      ],
+      widths,
+      y,
+    );
+
+    doc.end();
+  }
+
   // ─── REPORTE DE PRODUCTOS ─────────────────────────────────────────────────
 
   async getReporteProductos(
@@ -287,6 +490,7 @@ export class ReportesService {
 
     if (formato === 'json') return res.json(resumen);
     if (formato === 'excel') return this.exportProductosExcel(resumen, res);
+    if (formato === 'pdf') return this.exportProductosPdf(resumen, res);
   }
 
   private async exportProductosExcel(resumen: any, res: Response) {
@@ -337,6 +541,62 @@ export class ReportesService {
 
     await workbook.xlsx.write(res);
     res.end();
+  }
+
+  //PDF productos
+
+  private exportProductosPdf(resumen: any, res: Response) {
+    const doc = this.createPdfBase(
+      'Reporte de Productos',
+      `Período: ${resumen.periodo.inicio} al ${resumen.periodo.fin}`,
+    );
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=reporte-productos-${resumen.periodo.inicio}-${resumen.periodo.fin}.pdf`,
+    );
+    doc.pipe(res);
+
+    let y = 100;
+    doc.fontSize(11).font('Helvetica-Bold').text('PRODUCTOS VENDIDOS', 40, y);
+    y += 15;
+
+    const headers = [
+      '#',
+      'Producto',
+      'Categoría',
+      'IVA%',
+      'Uds Vendidas',
+      'Pedidos',
+      'Stock',
+      'Ingresos',
+    ];
+    const widths = [25, 110, 80, 35, 55, 45, 45, 70];
+
+    y = this.addPdfTableHeader(doc, headers, widths, y);
+
+    resumen.productos.forEach((p: any, i: number) => {
+      y = this.checkNewPage(doc, y);
+      y = this.addPdfTableRow(
+        doc,
+        [
+          (i + 1).toString(),
+          p.nombre,
+          p.categoria,
+          `${p.ivaPercent}%`,
+          p.cantidadVendida.toString(),
+          p.pedidos.toString(),
+          `${p.stockActual} uds`,
+          this.formatCurrency(p.ingresos),
+        ],
+        widths,
+        y,
+        i % 2 === 0,
+      );
+    });
+
+    doc.end();
   }
 
   // ─── REPORTE DE CLIENTES ──────────────────────────────────────────────────
@@ -391,6 +651,7 @@ export class ReportesService {
 
     if (formato === 'json') return res.json(resumen);
     if (formato === 'excel') return this.exportClientesExcel(resumen, res);
+    if (formato === 'pdf') return this.exportClientesPdf(resumen, res);
   }
 
   private async exportClientesExcel(resumen: any, res: Response) {
@@ -441,6 +702,62 @@ export class ReportesService {
 
     await workbook.xlsx.write(res);
     res.end();
+  }
+
+  //PDF clientes
+
+  private exportClientesPdf(resumen: any, res: Response) {
+    const doc = this.createPdfBase(
+      'Reporte de Clientes',
+      `Período: ${resumen.periodo.inicio} al ${resumen.periodo.fin}`,
+    );
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=reporte-clientes-${resumen.periodo.inicio}-${resumen.periodo.fin}.pdf`,
+    );
+    doc.pipe(res);
+
+    let y = 100;
+    doc.fontSize(11).font('Helvetica-Bold').text('CLIENTES CON COMPRAS', 40, y);
+    y += 15;
+
+    const headers = [
+      '#',
+      'Cliente',
+      'Teléfono',
+      'Email',
+      'Pedidos',
+      'Ticket Prom.',
+      'Total Gastado',
+      'Última Compra',
+    ];
+    const widths = [25, 100, 70, 90, 40, 65, 70, 65];
+
+    y = this.addPdfTableHeader(doc, headers, widths, y);
+
+    resumen.clientes.forEach((c: any, i: number) => {
+      y = this.checkNewPage(doc, y);
+      y = this.addPdfTableRow(
+        doc,
+        [
+          (i + 1).toString(),
+          c.nombre,
+          c.telefono,
+          c.email ?? 'N/A',
+          c.totalPedidos.toString(),
+          this.formatCurrency(c.ticketPromedio),
+          this.formatCurrency(c.totalGastado),
+          new Date(c.ultimaCompra).toLocaleDateString('es-CO'),
+        ],
+        widths,
+        y,
+        i % 2 === 0,
+      );
+    });
+
+    doc.end();
   }
 
   // ─── REPORTE CONTABLE ─────────────────────────────────────────────────────
@@ -549,6 +866,7 @@ export class ReportesService {
 
     if (formato === 'json') return res.json(resumen);
     if (formato === 'excel') return this.exportContableExcel(resumen, res);
+    if (formato === 'pdf') return this.exportContablePdf(resumen, res);
   }
 
   private async exportContableExcel(resumen: any, res: Response) {
@@ -716,5 +1034,143 @@ export class ReportesService {
 
     await workbook.xlsx.write(res);
     res.end();
+  }
+
+  //PDF Contable
+
+  private exportContablePdf(resumen: any, res: Response) {
+    const doc = this.createPdfBase(
+      `Reporte Contable — ${resumen.periodo.mes} ${resumen.periodo.anio}`,
+      `Declaración IVA | ${resumen.empresa}`,
+    );
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=reporte-contable-${resumen.periodo.mes}-${resumen.periodo.anio}.pdf`,
+    );
+    doc.pipe(res);
+
+    let y = 100;
+
+    doc
+      .fontSize(11)
+      .font('Helvetica-Bold')
+      .text('RESUMEN DECLARACIÓN IVA', 40, y);
+    y += 20;
+
+    const ivaItems = [
+      [
+        'Ventas Exentas (0%)',
+        this.formatCurrency(resumen.resumenIva.baseExenta),
+        '',
+      ],
+      [
+        'Base Gravable 5%',
+        this.formatCurrency(resumen.resumenIva.baseGravable5),
+        `IVA: ${this.formatCurrency(resumen.resumenIva.iva5)}`,
+      ],
+      [
+        'Base Gravable 19%',
+        this.formatCurrency(resumen.resumenIva.baseGravable19),
+        `IVA: ${this.formatCurrency(resumen.resumenIva.iva19)}`,
+      ],
+      [
+        'Total Base Neta',
+        this.formatCurrency(resumen.resumenIva.totalBase),
+        '',
+      ],
+      [
+        'TOTAL IVA A DECLARAR',
+        this.formatCurrency(resumen.resumenIva.totalIva),
+        '',
+      ],
+      [
+        'TOTAL INGRESOS BRUTOS',
+        this.formatCurrency(resumen.resumenIva.totalBruto),
+        '',
+      ],
+    ];
+
+    ivaItems.forEach(([label, value, extra], i) => {
+      const isTotal = label.startsWith('TOTAL');
+      doc
+        .rect(40, y, 400, 20)
+        .fill(isTotal ? '#1a1a2e' : i % 2 === 0 ? '#f0f0f0' : '#fafafa');
+      doc
+        .fillColor(isTotal ? '#ffff' : '#333333')
+        .fontSize(9)
+        .font(isTotal ? 'Helvetica-Bold' : 'Helvetica')
+        .text(label, 45, y + 6, { width: 180 });
+
+      doc.text(value, 230, y + 6, { width: 100 });
+      if (extra)
+        doc
+          .fillColor('#666')
+          .fontSize(8)
+          .text(extra, 340, y + 6);
+      doc.fillColor('#000000');
+      y += 22;
+    });
+
+    y += 20;
+
+    doc.fontSize(11).font('Helvetica-Bold').text('LIBRO DE VENTAS', 40, y);
+    y += 15;
+
+    const headers = [
+      'Consec.',
+      'Fecha',
+      'Cliente',
+      'NIT/Tel',
+      'Descripción',
+      'Método',
+      'Base',
+      'IVA',
+      'Total',
+    ];
+    const widths = [45, 50, 80, 65, 95, 45, 55, 45, 55];
+
+    y = this.addPdfTableHeader(doc, headers, widths, y);
+
+    resumen.ventas.forEach((v: any, i: number) => {
+      y = this.checkNewPage(doc, y);
+      y = this.addPdfTableRow(
+        doc,
+        [
+          v.consecutivo,
+          v.fecha,
+          v.cliente,
+          v.nit,
+          v.descripcion,
+          v.metodoPago,
+          this.formatCurrency(v.baseGravable),
+          this.formatCurrency(v.iva),
+          this.formatCurrency(v.total),
+        ],
+        widths,
+        y,
+        i % 2 === 0,
+      );
+    });
+
+    this.addPdfTotalRow(
+      doc,
+      [
+        '',
+        '',
+        'TOTALES',
+        '',
+        '',
+        '',
+        this.formatCurrency(resumen.resumenIva.totalBase),
+        this.formatCurrency(resumen.resumenIva.totalIva),
+        this.formatCurrency(resumen.resumenIva.totalBruto),
+      ],
+      widths,
+      y,
+    );
+
+    doc.end();
   }
 }

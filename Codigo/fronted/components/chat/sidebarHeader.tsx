@@ -70,7 +70,7 @@ export function SidebarHeader({ onNewChat }: SideBarHeaderProps) {
             </DropdownMenuItem>
             <DropdownMenuItem variant="destructive">
               <LogOut className="size-4" />
-              Cerrar sesion
+              Cerrar
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -70,13 +70,9 @@ export function ProductCard({ onDelete, onEdit, product }: ProductCardProps) {
 
         <DropdownMenu>
           <DropdownMenuTrigger>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8 shrink-0 opacity-100 group-hover:opacity-100 transition-opacity"
-            >
+            <span className="inline-flex items-center justify-center size-8">
               <MoreVertical className="size-4" />
-            </Button>
+            </span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuItem onClick={() => onEdit(product)}>

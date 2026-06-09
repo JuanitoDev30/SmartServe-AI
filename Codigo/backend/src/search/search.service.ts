@@ -30,6 +30,7 @@ export class SearchService {
         .where('cliente.nombre ILIKE :term', { term })
         .orWhere('cliente.telefono ILIKE :term', { term })
         .orWhere('cliente.email ILIKE :term', { term })
+        // Sin buscar por id — el admin no busca por UUID de cliente
         .select([
           'cliente.id',
           'cliente.nombre',
@@ -41,10 +42,11 @@ export class SearchService {
         .getMany(),
 
       // Buscar pedidos
+
       this.pedidoRepository
         .createQueryBuilder('pedido')
         .innerJoinAndSelect('pedido.cliente', 'cliente')
-        .where('pedido.id ILIKE :term', { term })
+        .where('CAST(pedido.id AS TEXT) ILIKE :term', { term })
         .orWhere('cliente.nombre ILIKE :term', { term })
         .orWhere('pedido.direccion ILIKE :term', { term })
         .select([
@@ -64,6 +66,7 @@ export class SearchService {
         .where('producto.nombre ILIKE :term', { term })
         .orWhere('producto.descripcion ILIKE :term', { term })
         .orWhere('producto.slug ILIKE :term', { term })
+        // Sin buscar por id
         .select([
           'producto.id',
           'producto.nombre',

@@ -13,8 +13,6 @@ import {
   ArrowLeft,
   Search,
   MoreVertical,
-  Phone,
-  Video,
   UserX,
   Volume2,
   Trash2,
@@ -90,18 +88,6 @@ export function ChatHeader({ contact, onBack, onSearch }: ChatHeaderProps) {
         </p>
       </div>
       <div className="flex items-center gap-0.5">
-        {/* <button
-          className="rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-          aria-label="Videollamada"
-        >
-          <Video className="size-5" />
-        </button>
-        <button
-          className="rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-          aria-label="Llamar"
-        >
-          <Phone className="size-5" />
-        </button> */}
         <button
           onClick={onSearch}
           className="rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"

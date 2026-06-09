@@ -11,7 +11,6 @@ import {
 import {
   Bell,
   Menu,
-  Search,
   WifiOff,
   Moon,
   Sun,
@@ -20,9 +19,11 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { GlobalSearch } from '@/components/dashboard/globalSearch/globalSearch';
+import { LogoutButton } from '@/components/sideBar/logoutButton';
 
 export interface AuthUser {
   name: string;
@@ -50,12 +51,11 @@ export function DashboardHeader({
   notifications,
   isConnected,
 }: DashboardHeaderProps) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const { setTheme, resolvedTheme } = useTheme();
 
-  useEffect(() => setMounted(true), []);
-  const isDark = mounted && (resolvedTheme ?? theme) === 'dark';
+  const unreadCount = notifications.filter(n => !n.read).length;
+  const isDark = resolvedTheme === 'dark';
+  const themeResolved = resolvedTheme !== undefined;
 
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b border-border bg-card/80 px-4 backdrop-blur-xl md:px-6">
@@ -69,14 +69,7 @@ export function DashboardHeader({
           <Menu className="size-5" />
         </button>
 
-        <div className="group hidden w-64 items-center gap-2.5 rounded-xl border border-transparent bg-muted px-3 py-2 transition-all focus-within:border-ring/40 focus-within:bg-card focus-within:shadow-sm focus-within:ring-2 focus-within:ring-ring/20 md:flex lg:w-80">
-          <Search className="size-4 shrink-0 text-muted-foreground transition-colors group-focus-within:text-foreground" />
-          <input
-            type="text"
-            placeholder="Buscar pedidos, clientes..."
-            className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-          />
-        </div>
+        <GlobalSearch />
       </div>
 
       {/* Lado derecho */}
@@ -244,8 +237,9 @@ export function DashboardHeader({
             <DropdownMenuSeparator />
 
             <DropdownMenuItem variant="destructive" className="cursor-pointer">
-              <LogOut className="size-4" />
-              <span>Cerrar sesión</span>
+              <div className="mt-0 flex h-7">
+                <LogoutButton />
+              </div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

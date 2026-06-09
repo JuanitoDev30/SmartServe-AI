@@ -327,13 +327,9 @@ export function ClientesTable({
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="opacity-100 group-hover:opacity-100 transition-shadow"
-                        >
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
+                        <span className="inline-flex items-center justify-center size-8">
+                          <MoreHorizontal className="size-4" />
+                        </span>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem

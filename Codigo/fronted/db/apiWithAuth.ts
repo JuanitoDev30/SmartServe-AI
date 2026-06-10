@@ -13,9 +13,18 @@ export async function getApiWithAuth() {
     },
   });
 
-  instance.interceptors.request.use(config => {
-    return config;
-  });
+  instance.interceptors.response.use(
+    response => response,
+    error => {
+      if (error.response?.status === 401) {
+        // Importación dinámica para evitar problemas con SSR
+        import('@/store/authStore').then(({ useAuthStore }) => {
+          useAuthStore.getState().setSessionExpired(true);
+        });
+      }
+      return Promise.reject(error);
+    },
+  );
 
   return instance;
 }

@@ -8,27 +8,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropDownMenu';
-import {
-  Bell,
-  Menu,
-  WifiOff,
-  Moon,
-  Sun,
-  Settings,
-  User,
-  LogOut,
-} from 'lucide-react';
+import { Bell, Menu, WifiOff, Moon, Sun, Settings, User } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { useMemo } from 'react';
+
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { GlobalSearch } from '@/components/dashboard/globalSearch/globalSearch';
 import { LogoutButton } from '@/components/sideBar/logoutButton';
-
-export interface AuthUser {
-  name: string;
-  email?: string;
-}
+import { useMounted } from '@/hooks/useMounted';
+import type { AuthUser } from '@/types/index';
 
 interface Notification {
   id: string;
@@ -54,8 +42,9 @@ export function DashboardHeader({
   const { setTheme, resolvedTheme } = useTheme();
 
   const unreadCount = notifications.filter(n => !n.read).length;
+  const mounted = useMounted();
+
   const isDark = resolvedTheme === 'dark';
-  const themeResolved = resolvedTheme !== undefined;
 
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b border-border bg-card/80 px-4 backdrop-blur-xl md:px-6">
@@ -80,18 +69,27 @@ export function DashboardHeader({
           className="relative grid size-9 place-items-center overflow-hidden rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground active:scale-95"
           aria-label="Cambiar tema"
         >
-          <Sun
-            className={cn(
-              'size-5 transition-all duration-300',
-              isDark ? 'rotate-0 scale-100' : '-rotate-90 scale-0 opacity-0',
-            )}
-          />
-          <Moon
-            className={cn(
-              'absolute size-5 transition-all duration-300',
-              isDark ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100',
-            )}
-          />
+          {!mounted ? (
+            <div className="size-5" />
+          ) : (
+            <>
+              <Sun
+                className={cn(
+                  'size-5 transition-all duration-300',
+                  isDark
+                    ? 'rotate-0 scale-100'
+                    : '-rotate-90 scale-0 opacity-0',
+                )}
+              />
+
+              <Moon
+                className={cn(
+                  'absolute size-5 transition-all duration-300',
+                  isDark ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100',
+                )}
+              />
+            </>
+          )}
         </button>
 
         {/* Estado de conexión */}

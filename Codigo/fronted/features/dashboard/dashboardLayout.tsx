@@ -8,7 +8,7 @@ import { AuthUser } from '@/types';
 import { PedidosSocketProvider } from '@/lib/providers/pedidosSocketProvider';
 import { useNotificationStore } from '@/store/notificationStore';
 import { usePedidosStore } from '@/store/pedidosStore';
-import { SessionExpiredModal } from '@/components/auth/sessionExpiredModal';
+
 import { Perfil } from '../perfil/schemas/perfilSchema';
 import { PerfilStoreInitializer } from '@/components/perfil/perfilStoreInitialize';
 
@@ -73,7 +73,6 @@ export function DashboardLayout({
           <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
         </div>
       </div>
-      <SessionExpiredModal />
     </PedidosSocketProvider>
   );
 }

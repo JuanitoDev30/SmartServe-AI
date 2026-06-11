@@ -13,7 +13,7 @@ export const LogoutButton = ({ collapsed, dropdown }: LogoutButtonProps) => {
   if (dropdown) {
     return (
       <button
-        onClick={() => signOut()}
+        onClick={() => signOut({ callbackUrl: '/login' })}
         className="flex w-full items-center gap-2"
       >
         <LogOut className="size-4" />
@@ -24,7 +24,7 @@ export const LogoutButton = ({ collapsed, dropdown }: LogoutButtonProps) => {
 
   return (
     <button
-      onClick={() => signOut()}
+      onClick={() => signOut({ callbackUrl: '/login' })}
       className={cn(
         'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors',
         collapsed && 'justify-center px-2',

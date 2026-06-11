@@ -1,11 +1,15 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard, Clock } from 'lucide-react';
 import { LoginForm } from '@/components/auth/loginForm';
 import FloatingShapes from '@/components/auth/floatingShapes';
+import { useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const expired = searchParams.get('expired');
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center bg-background">
       <FloatingShapes />
@@ -32,6 +36,14 @@ export default function LoginPage() {
             </p>
           </div>
         </div>
+
+        {/* Banner sesión expirada */}
+        {expired && (
+          <div className="flex items-center gap-2 rounded-lg border border-orange-500/20 bg-orange-500/10 px-4 py-3 text-sm text-orange-500">
+            <Clock className="size-4 shrink-0" />
+            Tu sesión ha expirado, inicia sesión nuevamente.
+          </div>
+        )}
 
         {/* Card */}
         <div

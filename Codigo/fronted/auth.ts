@@ -9,17 +9,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          console.log(' Credenciales vacías');
-          return null;
-        }
+        if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          // console.log(
-          //   ' Llamando al backend:',
-          //   `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
-          // );
-
           const res = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
             {
@@ -32,25 +24,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
           );
 
-          //  console.log(' Respuesta del backend:', res.status);
-
-          if (!res.ok) {
-            //const error = await res.json();
-            //console.log(' Error del backend:', error);
-            return null;
-          }
+          if (!res.ok) return null;
 
           const data = await res.json();
-          //  console.log(' Login exitoso:', data.admin);
+
+          const payload = JSON.parse(
+            Buffer.from(data.access_token.split('.')[1], 'base64').toString(),
+          );
 
           return {
             id: data.admin.id,
             name: data.admin.nombre,
             email: data.admin.email,
             accessToken: data.access_token,
+            expiresAt: payload.exp * 1000,
           };
         } catch (error) {
-          console.error(' Error en authorize:', error);
+          console.error('Error en authorize:', error);
           return null;
         }
       },
@@ -62,14 +52,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.accessToken = user.accessToken;
         token.id = user.id;
+        token.expiresAt = user.expiresAt;
+      }
+
+      if (token.expiresAt && Date.now() > (token.expiresAt as number)) {
+        return null;
       }
 
       return token;
     },
+
     async session({ session, token }) {
       session.user.id = token.id ?? '';
       session.accessToken = token.accessToken;
-
       return session;
     },
   },

@@ -6,14 +6,12 @@ export default auth(req => {
   const isLoginPage = req.nextUrl.pathname.startsWith('/login');
   const isDashboard = req.nextUrl.pathname.startsWith('/dashboard');
 
-  // Si está en login y ya tiene sesión → redirigir al dashboard
   if (isLoginPage && isLoggedIn) {
     return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
-  // Si intenta acceder al dashboard sin sesión → redirigir al login
   if (isDashboard && !isLoggedIn) {
-    return NextResponse.redirect(new URL('/login', req.url));
+    return NextResponse.redirect(new URL('/login?expired=true', req.url));
   }
 
   return NextResponse.next();

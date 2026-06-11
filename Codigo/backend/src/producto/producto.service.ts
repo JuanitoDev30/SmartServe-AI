@@ -10,7 +10,7 @@ import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { Producto } from './entities/producto.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, In, Repository } from 'typeorm';
+import { ILike, In, Not, Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Categoria } from 'src/categoria/entities/categoria.entity';
 
@@ -69,19 +69,14 @@ export class ProductoService {
   findAll(paginationDto: PaginationDto) {
     try {
       const { page = 1, pageSize = 10, search = '' } = paginationDto;
-
       const offset = (page - 1) * pageSize;
 
       return this.productRepository.find({
         take: pageSize,
         skip: offset,
-
         where: search
-          ? {
-              nombre: ILike(`%${search}%`),
-            }
-          : {},
-
+          ? { nombre: ILike(`%${search}%`), status: Not('inactive') }
+          : { status: Not('inactive') },
         relations: {
           categoria: true,
         },
@@ -164,8 +159,7 @@ export class ProductoService {
 
   async remove(id: string) {
     const product = await this.findOne(id);
-
-    await this.productRepository.remove(product);
+    await this.productRepository.update(product.id, { status: 'inactive' });
   }
 
   private handleExceptions(error: any) {

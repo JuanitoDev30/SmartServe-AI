@@ -1,5 +1,5 @@
 'use client';
-import { Button } from '@/components/ui/button';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,18 +40,26 @@ const statusConfig: Record<ProductStatus, { label: string; color: string }> = {
   },
 };
 
-const categoryLabels: Record<string, string> = {
-  bebidas: 'Bebidas',
-  snacks: 'Snacks',
-  cuidado_personal: 'Cuidado Personal',
-  otros: 'Otros',
-};
-
 export function ProductCard({ onDelete, onEdit, product }: ProductCardProps) {
   const status = statusConfig[product.status];
+  const isInactive = product.status === 'inactive';
 
   return (
-    <div className="group relative bg-card rounded-xl border border-border p-5 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200">
+    <div
+      className={cn(
+        'group relative bg-card rounded-xl border border-border p-5 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200',
+        isInactive && 'opacity-50 pointer-events-none',
+      )}
+    >
+      {/* Badge de inactivo encima */}
+      {isInactive && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/60 backdrop-blur-[1px]">
+          <span className="text-xs font-medium px-3 py-1.5 rounded-full bg-muted text-muted-foreground border border-border">
+            Producto eliminado
+          </span>
+        </div>
+      )}
+
       {/* HEADER */}
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-3 min-w-0">
@@ -116,7 +124,7 @@ export function ProductCard({ onDelete, onEdit, product }: ProductCardProps) {
       {/* Footer */}
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground px-2 py-1 rounded-md bg-muted/50">
-          {categoryLabels[product.categoria]}
+          {product.categoria?.nombre ?? 'Sin categoría'}
         </span>
         <span
           className={cn(

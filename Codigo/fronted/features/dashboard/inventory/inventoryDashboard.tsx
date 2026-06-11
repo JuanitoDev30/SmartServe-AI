@@ -242,6 +242,14 @@ export function InventoryDashboard({
         return;
       }
 
+      setProducts(prev =>
+        prev.map(p =>
+          p.id === selectedProduct.id
+            ? { ...p, status: 'inactive' as const }
+            : p,
+        ),
+      );
+
       setIsDeleteOpen(false);
       setSelectedProduct(null);
       toast({

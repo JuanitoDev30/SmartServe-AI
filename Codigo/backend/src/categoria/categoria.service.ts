@@ -11,6 +11,7 @@ import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Categoria } from './entities/categoria.entity';
 import { Repository } from 'typeorm';
+import { Producto } from 'src/producto/entities/producto.entity';
 
 @Injectable()
 export class CategoriaService {
@@ -19,8 +20,10 @@ export class CategoriaService {
   constructor(
     @InjectRepository(Categoria)
     private readonly categoriaRepository: Repository<Categoria>,
-  ) {}
 
+    @InjectRepository(Producto)
+    private readonly productRepository: Repository<Producto>,
+  ) {}
   // CREATE
   async create(createCategoriaDto: CreateCategoriaDto) {
     const { nombre } = createCategoriaDto;
@@ -78,11 +81,19 @@ export class CategoriaService {
     const categoria = await this.findOne(id);
 
     try {
+      // Desvincula productos eliminados (softDeleted) de esta categoría
+      await this.productRepository
+        .createQueryBuilder()
+        .update(Producto)
+        .set({ categoria: () => 'NULL' })
+        .where('"categoriaId" = :id AND "deletedAt" IS NOT NULL', { id })
+        .execute();
+
       return await this.categoriaRepository.remove(categoria);
     } catch (error: any) {
       if (error.code === '23503') {
         throw new BadRequestException(
-          'No se puede eliminar la categoría porque tiene productos asociados. Elimina o reasigna los productos primero.',
+          'No se puede eliminar la categoría porque tiene productos activos asociados.',
         );
       }
       throw error;

@@ -48,7 +48,10 @@ export function DeleteConfirmModal({
             </div>
             <p className="text-sm text-foreground">
               ¿Estás seguro de que deseas eliminar la categoría{' '}
-              <span className="font-semibold">"{category?.nombre}"</span>?
+              <span className="font-semibold">
+                &quot;{category?.nombre}&quot;
+              </span>
+              ?
             </p>
           </div>
           <p className="text-xs text-muted-foreground">

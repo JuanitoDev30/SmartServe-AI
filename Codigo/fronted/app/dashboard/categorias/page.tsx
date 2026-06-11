@@ -1,7 +1,6 @@
 import { getCategoriesAction } from '@/features/categories/actions/getCategoryActions';
+import { CategoryDashboard } from '@/features/dashboard/categories/categoryDashboard';
 import { getProductsAction } from '@/features/productos/actions/getProductActions';
-import { CategoryDashboard } from '@/features/dashboard/categories';
-
 interface CategoriesPageProps {
   searchParams: Promise<{
     page?: string;

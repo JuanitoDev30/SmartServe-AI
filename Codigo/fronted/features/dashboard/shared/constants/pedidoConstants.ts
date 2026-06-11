@@ -36,7 +36,10 @@ export type PedidoTabFilter =
   | 'all'
   | 'PENDIENTE'
   | 'EN_PREPARACION'
-  | 'ENTREGADO';
+  | 'ENTREGADO'
+  | 'CONFIRMADO'
+  | 'EN_CAMINO'
+  | 'CANCELADO';
 
 export const PEDIDO_TAB_FILTERS: {
   label: string;
@@ -51,11 +54,24 @@ export const PEDIDO_TAB_FILTERS: {
     value: 'PENDIENTE',
   },
   {
+    label: 'Confirmados',
+    value: 'CONFIRMADO',
+  },
+
+  {
     label: 'En Proceso',
     value: 'EN_PREPARACION',
   },
   {
+    label: 'En Camino',
+    value: 'EN_CAMINO',
+  },
+  {
     label: 'Completados',
     value: 'ENTREGADO',
+  },
+  {
+    label: 'Cancelados',
+    value: 'CANCELADO',
   },
 ];

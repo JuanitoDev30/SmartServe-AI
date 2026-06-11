@@ -24,19 +24,19 @@ interface ProductCardProps {
 const statusConfig: Record<ProductStatus, { label: string; color: string }> = {
   active: {
     label: 'Activo',
-    color: 'bg-success/10 text-success',
+    color: 'bg-emerald-500/10 text-emerald-500',
   },
   inactive: {
     label: 'Inactivo',
-    color: 'bg-muted text-muted-foreground',
+    color: 'bg-zinc-500/10 text-zinc-400',
   },
   low_stock: {
     label: 'Stock bajo',
-    color: 'bg-warning/10 text-warning-foreground',
+    color: 'bg-amber-500/10 text-amber-500',
   },
   out_of_stock: {
     label: 'Sin stock',
-    color: 'bg-destructive/10 text-destructive',
+    color: 'bg-red-500/10 text-red-500',
   },
 };
 

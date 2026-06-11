@@ -86,6 +86,7 @@ export class DashboardService {
       productosStockBajo,
       pedidosRecientes,
       resumenVentas,
+      stockPorCategoriaRaw,
     ] = await Promise.all([
       this.pedidoRepository
         .createQueryBuilder('pedido')
@@ -201,6 +202,17 @@ export class DashboardService {
         .getMany(),
 
       this.ventasService.getResumen(),
+
+      this.productoRepository
+        .createQueryBuilder('producto')
+        .innerJoin('producto.categoria', 'categoria')
+        .select('categoria.nombre', 'categoria')
+        .addSelect('SUM(producto.stock)', 'totalStock')
+        .addSelect('COUNT(producto.id)', 'totalProductos')
+        .where('producto.stock > 0')
+        .groupBy('categoria.nombre')
+        .orderBy('"totalStock"', 'DESC')
+        .getRawMany(),
     ]);
 
     const ingresosHoyTotal = parseFloat(ingresosHoy?.total) || 0;
@@ -210,6 +222,18 @@ export class DashboardService {
       parseFloat(ingresosMesAnterior?.total) || 0;
     // Pedidos entregados hoy — consistente con ingresos hoy
     const pedidosEntregadosHoy = parseInt(ingresosHoy?.count) || 0;
+
+    const stockPorCategoria = stockPorCategoriaRaw.map(
+      (item: {
+        categoria: string;
+        totalStock: string;
+        totalProductos: string;
+      }) => ({
+        categoria: item.categoria,
+        totalStock: parseInt(item.totalStock, 10) || 0,
+        totalProductos: parseInt(item.totalProductos, 10) || 0,
+      }),
+    );
 
     const variacionMes =
       ingresosMesAnteriorTotal > 0
@@ -241,6 +265,7 @@ export class DashboardService {
       },
       ticketPromedio: resumenVentas.ticketPromedio,
       productosStockBajo,
+      stockPorCategoria,
       pedidosRecientes,
     };
   }

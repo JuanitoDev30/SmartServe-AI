@@ -25,6 +25,7 @@ import {
 } from '../../perfil/schemas/perfilSchema';
 import { updatePerfilAction } from '@/features/perfil/actions/updatePerfilAction';
 import { changePasswordAction } from '@/features/perfil/actions/changePasswordAction';
+import { usePerfilStore } from '@/store/perfilStore';
 
 interface PerfilPageProps {
   initialData: Perfil | null;
@@ -37,6 +38,7 @@ export function PerfilPage({ initialData }: PerfilPageProps) {
   const [showPasswordActual, setShowPasswordActual] = useState(false);
   const [showPasswordNuevo, setShowPasswordNuevo] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+  const updatePerfil = usePerfilStore(state => state.updatePerfil);
 
   // Form perfil
   const {
@@ -71,6 +73,7 @@ export function PerfilPage({ initialData }: PerfilPageProps) {
     setIsSubmittingPerfil(true);
     try {
       const result = await updatePerfilAction(data);
+
       if (!result.success) {
         toast({
           variant: 'destructive',
@@ -80,7 +83,11 @@ export function PerfilPage({ initialData }: PerfilPageProps) {
         });
         return;
       }
+
+      // Actualiza el estado local del form Y el store global
       setPerfil(result.data ?? perfil);
+      updatePerfil(result.data ?? data);
+
       toast({
         title: 'Perfil actualizado',
         description: 'Tu información fue actualizada correctamente',

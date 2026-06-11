@@ -9,13 +9,20 @@ import { PedidosSocketProvider } from '@/lib/providers/pedidosSocketProvider';
 import { useNotificationStore } from '@/store/notificationStore';
 import { usePedidosStore } from '@/store/pedidosStore';
 import { SessionExpiredModal } from '@/components/auth/sessionExpiredModal';
+import { Perfil } from '../perfil/schemas/perfilSchema';
+import { PerfilStoreInitializer } from '@/components/perfil/perfilStoreInitialize';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
   user: AuthUser;
+  initialPerfil: Perfil | null;
 }
 
-export function DashboardLayout({ children, user }: DashboardLayoutProps) {
+export function DashboardLayout({
+  children,
+  user,
+  initialPerfil,
+}: DashboardLayoutProps) {
   const [sideBarCollapsed, setSideBarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -25,6 +32,8 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
 
   return (
     <PedidosSocketProvider>
+      {initialPerfil && <PerfilStoreInitializer perfil={initialPerfil} />}
+
       <div className="flex h-dvh w-full bg-background overflow-hidden">
         {mobileMenuOpen && (
           <div

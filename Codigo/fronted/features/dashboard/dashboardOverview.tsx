@@ -14,7 +14,6 @@ import {
 import { useState, useMemo, useTransition } from 'react';
 import { formatCurrency } from '@/lib/utils/formatters';
 
-// Tus schemas originales — sin cambios
 import type { Overview } from '../overView/schemas/overViewSchema';
 import type {
   GraficaItem,
@@ -35,6 +34,7 @@ import { IngresosChart } from '@/components/dashboard/ingresosChart';
 import { TopProductos } from '@/components/dashboard/topProductos';
 import { PedidosRecientes } from '@/components/dashboard/pedidosRecientes';
 import { StockBajo } from '@/components/dashboard/stockBajo';
+import { StockChart } from '@/components/dashboard/stockChart'; // ← NUEVO
 import { getGraficaVentasAction } from '../ventas/actions/getGraficaVentasActions';
 import { getTopProductosAction } from '../ventas/actions/getTopProductosVentasActions';
 
@@ -74,7 +74,6 @@ export function DashboardOverview({
   const saludo =
     hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches';
 
-  // Formateo de fechas con timezone Colombia explícito para evitar el bug de +1 día
   const graficaFormateada = useMemo(
     () =>
       grafica.map(g => ({
@@ -89,7 +88,6 @@ export function DashboardOverview({
     [grafica],
   );
 
-  // Cuando cambia el filtro: actualiza gráfica y top productos desde el servidor
   function handleFilterChange(filter: TimeFilter) {
     setTimeFilter(filter);
     startTransition(async () => {
@@ -102,7 +100,6 @@ export function DashboardOverview({
     });
   }
 
-  // Valores exactos del backend según filtro — sin aproximaciones
   const ingresosSegunFiltro =
     timeFilter === 'hoy'
       ? (data?.ingresos.hoy ?? 0)
@@ -117,7 +114,6 @@ export function DashboardOverview({
         ? (data?.pedidos.semana ?? 0)
         : (data?.pedidos.mes ?? 0);
 
-  // Alertas
   const pedidosUrgentes = useMemo(
     () =>
       (data?.pedidosRecientes ?? []).filter(
@@ -162,7 +158,6 @@ export function DashboardOverview({
           isPending={isPending}
         />
       </motion.div>
-
       {/* Alertas */}
       <AnimatePresence>
         {showAlert && (
@@ -173,7 +168,6 @@ export function DashboardOverview({
           />
         )}
       </AnimatePresence>
-
       {/* Stats principales */}
       <motion.div
         variants={containerVariants}
@@ -220,7 +214,6 @@ export function DashboardOverview({
           iconColor="text-violet-600"
         />
       </motion.div>
-
       {/* Mini stats */}
       <motion.div
         variants={containerVariants}
@@ -259,7 +252,6 @@ export function DashboardOverview({
           sublabel="Productos"
         />
       </motion.div>
-
       {/* Gráfica + Top Productos — se actualizan con el filtro */}
       <motion.div
         variants={containerVariants}
@@ -268,7 +260,10 @@ export function DashboardOverview({
         <IngresosChart data={graficaFormateada} />
         <TopProductos productos={topProductos} />
       </motion.div>
-
+      {/* Stock por categoría */}
+      <motion.div variants={containerVariants} className="grid gap-6">
+        <StockChart data={data?.stockPorCategoria ?? []} />
+      </motion.div>
       {/* Pedidos Recientes + Stock Bajo */}
       <motion.div
         variants={containerVariants}

@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+export const stockPorCategoriaSchema = z.object({
+  categoria: z.string(),
+  totalStock: z.number(),
+  totalProductos: z.number(),
+});
+
 export const overviewSchema = z.object({
   pedidos: z.object({
     hoy: z.number(),
@@ -29,7 +35,9 @@ export const overviewSchema = z.object({
       stock: z.number(),
     }),
   ),
+  stockPorCategoria: z.array(stockPorCategoriaSchema),
   pedidosRecientes: z.array(z.any()),
 });
 
+export type StockPorCategoria = z.infer<typeof stockPorCategoriaSchema>;
 export type Overview = z.infer<typeof overviewSchema>;

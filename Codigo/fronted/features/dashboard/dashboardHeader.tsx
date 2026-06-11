@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { GlobalSearch } from '@/components/dashboard/globalSearch/globalSearch';
 import { LogoutButton } from '@/components/sideBar/logoutButton';
 import { useMounted } from '@/hooks/useMounted';
+import { usePerfilStore } from '@/store/perfilStore';
 import type { AuthUser } from '@/types/index';
 
 interface Notification {
@@ -46,8 +47,18 @@ export function DashboardHeader({
 
   const isDark = resolvedTheme === 'dark';
 
+  const perfil = usePerfilStore(state => state.perfil);
+  const nombre = perfil?.nombre ?? user?.name ?? '';
+  const email = perfil?.email ?? user?.email ?? '';
+  const iniciales = nombre
+    .split(' ')
+    .map((n: string) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-4 border-b border-border bg-card/80 px-4 backdrop-blur-xl md:px-6">
+    <header className="sticky top-0 z-40 flex h-16 items-center justi fy-between gap-4 border-b border-border bg-card/80 px-4 backdrop-blur-xl md:px-6">
       {/* Lado izquierdo */}
       <div className="flex items-center gap-3">
         <button
@@ -195,7 +206,7 @@ export function DashboardHeader({
           >
             <Avatar className="size-9 border border-border">
               <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
-                {user?.name?.slice(0, 2).toUpperCase()}
+                {iniciales}
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
@@ -203,16 +214,16 @@ export function DashboardHeader({
             <div className="flex items-center gap-2.5 px-2 py-1.5">
               <Avatar className="size-9 border border-border">
                 <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
-                  {user?.name?.slice(0, 2).toUpperCase()}
+                  {iniciales}
                 </AvatarFallback>
               </Avatar>
               <div className="flex min-w-0 flex-col">
                 <span className="truncate text-sm font-medium">
-                  {user?.name}
+                  {nombre || 'Usuario'}
                 </span>
-                {user?.email && (
+                {email && (
                   <span className="truncate text-xs text-muted-foreground">
-                    {user.email}
+                    {email}
                   </span>
                 )}
               </div>

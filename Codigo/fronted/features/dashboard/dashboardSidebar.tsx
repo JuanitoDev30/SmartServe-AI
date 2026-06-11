@@ -1,5 +1,5 @@
 import { LogoutButton } from '@/components/sideBar/logoutButton';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { AuthUser } from '@/types';
 import {
@@ -7,16 +7,14 @@ import {
   BarChart3,
   ChevronLeft,
   LayoutDashboard,
-  LogOut,
   MessageSquare,
   Package,
-  Settings,
-  ShoppingCart,
   Tags,
   User,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { usePerfilStore } from '@/store/perfilStore';
 
 const navItems = [
   {
@@ -71,6 +69,16 @@ export function DashboardSidebar({
   user,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
+
+  const perfil = usePerfilStore(state => state.perfil);
+  const nombre = perfil?.nombre ?? user?.name ?? '';
+  const email = perfil?.email ?? user?.email ?? '';
+  const iniciales = nombre
+    .split(' ')
+    .map((n: string) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
   return (
     <aside
       className={cn(
@@ -148,21 +156,13 @@ export function DashboardSidebar({
         <div className="border-t border-border p-4">
           <div className="flex items-center gap-3">
             <Avatar className="size-9">
-              {user?.image ? (
-                <AvatarImage src={user.image} />
-              ) : (
-                <AvatarFallback>
-                  {user?.name?.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              )}
+              <AvatarFallback key={iniciales}>{iniciales}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
               <p className="text-sm font-medium text-foreground truncate">
-                {user?.name || 'Usuario'}
+                {nombre}
               </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {user?.email || ' '}
-              </p>
+              <p className="text-xs text-muted-foreground truncate">{email}</p>
             </div>
           </div>
         </div>

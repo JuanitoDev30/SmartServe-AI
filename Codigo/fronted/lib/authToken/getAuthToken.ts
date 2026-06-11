@@ -7,7 +7,8 @@ export async function getAuthToken(): Promise<string | null> {
   if (typeof window === 'undefined') {
     try {
       const session = await auth();
-      return (session as any)?.accessToken ?? null;
+
+      return session?.accessToken ?? null;
     } catch {
       return null;
     }
@@ -15,5 +16,5 @@ export async function getAuthToken(): Promise<string | null> {
 
   // En cliente (server actions llamadas desde componentes cliente)
   const session = await getSession();
-  return (session as any)?.accessToken ?? null;
+  return session?.accessToken ?? null;
 }

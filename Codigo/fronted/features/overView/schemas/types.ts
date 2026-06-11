@@ -1,4 +1,4 @@
-export type { Overview } from '../schemas/overViewSchema';
+export type { Overview, StockPorCategoria } from '../schemas/overViewSchema';
 export type {
   GraficaItem,
   TopProducto,

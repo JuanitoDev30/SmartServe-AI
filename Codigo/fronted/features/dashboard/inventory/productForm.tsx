@@ -326,12 +326,13 @@ export function ProductFormModal({
                 {...register('status')}
                 className="flex h-11 w-full rounded-lg border border-input bg-input px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                {statuses.map(s => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
+                <option value="active">Activo</option>
+                <option value="inactive">Inactivo</option>
               </select>
+              <p className="text-xs text-muted-foreground">
+                El estado de stock se calcula automáticamente según las
+                unidades.
+              </p>
             </div>
           </div>
 

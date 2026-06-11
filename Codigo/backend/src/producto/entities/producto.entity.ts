@@ -5,6 +5,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 @Entity()
@@ -59,4 +60,7 @@ export class Producto {
 
   @Column('float', { default: 19 })
   ivaPercent!: number;
+
+  @DeleteDateColumn({ nullable: true })
+  deletedAt?: Date;
 }

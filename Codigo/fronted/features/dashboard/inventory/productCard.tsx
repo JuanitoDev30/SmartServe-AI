@@ -47,27 +47,34 @@ export function ProductCard({ onDelete, onEdit, product }: ProductCardProps) {
   return (
     <div
       className={cn(
-        'group relative bg-card rounded-xl border border-border p-5 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200',
-        isInactive && 'opacity-50 pointer-events-none',
+        'group relative bg-card rounded-xl border border-border p-5 transition-all duration-200',
+        isInactive
+          ? 'opacity-60 border-dashed'
+          : 'hover:shadow-lg hover:shadow-primary/5',
       )}
     >
-      {/* Badge de inactivo encima */}
-      {isInactive && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/60 backdrop-blur-[1px]">
-          <span className="text-xs font-medium px-3 py-1.5 rounded-full bg-muted text-muted-foreground border border-border">
-            Producto eliminado
-          </span>
-        </div>
-      )}
-
       {/* HEADER */}
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="flex size-11 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+          <div
+            className={cn(
+              'flex size-11 items-center justify-center rounded-lg shrink-0',
+              isInactive
+                ? 'bg-muted text-muted-foreground'
+                : 'bg-primary/10 text-primary',
+            )}
+          >
             <Package className="size-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-semibold text-foreground truncate">
+            <h3
+              className={cn(
+                'font-semibold truncate',
+                isInactive
+                  ? 'text-muted-foreground line-through'
+                  : 'text-foreground',
+              )}
+            >
               {product.nombre}
             </h3>
             <p className="text-xs text-muted-foreground font-mono">

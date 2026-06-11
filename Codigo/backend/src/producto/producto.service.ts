@@ -57,6 +57,16 @@ export class ProductoService {
         producto.categoria = categoria;
       }
 
+      if (producto.stock === 0 || !producto.stock) {
+        producto.status = 'out_of_stock';
+      } else if (producto.stock < 5) {
+        producto.status = 'low_stock';
+      } else {
+        producto.status = 'active';
+      }
+
+      await this.productRepository.save(producto);
+
       await this.productRepository.save(producto);
       return producto;
     } catch (error) {
@@ -74,12 +84,8 @@ export class ProductoService {
       return this.productRepository.find({
         take: pageSize,
         skip: offset,
-        where: search
-          ? { nombre: ILike(`%${search}%`), status: Not('inactive') }
-          : { status: Not('inactive') },
-        relations: {
-          categoria: true,
-        },
+        where: search ? { nombre: ILike(`%${search}%`) } : {},
+        relations: { categoria: true },
       });
     } catch (error) {
       throw this.handleExceptions(error);
@@ -104,34 +110,22 @@ export class ProductoService {
 
   async findOneBySlug(slug: string) {
     const product = await this.productRepository.findOneBy({ slug });
-    if (product)
-      return {
-        message: `Producto con slug ${slug} ya registrado`,
-      };
+    if (product) return { message: `Producto con slug ${slug} ya registrado` };
     return null;
   }
   // Get one by name
   async findOneByName(nombre: string) {
     const product = await this.productRepository.findOneBy({ nombre });
     if (product)
-      return {
-        message: `Producto con nombre ${nombre} ya registrado`,
-      };
+      return { message: `Producto con nombre ${nombre} ya registrado` };
     return null;
   }
 
   // UPDATE
 
   async update(id: string, updateProductoDto: UpdateProductoDto) {
-    //console.log('ID recibido en backend: ----> ', id);
-
     const { categoriaId, ...rest } = updateProductoDto;
-    const product = await this.productRepository.preload({
-      id,
-      ...rest,
-    });
-
-    //console.log('Producto encontrado:', product);
+    const product = await this.productRepository.preload({ id, ...rest });
 
     if (!product)
       throw new NotFoundException(`Producto con id ${id} no encontrado`);
@@ -142,9 +136,19 @@ export class ProductoService {
       });
       if (!categoria)
         throw new NotFoundException(
-          `Categoría con id ${categoria} no encontrada`,
+          `Categoría con id ${categoriaId} no encontrada`,
         );
       product.categoria = categoria;
+    }
+
+    if (rest.stock !== undefined && rest.status !== 'inactive') {
+      if (rest.stock === 0) {
+        product.status = 'out_of_stock';
+      } else if (rest.stock < 5) {
+        product.status = 'low_stock';
+      } else {
+        product.status = 'active';
+      }
     }
 
     try {
@@ -154,12 +158,11 @@ export class ProductoService {
       throw this.handleExceptions(error);
     }
   }
-
   // DELETE
 
   async remove(id: string) {
     const product = await this.findOne(id);
-    await this.productRepository.update(product.id, { status: 'inactive' });
+    await this.productRepository.softDelete(product.id);
   }
 
   private handleExceptions(error: any) {

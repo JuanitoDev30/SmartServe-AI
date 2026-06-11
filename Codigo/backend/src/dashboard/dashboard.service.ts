@@ -210,6 +210,8 @@ export class DashboardService {
         .addSelect('SUM(producto.stock)', 'totalStock')
         .addSelect('COUNT(producto.id)', 'totalProductos')
         .where('producto.stock > 0')
+        .andWhere('producto.deletedAt IS NULL')
+        .andWhere("producto.status != 'inactive'")
         .groupBy('categoria.nombre')
         .orderBy('"totalStock"', 'DESC')
         .getRawMany(),

@@ -13,9 +13,7 @@ export class Producto {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column('text', {
-    unique: true,
-  })
+  @Column('text')
   nombre!: string;
 
   @Column('float', {
@@ -28,9 +26,7 @@ export class Producto {
   })
   descripcion?: string;
 
-  @Column('text', {
-    unique: true, //No se van tener 2 slugs iguales / o dos productos iguales
-  })
+  @Column('text', { nullable: true })
   slug?: string;
 
   @Column('int', {

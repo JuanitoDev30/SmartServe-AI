@@ -109,13 +109,23 @@ export class ProductoService {
   // Get One by Slug
 
   async findOneBySlug(slug: string) {
-    const product = await this.productRepository.findOneBy({ slug });
+    const product = await this.productRepository
+      .createQueryBuilder('producto')
+      .where('producto.slug = :slug', { slug })
+      .andWhere('producto.deletedAt IS NULL')
+      .getOne();
+
     if (product) return { message: `Producto con slug ${slug} ya registrado` };
     return null;
   }
   // Get one by name
   async findOneByName(nombre: string) {
-    const product = await this.productRepository.findOneBy({ nombre });
+    const product = await this.productRepository
+      .createQueryBuilder('producto')
+      .where('producto.nombre = :nombre', { nombre })
+      .andWhere('producto.deletedAt IS NULL')
+      .getOne();
+
     if (product)
       return { message: `Producto con nombre ${nombre} ya registrado` };
     return null;

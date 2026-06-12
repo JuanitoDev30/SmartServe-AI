@@ -5,7 +5,7 @@ import { getGraficaVentasAction } from '@/features/ventas/actions/getGraficaVent
 import { getTopProductosAction } from '@/features/ventas/actions/getTopProductosVentasActions';
 
 export const metadata = {
-  title: 'Overview - Panel Administrativo',
+  title: 'Vista General - Dashboard',
   description: 'Vista general del negocio',
 };
 

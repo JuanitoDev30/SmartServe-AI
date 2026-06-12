@@ -1,7 +1,7 @@
 import { ReportesDashboard } from '@/features/dashboard/reportes/reportesDashboard';
 
 export const metadata = {
-  title: 'Reportes - Panel Administrativo',
+  title: 'Reportes - Dashboard',
   description: 'Genera y visualiza tus reportes en el panel administrativo.',
 };
 

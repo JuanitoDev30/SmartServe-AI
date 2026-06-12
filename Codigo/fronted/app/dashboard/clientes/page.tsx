@@ -16,6 +16,11 @@ interface ClientesPageProps {
   }>;
 }
 
+export const metadata = {
+  title: 'Clientes - Dashboard',
+  descripcion: 'Gestiona y visualiza todos los clientes',
+};
+
 export default async function ClientesPage({
   searchParams,
 }: ClientesPageProps) {

@@ -379,7 +379,7 @@ export function OrdersDashboard() {
                         {order.cliente.nombre}
                       </td>
                       <td className="px-4 py-4 text-sm text-primary">
-                        {mainProduct?.producto.nombre || '-'}
+                        {mainProduct?.producto?.nombre || '-'}
                       </td>
                       <td className="px-4 py-4 text-sm text-muted-foreground text-center">
                         {totalQuantity}

@@ -10,6 +10,11 @@ interface InventoryPageProps {
   }>;
 }
 
+export const metadata = {
+  title: 'Inventario - Dashboard',
+  descripcion: 'Gestiona y visualiza todos los productos',
+};
+
 export default async function InventoryPage({
   searchParams,
 }: InventoryPageProps) {

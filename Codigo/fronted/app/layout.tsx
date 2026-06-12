@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'ChatAuto-AI',
+  title: 'Smart-Flow',
   description: 'Sistema de automatizacion con agentes Ai',
 };
 

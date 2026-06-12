@@ -9,6 +9,11 @@ interface CategoriesPageProps {
   }>;
 }
 
+export const metadata = {
+  title: 'Categorías - Dashboard',
+  descripcion: 'Gestiona y visualiza todas las categorías',
+};
+
 export default async function CategoriesPage({
   searchParams,
 }: CategoriesPageProps) {

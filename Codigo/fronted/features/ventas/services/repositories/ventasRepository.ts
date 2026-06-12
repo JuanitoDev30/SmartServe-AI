@@ -17,9 +17,9 @@ class VentasRepository implements VentasRepositoryInterface {
     return data;
   }
 
-  async getGrafica(_periodo: PeriodoGrafica): Promise<GraficaItem[]> {
+  async getGrafica(periodo: PeriodoGrafica): Promise<GraficaItem[]> {
     const api = await getApiWithAuth();
-    const { data } = await api.get('/ventas/grafica', { params: { _periodo } });
+    const { data } = await api.get('/ventas/grafica', { params: { periodo } });
     return data;
   }
   async getTopProductos(
@@ -28,7 +28,7 @@ class VentasRepository implements VentasRepositoryInterface {
   ): Promise<TopProducto[]> {
     const api = await getApiWithAuth();
     const { data } = await api.get('/ventas/top-productos', {
-      params: { limit, _periodo: periodo },
+      params: { limit, periodo },
     });
     return data;
   }

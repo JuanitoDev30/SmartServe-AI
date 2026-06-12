@@ -14,21 +14,24 @@ import { CustomTooltip } from './customToolTip';
 
 interface IngresosChartProps {
   data: GraficaItem[];
+  titulo: string;
+  descripcion: string;
 }
 
-export function IngresosChart({ data }: IngresosChartProps) {
+export function IngresosChart({
+  data,
+  titulo,
+  descripcion,
+}: IngresosChartProps) {
   return (
     <motion.div
       variants={itemVariants}
       className="lg:col-span-2 rounded-xl border border-border bg-card p-6"
     >
       <div className="mb-6">
-        <h2 className="text-base font-semibold text-foreground">
-          Ingresos Última Semana
-        </h2>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Ventas completadas últimos 7 días
-        </p>
+        <h2 className="text-base font-semibold text-foreground">{titulo}</h2>
+
+        <p className="text-xs text-muted-foreground mt-0.5">{descripcion}</p>
       </div>
 
       {data.length === 0 ? (
@@ -51,30 +54,34 @@ export function IngresosChart({ data }: IngresosChartProps) {
               >
                 <stop
                   offset="5%"
-                  stopColor="hsl(var(--primary))"
+                  stopColor="var(--primary)"
                   stopOpacity={0.3}
                 />
-                <stop
-                  offset="95%"
-                  stopColor="hsl(var(--primary))"
-                  stopOpacity={0}
-                />
+                <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
+              stroke="var(--border)"
               strokeDasharray="3 3"
-              stroke="hsl(var(--border))"
               vertical={false}
             />
             <XAxis
               dataKey="label"
-              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+              interval="preserveStartEnd"
+              minTickGap={25}
+              tick={{
+                fontSize: 11,
+                fill: 'var(--muted-foreground)',
+              }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
               tickFormatter={v => `$${(v / 1000).toFixed(0)}K`}
-              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{
+                fontSize: 11,
+                fill: 'var(--muted-foreground)',
+              }}
               axisLine={false}
               tickLine={false}
             />
@@ -82,7 +89,7 @@ export function IngresosChart({ data }: IngresosChartProps) {
             <Area
               type="monotone"
               dataKey="total"
-              stroke="hsl(var(--primary))"
+              stroke="var(--primary)"
               strokeWidth={2}
               fill="url(#colorIngresosOverview)"
             />

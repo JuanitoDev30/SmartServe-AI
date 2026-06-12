@@ -45,6 +45,9 @@ export function OrderViewModal({
 
   const config = statusConfig[order.estado];
 
+  // console.log(order.creadoEn);
+  // console.log(new Date(order.creadoEn));
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}

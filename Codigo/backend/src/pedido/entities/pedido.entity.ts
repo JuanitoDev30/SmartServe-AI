@@ -48,10 +48,14 @@ export class Pedido {
   @Column({ type: 'enum', enum: EstadoPedido, default: EstadoPedido.PENDIENTE })
   estado!: EstadoPedido;
 
-  @CreateDateColumn()
+  @CreateDateColumn({
+    type: 'timestamptz',
+  })
   creadoEn!: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({
+    type: 'timestamptz',
+  })
   actualizadoEn!: Date;
 
   //   // Se setea una sola vez cuando el pedido llega a ENTREGADO

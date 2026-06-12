@@ -74,29 +74,48 @@ export function DashboardOverview({
   const saludo =
     hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches';
 
-  const graficaFormateada = useMemo(
-    () =>
-      grafica.map(g => ({
-        ...g,
-        label: new Intl.DateTimeFormat('es-CO', {
-          day: '2-digit',
-          month: 'short',
-          timeZone: 'America/Bogota',
-        }).format(new Date(g.label)),
-        total: Number(g.total),
-      })),
-    [grafica],
-  );
+  const graficaFormateada = useMemo(() => {
+    return grafica.map(g => {
+      if (timeFilter === 'hoy') {
+        return {
+          ...g,
+          total: Number(g.total),
+          label: `${g.label}:00`,
+        };
+      }
 
-  function handleFilterChange(filter: TimeFilter) {
+      const fecha = new Date(`${g.label}T00:00:00`);
+
+      return {
+        ...g,
+        total: Number(g.total),
+        label: isNaN(fecha.getTime())
+          ? g.label
+          : new Intl.DateTimeFormat('es-CO', {
+              day: '2-digit',
+              month: 'short',
+              timeZone: 'America/Bogota',
+            }).format(fecha),
+      };
+    });
+  }, [grafica, timeFilter]);
+
+  async function handleFilterChange(filter: TimeFilter) {
     setTimeFilter(filter);
-    startTransition(async () => {
-      const [graficaRes, topRes] = await Promise.all([
-        getGraficaVentasAction(GRAFICA_PERIODO[filter]),
-        getTopProductosAction(5, TOP_PERIODO[filter]),
-      ]);
-      if (graficaRes.success && graficaRes.data) setGrafica(graficaRes.data);
-      if (topRes.success && topRes.data) setTopProductos(topRes.data);
+
+    const [graficaRes, topRes] = await Promise.all([
+      getGraficaVentasAction(GRAFICA_PERIODO[filter]),
+      getTopProductosAction(5, TOP_PERIODO[filter]),
+    ]);
+
+    startTransition(() => {
+      if (graficaRes.success && graficaRes.data) {
+        setGrafica(graficaRes.data);
+      }
+
+      if (topRes.success && topRes.data) {
+        setTopProductos(topRes.data);
+      }
     });
   }
 
@@ -125,6 +144,21 @@ export function DashboardOverview({
     () => (data?.productosStockBajo ?? []).filter(p => p.stock <= 2),
     [data?.productosStockBajo],
   );
+
+  const chartInfo = {
+    hoy: {
+      titulo: 'Ingresos de Hoy',
+      descripcion: 'Ventas completadas hoy',
+    },
+    semana: {
+      titulo: 'Ingresos Última Semana',
+      descripcion: 'Ventas completadas últimos 7 días',
+    },
+    mes: {
+      titulo: 'Ingresos del Mes',
+      descripcion: 'Ventas completadas este mes',
+    },
+  };
 
   return (
     <motion.div
@@ -257,7 +291,11 @@ export function DashboardOverview({
         variants={containerVariants}
         className={`grid gap-6 lg:grid-cols-3 transition-opacity duration-200 ${isPending ? 'opacity-50' : 'opacity-100'}`}
       >
-        <IngresosChart data={graficaFormateada} />
+        <IngresosChart
+          data={graficaFormateada}
+          titulo={chartInfo[timeFilter].titulo}
+          descripcion={chartInfo[timeFilter].descripcion}
+        />
         <TopProductos productos={topProductos} />
       </motion.div>
       {/* Stock por categoría */}

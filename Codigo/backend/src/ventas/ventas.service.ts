@@ -131,43 +131,109 @@ export class VentasService {
 
   async getGrafica(periodo: 'dia' | 'semana' | 'mes') {
     const ahora = new Date();
+
     let inicio: Date;
-    let fin: Date;
-    let groupBy: string;
-    let labelFormat: string;
+    let formato: string;
 
     if (periodo === 'dia') {
       inicio = new Date(ahora);
       inicio.setHours(0, 0, 0, 0);
-      groupBy = `TO_CHAR(pedido."actualizadoEn", 'HH24')`;
-      labelFormat = 'HH24';
+
+      formato = 'HH24';
     } else if (periodo === 'semana') {
       inicio = new Date(ahora);
       inicio.setDate(ahora.getDate() - 6);
       inicio.setHours(0, 0, 0, 0);
-      groupBy = `TO_CHAR(pedido."actualizadoEn", 'YYYY-MM-DD')`;
-      labelFormat = 'YYYY-MM-DD';
+
+      formato = 'YYYY-MM-DD';
     } else {
       inicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
-      groupBy = `TO_CHAR(pedido."actualizadoEn", 'YYYY-MM-DD')`;
-      labelFormat = 'YYYY-MM-DD';
+
+      formato = 'YYYY-MM-DD';
     }
 
     const datos = await this.pedidoRepository
       .createQueryBuilder('pedido')
-      .select(groupBy, 'label')
+      .select(
+        `TO_CHAR(
+        pedido."actualizadoEn" AT TIME ZONE 'America/Bogota',
+        '${formato}'
+      )`,
+        'label',
+      )
       .addSelect('SUM(pedido.total)', 'total')
       .addSelect('COUNT(pedido.id)', 'count')
-      .where('pedido.estado = :estado', { estado: EstadoPedido.ENTREGADO })
-      .andWhere('pedido.actualizadoEn >= :inicio', { inicio })
-      .groupBy(groupBy)
-      .orderBy(groupBy, 'ASC')
+      .where('pedido.estado = :estado', {
+        estado: EstadoPedido.ENTREGADO,
+      })
+      .andWhere('pedido."actualizadoEn" >= :inicio', {
+        inicio,
+      })
+      .groupBy(
+        `TO_CHAR(
+        pedido."actualizadoEn" AT TIME ZONE 'America/Bogota',
+        '${formato}'
+      )`,
+      )
+      .orderBy(
+        `TO_CHAR(
+        pedido."actualizadoEn" AT TIME ZONE 'America/Bogota',
+        '${formato}'
+      )`,
+        'ASC',
+      )
       .getRawMany();
-    return datos.map((d) => ({
-      label: d.label,
-      total: parseFloat(d.total) || 0,
-      count: parseInt(d.count) || 0,
-    }));
+
+    const mapa = new Map(
+      datos.map((d) => [
+        d.label,
+        {
+          total: Number(d.total) || 0,
+          count: Number(d.count) || 0,
+        },
+      ]),
+    );
+
+    if (periodo === 'dia') {
+      return Array.from({ length: 24 }, (_, hora) => {
+        const label = hora.toString().padStart(2, '0');
+
+        return {
+          label,
+          total: mapa.get(label)?.total ?? 0,
+          count: mapa.get(label)?.count ?? 0,
+        };
+      });
+    }
+
+    if (periodo === 'semana') {
+      return Array.from({ length: 7 }, (_, i) => {
+        const fecha = new Date();
+        fecha.setDate(ahora.getDate() - 6 + i);
+
+        const label = fecha.toISOString().split('T')[0];
+
+        return {
+          label,
+          total: mapa.get(label)?.total ?? 0,
+          count: mapa.get(label)?.count ?? 0,
+        };
+      });
+    }
+
+    const diasTranscurridos = ahora.getDate();
+
+    return Array.from({ length: diasTranscurridos }, (_, i) => {
+      const fecha = new Date(ahora.getFullYear(), ahora.getMonth(), i + 1);
+
+      const label = fecha.toISOString().split('T')[0];
+
+      return {
+        label,
+        total: mapa.get(label)?.total ?? 0,
+        count: mapa.get(label)?.count ?? 0,
+      };
+    });
   }
 
   // Top Productos

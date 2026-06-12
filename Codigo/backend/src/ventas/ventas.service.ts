@@ -245,14 +245,25 @@ export class VentasService {
     const ahora = new Date();
     let inicio: Date | null = null;
 
-    if (periodo === 'semana') {
-      inicio = new Date(ahora);
-      inicio.setDate(ahora.getDate() - 6);
-      inicio.setHours(0, 0, 0, 0);
-    } else if (periodo === 'mes') {
-      inicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
-    } else if (periodo === 'anio') {
-      inicio = new Date(ahora.getFullYear(), 0, 1);
+    switch (periodo) {
+      case 'semana':
+        inicio = new Date(ahora);
+        inicio.setDate(ahora.getDate() - 6);
+        inicio.setHours(0, 0, 0, 0);
+        break;
+
+      case 'mes':
+        inicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+        break;
+
+      case 'anio':
+        inicio = new Date(ahora.getFullYear(), 0, 1);
+        break;
+
+      case 'todo':
+      default:
+        inicio = null;
+        break;
     }
 
     const query = this.pedidoRepository
@@ -263,7 +274,10 @@ export class VentasService {
       .addSelect('producto.nombre', 'nombre')
       .addSelect('SUM(item.cantidad)', 'cantidadTotal')
       .addSelect('SUM(item.subtotalItem)', 'ingresos')
-      .where('pedido.estado = :estado', { estado: EstadoPedido.ENTREGADO });
+      .addSelect('COUNT(DISTINCT pedido.id)', 'pedidos')
+      .where('pedido.estado = :estado', {
+        estado: EstadoPedido.ENTREGADO,
+      });
 
     if (inicio) {
       query.andWhere('pedido.actualizadoEn >= :inicio', { inicio });
@@ -272,15 +286,17 @@ export class VentasService {
     const rows = await query
       .groupBy('producto.id')
       .addGroupBy('producto.nombre')
-      .orderBy('ingresos', 'DESC')
-      .limit(limit)
+      .orderBy('SUM(item.subtotalItem)', 'DESC')
+      .addOrderBy('SUM(item.cantidad)', 'DESC')
+      .take(limit)
       .getRawMany();
 
-    return rows.map((r) => ({
-      id: r.id,
-      nombre: r.nombre,
-      cantidadTotal: parseInt(r.cantidadTotal) || 0,
-      ingresos: parseFloat(r.ingresos) || 0,
+    return rows.map((row) => ({
+      id: row.id,
+      nombre: row.nombre,
+      cantidadTotal: Number(row.cantidadTotal) || 0,
+      ingresos: Number(row.ingresos) || 0,
+      pedidos: Number(row.pedidos) || 0,
     }));
   }
 

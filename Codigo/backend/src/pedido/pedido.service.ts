@@ -144,10 +144,9 @@ export class PedidoService {
     return this.pedidoRepository.find({
       relations: {
         cliente: true,
-        items: {
-          producto: true,
-        },
+        items: { producto: true },
       },
+      withDeleted: true,
       order: { creadoEn: 'DESC' },
     });
   }
@@ -157,6 +156,7 @@ export class PedidoService {
     const pedido = await this.pedidoRepository.findOne({
       where: { id },
       relations: { cliente: true, items: { producto: true } },
+      withDeleted: true,
     });
 
     if (!pedido) throw new NotFoundException(`Pedido ${id} no encontrado`);
@@ -167,6 +167,7 @@ export class PedidoService {
     return this.pedidoRepository.find({
       where: { estado },
       relations: { cliente: true, items: { producto: true } },
+      withDeleted: true,
       order: { creadoEn: 'DESC' },
     });
   }
@@ -175,6 +176,7 @@ export class PedidoService {
     return this.pedidoRepository.find({
       where: { cliente: { id: usuarioId } },
       relations: { cliente: true, items: { producto: true } },
+      withDeleted: true,
       order: { creadoEn: 'DESC' },
     });
   }

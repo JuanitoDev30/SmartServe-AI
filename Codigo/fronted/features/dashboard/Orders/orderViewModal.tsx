@@ -94,7 +94,7 @@ export function OrderViewModal({
                 >
                   <div>
                     <p className="font-medium text-foreground">
-                      {item.producto.nombre}
+                      {item.producto?.nombre ?? 'Producto eliminado'}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {item.cantidad} x ${item.precioUnitario.toLocaleString()}

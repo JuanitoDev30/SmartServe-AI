@@ -6,17 +6,22 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.setGlobalPrefix('api'); // Establece el prefijo global para todas las rutas
+  app.setGlobalPrefix('api');
+
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ['http://localhost:3000'];
+
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: allowedOrigins,
     credentials: true,
   });
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Elimina propiedades no definidas en los DTOs
-      forbidNonWhitelisted: true, // Lanza un error si se envían propiedades no definidas
-      transform: true, // Transforma los payloads a los tipos definidos en los DTOs
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
 
@@ -24,5 +29,6 @@ async function bootstrap() {
   app.useGlobalGuards(new JwtAuthGuard(reflector));
 
   await app.listen(process.env.PORT ?? 3001);
+  console.log(`🚀 Backend corriendo en puerto ${process.env.PORT ?? 3001}`);
 }
 bootstrap();

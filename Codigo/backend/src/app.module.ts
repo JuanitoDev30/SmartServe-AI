@@ -16,12 +16,32 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ReportesModule } from './reportes/reportes.module';
 import { SearchModule } from './search/search.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000, // 1 segundo
+        limit: 10, // máximo 10 requests por segundo
+      },
+      {
+        name: 'medium',
+        ttl: 60000, // 1 minuto
+        limit: 100, // máximo 100 requests por minuto
+      },
+      {
+        name: 'long',
+        ttl: 3600000, // 1 hora
+        limit: 1000, // máximo 1000 requests por hora
+      },
+    ]),
 
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -48,6 +68,6 @@ import { SearchModule } from './search/search.module';
     SearchModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }, AppService],
 })
 export class AppModule {}

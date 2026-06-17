@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
 import { Public } from '../auth/decorators/public.decorator';
 import { AdministradorService } from '../administrador/administrador.service';
 import { CreateAdministradorDto } from '../administrador/dto/create-administrador.dto';
@@ -13,7 +13,7 @@ export class BootstrapController {
     const admins = await this.administradorService.findAll();
 
     if (admins.length > 0) {
-      return { message: 'Ya existe un administrador, endpoint deshabilitado' };
+      throw new UnauthorizedException('Endpoint deshabilitado');
     }
 
     const admin = await this.administradorService.create(dto);

@@ -1,4 +1,5 @@
 import { Controller, Post, Body } from '@nestjs/common';
+import { Public } from '../auth/decorators/public.decorator';
 import { AdministradorService } from '../administrador/administrador.service';
 import { CreateAdministradorDto } from '../administrador/dto/create-administrador.dto';
 
@@ -6,6 +7,7 @@ import { CreateAdministradorDto } from '../administrador/dto/create-administrado
 export class BootstrapController {
   constructor(private readonly administradorService: AdministradorService) {}
 
+  @Public()
   @Post('bootstrap')
   async bootstrap(@Body() dto: CreateAdministradorDto) {
     const admins = await this.administradorService.findAll();

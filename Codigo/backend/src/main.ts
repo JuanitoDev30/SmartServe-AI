@@ -28,7 +28,7 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
 
-  await app.listen(process.env.PORT ?? 3001);
-  console.log(`🚀 Backend corriendo en puerto ${process.env.PORT ?? 3001}`);
+  await app.listen(process.env.APP_PORT ?? 3001);
+  console.log(`🚀 Backend corriendo en puerto ${process.env.APP_PORT ?? 3001}`);
 }
 bootstrap();

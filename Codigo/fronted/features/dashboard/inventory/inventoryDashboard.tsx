@@ -34,6 +34,7 @@ import {
 import useInventoryFormHandler from './hooks/useInventoryFormHandler';
 import Link from 'next/link';
 import { CategoryType } from '@/features/categories/schemas/categorySchema';
+import ImportExcelModal from '@/components/ImportExcel/ImportExcelModal';
 
 type ViewMode = 'grid' | 'table';
 
@@ -68,6 +69,7 @@ export function InventoryDashboard({
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(
     null,
   );
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const { refresh } = useInventoryFormHandler({ isEdit: !!selectedProduct });
 
   const stats = useMemo<Stats>(() => {
@@ -101,7 +103,7 @@ export function InventoryDashboard({
       let matchesStatus = true;
 
       if (status === 'active') {
-        matchesStatus = product.stock > 0;
+        matchesStatus = product.stock ? product.stock > 0 : false;
       }
 
       if (status === 'inactive') {
@@ -109,7 +111,9 @@ export function InventoryDashboard({
       }
 
       if (status === 'low_stock') {
-        matchesStatus = product.stock > 0 && product.stock < 5;
+        matchesStatus = product.stock
+          ? product.stock > 0 && product.stock < 5
+          : false;
       }
 
       if (status === 'out_of_stock') {
@@ -279,6 +283,14 @@ export function InventoryDashboard({
           <Button onClick={handleCreate} className="gap-2 shrink-0">
             <Plus className="size-4" />
             Nuevo producto
+          </Button>
+
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => setIsImportOpen(true)}
+          >
+            Importar Excel
           </Button>
 
           <Link href="/dashboard/categorias" className="ml-2">
@@ -474,6 +486,11 @@ export function InventoryDashboard({
         isLoading={isSubmitting}
         error={formError}
         categories={categoriesResponse}
+      />
+
+      <ImportExcelModal
+        open={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
       />
 
       <DeleteConfirmModal

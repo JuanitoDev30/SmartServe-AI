@@ -7,6 +7,7 @@ import {
   ProductType,
   ProductFormData,
 } from '@/features/productos/schemas/productSchema';
+import { ImportProductsResponse } from '../../types/importProduct';
 
 interface ProductsActionsProps {
   page: number;
@@ -101,6 +102,18 @@ class ProductRepository implements IProductRepository {
   async delete(id: string): Promise<void> {
     const api = await getApiWithAuth();
     await api.delete(`/producto/${id}`);
+  }
+
+  async bulkImport(formData: FormData): Promise<ImportProductsResponse> {
+    const api = await getApiWithAuth();
+
+    const { data } = await api.post('/producto/bulk-import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return data;
   }
 }
 

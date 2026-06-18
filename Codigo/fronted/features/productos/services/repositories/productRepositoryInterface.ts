@@ -3,6 +3,8 @@ import {
   ProductType,
 } from '@/features/productos/schemas/productSchema';
 
+import { ImportProductsResponse } from '../../types/importProduct';
+
 export interface IProductRepository {
   getAll({
     page,
@@ -13,10 +15,18 @@ export interface IProductRepository {
     pageSize: number;
     search?: string;
   }): Promise<ProductType[]>;
+
   getById(id: string): Promise<ProductType>;
-  create(
-    data: ProductFormData,
-  ): Promise<{ success: boolean; data?: any; error?: string }>;
+
+  create(data: ProductFormData): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }>;
+
   update(id: string, data: ProductFormData): Promise<ProductType>;
+
   delete(id: string): Promise<void>;
+
+  bulkImport(formData: FormData): Promise<ImportProductsResponse>;
 }

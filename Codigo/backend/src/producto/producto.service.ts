@@ -6,6 +6,10 @@ import {
   NotFoundException,
   Query,
 } from '@nestjs/common';
+import * as XLSX from 'xlsx';
+import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
+import { BulkImportProductoDto } from './dto/bulk-import-producto.dto';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { Producto } from './entities/producto.entity';
@@ -207,5 +211,136 @@ export class ProductoService {
 
     this.logger.error(error);
     throw new InternalServerErrorException('Error al crear el producto');
+  }
+
+  async bulkCreate(file: Express.Multer.File): Promise<{
+    success: number;
+    errors: { fila: number; nombre: string; errores: string[] }[];
+    created: Producto[];
+  }> {
+    //1. Parsear el Excel
+
+    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows: Record<string, any>[] = XLSX.utils.sheet_to_json(sheet, {
+      defval: '',
+    });
+
+    if (!rows.length) {
+      throw new BadRequestException('El archivo Excel está vacío');
+    }
+
+    const results: Producto[] = [];
+    const errors: { fila: number; nombre: string; errores: string[] }[] = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const fila = i + 2; // Fila real en el Excel (encabezado = fila 1)
+      const row = rows[i];
+
+      // 2. Mapear columnas del Excel → DTO
+
+      const dto = plainToInstance(BulkImportProductoDto, {
+        nombre: row['nombre'] || row['Nombre'] || '',
+        precio: row['precio'] || row['Precio'] || 0,
+        descripcion: row['descripcion'] || row['Descripción'] || undefined,
+        slug: row['slug'] || row['Slug'] || undefined,
+        stock: row['stock'] || row['Stock'] || 0,
+        imagen: row['imagen'] || row['Imagen'] || undefined,
+        proveedor: row['proveedor'] || row['Proveedor'] || undefined,
+        ivaPercent: row['ivaPercent'] || row['IVA (%)'] || 19,
+        categoriaNombre: row['categoria'] || row['Categoría'] || undefined,
+      });
+
+      // 3. Validar con class-validator
+
+      const validationErrors = await validate(dto);
+      if (validationErrors.length > 0) {
+        errors.push({
+          fila,
+          nombre: dto.nombre || `Fila ${fila}`,
+          errores: validationErrors.flatMap((e) =>
+            Object.values(e.constraints || {}),
+          ),
+        });
+        continue;
+      }
+
+      // 4. Verificar duplicados de nombre y slug
+      const [dupNombre, dupSlug] = await Promise.all([
+        this.findOneByName(dto.nombre),
+        dto.slug ? this.findOneBySlug(dto.slug) : Promise.resolve(null),
+      ]);
+
+      if (dupNombre || dupSlug) {
+        errors.push({
+          fila,
+          nombre: dto.nombre,
+          errores: [
+            dupNombre ? dupNombre.message : null,
+            dupSlug ? dupSlug.message : null,
+          ].filter(Boolean) as string[],
+        });
+        continue;
+      }
+
+      // 5. Buscar categoría por nombre (opcional)
+
+      let categoria: Categoria | null = null;
+      if (dto.categoriaNombre) {
+        categoria = await this.categoriaRepository.findOne({
+          where: { nombre: ILike(dto.categoriaNombre) },
+        });
+        // Si no existe la categoría no bloqueamos, simplemente queda sin categoría
+      }
+
+      // 6. Determinar slug automático si no viene
+
+      const slug =
+        dto.slug ||
+        dto.nombre
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/[^a-z0-9-]/g, '');
+
+      // 7. Calcular status según stock
+
+      const stock = dto.stock ?? 0;
+      const status =
+        stock === 0 ? 'out_of_stock' : stock < 5 ? 'low_stock' : 'active';
+
+      // 8. Crear y guardar
+      try {
+        const producto = this.productRepository.create({
+          nombre: dto.nombre,
+          precio: dto.precio,
+          descripcion: dto.descripcion,
+          slug,
+          stock,
+          imagen: dto.imagen,
+          proveedor: dto.proveedor,
+          ivaPercent: dto.ivaPercent ?? 19,
+          status,
+          ...(categoria ? { categoria } : {}),
+        });
+
+        await this.productRepository.save(producto);
+        results.push(producto);
+      } catch (error) {
+        errors.push({
+          fila,
+          nombre: dto.nombre,
+          errores: ['Error interno al guardar el producto'],
+        });
+      }
+    }
+
+    return {
+      success: results.length,
+      errors,
+      created: results,
+    };
   }
 }

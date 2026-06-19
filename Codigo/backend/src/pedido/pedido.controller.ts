@@ -39,6 +39,11 @@ export class PedidoController {
     return this.pedidoService.findByCliente(usuarioId);
   }
 
+  @Get('stats')
+  getStats() {
+    return this.pedidoService.getStats();
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.pedidoService.findOne(id);

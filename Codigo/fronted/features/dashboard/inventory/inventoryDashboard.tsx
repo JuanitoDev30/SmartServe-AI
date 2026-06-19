@@ -19,6 +19,8 @@ import {
   PackageX,
   DollarSign,
   RefreshCw,
+  FileSpreadsheet,
+  Tag,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -280,25 +282,28 @@ export function InventoryDashboard({
           </p>
         </div>
         <div>
-          <Button onClick={handleCreate} className="gap-2 shrink-0">
-            <Plus className="size-4" />
-            Nuevo producto
-          </Button>
-
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => setIsImportOpen(true)}
-          >
-            Importar Excel
-          </Button>
-
-          <Link href="/dashboard/categorias" className="ml-2">
-            <Button className="gap-2 ml-2 shrink-0" variant="outline">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button onClick={handleCreate} className="gap-2 shrink-0">
               <Plus className="size-4" />
-              Nueva categoria
+              Nuevo producto
             </Button>
-          </Link>
+
+            <Button
+              variant="outline"
+              className="gap-2 shrink-0"
+              onClick={() => setIsImportOpen(true)}
+            >
+              <FileSpreadsheet className="size-4" />
+              Importar Excel
+            </Button>
+
+            <Link href="/dashboard/categorias">
+              <Button className="gap-2 shrink-0" variant="outline">
+                <Tag className="size-4" />
+                Categorías
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

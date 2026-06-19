@@ -8,7 +8,7 @@ import {
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, Between } from 'typeorm';
 import { Pedido } from './entities/pedido.entity';
 import { Producto } from '../producto/entities/producto.entity';
 import { Cliente } from '../cliente/entities/cliente.entity';
@@ -306,5 +306,115 @@ export class PedidoService {
 
       await this.productoRepository.save(producto);
     }
+  }
+
+  async getStats() {
+    const ahora = new Date();
+    const mesInicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+    const mesAnteriorInicio = new Date(
+      ahora.getFullYear(),
+      ahora.getMonth() - 1,
+      1,
+    );
+    const mesAnteriorFin = new Date(
+      ahora.getFullYear(),
+      ahora.getMonth(),
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
+
+    const [
+      totalActual,
+      totalAnterior,
+      enProcesoActual,
+      enProcesoAnterior,
+      completadosActual,
+      completadosAnterior,
+      canceladosActual,
+      canceladosAnterior,
+    ] = await Promise.all([
+      this.pedidoRepository.count({
+        where: { creadoEn: Between(mesInicio, ahora) },
+      }),
+      this.pedidoRepository.count({
+        where: { creadoEn: Between(mesAnteriorInicio, mesAnteriorFin) },
+      }),
+
+      this.pedidoRepository.count({
+        where: {
+          estado: In([
+            EstadoPedido.PENDIENTE,
+            EstadoPedido.CONFIRMADO,
+            EstadoPedido.EN_PREPARACION,
+            EstadoPedido.EN_CAMINO,
+          ]),
+          creadoEn: Between(mesInicio, ahora),
+        },
+      }),
+      this.pedidoRepository.count({
+        where: {
+          estado: In([
+            EstadoPedido.PENDIENTE,
+            EstadoPedido.CONFIRMADO,
+            EstadoPedido.EN_PREPARACION,
+            EstadoPedido.EN_CAMINO,
+          ]),
+          creadoEn: Between(mesAnteriorInicio, mesAnteriorFin),
+        },
+      }),
+
+      this.pedidoRepository.count({
+        where: {
+          estado: EstadoPedido.ENTREGADO,
+          creadoEn: Between(mesInicio, ahora),
+        },
+      }),
+      this.pedidoRepository.count({
+        where: {
+          estado: EstadoPedido.ENTREGADO,
+          creadoEn: Between(mesAnteriorInicio, mesAnteriorFin),
+        },
+      }),
+
+      this.pedidoRepository.count({
+        where: {
+          estado: EstadoPedido.CANCELADO,
+          creadoEn: Between(mesInicio, ahora),
+        },
+      }),
+      this.pedidoRepository.count({
+        where: {
+          estado: EstadoPedido.CANCELADO,
+          creadoEn: Between(mesAnteriorInicio, mesAnteriorFin),
+        },
+      }),
+    ]);
+
+    const calcVariacion = (actual: number, anterior: number) => {
+      if (anterior === 0) return actual > 0 ? 100 : 0;
+      return Math.round(((actual - anterior) / anterior) * 100);
+    };
+
+    return {
+      total: {
+        actual: totalActual,
+        variacion: calcVariacion(totalActual, totalAnterior),
+      },
+      enProceso: {
+        actual: enProcesoActual,
+        variacion: calcVariacion(enProcesoActual, enProcesoAnterior),
+      },
+      completados: {
+        actual: completadosActual,
+        variacion: calcVariacion(completadosActual, completadosAnterior),
+      },
+      cancelados: {
+        actual: canceladosActual,
+        variacion: calcVariacion(canceladosActual, canceladosAnterior),
+      },
+    };
   }
 }

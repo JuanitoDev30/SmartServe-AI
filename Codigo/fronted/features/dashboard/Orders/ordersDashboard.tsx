@@ -7,10 +7,11 @@ import { usePedidosStore } from '@/store/pedidosStore';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/useToast';
 import { Package, Clock, CheckCircle2, XCircle, Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { OrderFormModal } from './orderFromModal';
 import { OrderViewModal } from './orderViewModal';
+import { getPedidoStatsAction } from '@/features/pedidos/actions/getPedidoStatsAction';
 
 import {
   type Pedido,
@@ -114,6 +115,13 @@ export function OrdersDashboard() {
   const [selectedOrder, setSelectedOrder] = useState<Pedido | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [pedidoStats, setPedidoStats] = useState<{
+    total: { actual: number; variacion: number };
+    enProceso: { actual: number; variacion: number };
+    completados: { actual: number; variacion: number };
+    cancelados: { actual: number; variacion: number };
+  } | null>(null);
+
   const stats = useMemo(() => {
     const total = pedidos.length;
     const inProcess = pedidos.filter(
@@ -128,6 +136,17 @@ export function OrdersDashboard() {
 
     return { total, inProcess, completed, cancelled };
   }, [pedidos]);
+
+  useEffect(() => {
+    getPedidoStatsAction().then(result => {
+      if (result.success) setPedidoStats(result.data);
+    });
+  }, []);
+
+  const formatVariacion = (variacion: number) => {
+    const signo = variacion >= 0 ? '+' : '';
+    return `${signo}${variacion}% vs mes anterior`;
+  };
 
   // Filter orders
   const filteredOrders = useMemo(() => {
@@ -248,32 +267,70 @@ export function OrdersDashboard() {
         <StatsCard
           title="Total Pedidos"
           value={stats.total.toLocaleString()}
-          change="+18% vs mes anterior"
-          changeType="positive"
+          change={
+            pedidoStats ? formatVariacion(pedidoStats.total.variacion) : '...'
+          }
+          changeType={
+            pedidoStats
+              ? pedidoStats.total.variacion >= 0
+                ? 'positive'
+                : 'negative'
+              : 'positive'
+          }
           icon={<Package className="size-5 text-white" />}
           iconBgColor="bg-primary"
         />
         <StatsCard
           title="En Proceso"
           value={stats.inProcess.toLocaleString()}
-          change="+12% vs mes anterior"
-          changeType="positive"
+          change={
+            pedidoStats
+              ? formatVariacion(pedidoStats.enProceso.variacion)
+              : '...'
+          }
+          changeType={
+            pedidoStats
+              ? pedidoStats.enProceso.variacion >= 0
+                ? 'positive'
+                : 'negative'
+              : 'positive'
+          }
           icon={<Clock className="size-5 text-white" />}
           iconBgColor="bg-orange-500"
         />
         <StatsCard
           title="Completados"
           value={stats.completed.toLocaleString()}
-          change="+25% vs mes anterior"
-          changeType="positive"
+          change={
+            pedidoStats
+              ? formatVariacion(pedidoStats.completados.variacion)
+              : '...'
+          }
+          changeType={
+            pedidoStats
+              ? pedidoStats.completados.variacion >= 0
+                ? 'positive'
+                : 'negative'
+              : 'positive'
+          }
           icon={<CheckCircle2 className="size-5 text-white" />}
           iconBgColor="bg-emerald-500"
         />
         <StatsCard
           title="Cancelados"
           value={stats.cancelled.toLocaleString()}
-          change="-8% vs mes anterior"
-          changeType="negative"
+          change={
+            pedidoStats
+              ? formatVariacion(pedidoStats.cancelados.variacion)
+              : '...'
+          }
+          changeType={
+            pedidoStats
+              ? pedidoStats.cancelados.variacion >= 0
+                ? 'negative'
+                : 'positive'
+              : 'negative'
+          }
           icon={<XCircle className="size-5 text-white" />}
           iconBgColor="bg-red-500"
         />

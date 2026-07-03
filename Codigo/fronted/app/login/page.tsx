@@ -1,14 +1,19 @@
-'use client';
-
 import { cn } from '@/lib/utils';
 import { LayoutDashboard, Clock } from 'lucide-react';
 import { LoginForm } from '@/components/auth/loginForm';
 import FloatingShapes from '@/components/auth/floatingShapes';
-import { useSearchParams } from 'next/navigation';
 
-export default function LoginPage() {
-  const searchParams = useSearchParams();
-  const expired = searchParams.get('expired');
+interface LoginPageProps {
+  searchParams: Promise<{
+    expired?: string;
+  }>;
+}
+
+export default async function LoginPage({
+  searchParams,
+}: LoginPageProps) {
+  const params = await searchParams;
+  const expired = params.expired;
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center bg-background">

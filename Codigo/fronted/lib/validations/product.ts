@@ -47,4 +47,4 @@ export const productFormSchema = z.object({
     .default(19),
 });
 
-export type ProductFormValues = z.infer<typeof productFormSchema>;
+export type ProductFormValues = z.input<typeof productFormSchema>;

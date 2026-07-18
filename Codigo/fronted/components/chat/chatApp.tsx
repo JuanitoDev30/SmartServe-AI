@@ -166,6 +166,9 @@ export default function ChatApp() {
               contact={activeContact}
               onBack={handleBack}
               onSearch={() => {}}
+              onReset={() =>
+                setAllMessages(prev => ({ ...prev, [activeContactId!]: [] }))
+              }
             />
             <MessageArea messages={currentMessage} isTyping={isTyping} />
             <MessageInput onSend={handleSendMessage} />

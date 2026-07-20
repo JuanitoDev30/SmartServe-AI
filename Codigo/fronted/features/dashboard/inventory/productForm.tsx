@@ -7,10 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  ProductType,
-  ProductStatus,
-} from '@/features/productos/schemas/productSchema';
+import { ProductType } from '@/features/productos/schemas/productSchema';
 import {
   productFormSchema,
   ProductFormValues,
@@ -27,13 +24,6 @@ interface ProductFormModalProps {
   error?: string | null;
   categories?: CategoryType[];
 }
-
-const statuses: { value: ProductStatus; label: string }[] = [
-  { value: 'active', label: 'Activo' },
-  { value: 'inactive', label: 'Inactivo' },
-  { value: 'low_stock', label: 'Stock bajo' },
-  { value: 'out_of_stock', label: 'Sin stock' },
-];
 
 const defaultValues: ProductFormValues = {
   nombre: '',

@@ -18,6 +18,10 @@ import { ReportesModule } from './reportes/reportes.module';
 import { SearchModule } from './search/search.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { ProyectoModule } from './proyecto/proyecto.module';
+import { ProspectoModule } from './prospecto/prospecto.module';
+import { ReunionModule } from './reunion/reunion.module';
+import { AnaliticasModule } from './analiticas/analiticas.module';
 
 @Module({
   imports: [
@@ -70,6 +74,10 @@ import { APP_GUARD } from '@nestjs/core';
     DashboardModule,
     ReportesModule,
     SearchModule,
+    ProyectoModule,
+    ProspectoModule,
+    ReunionModule,
+    AnaliticasModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }, AppService],

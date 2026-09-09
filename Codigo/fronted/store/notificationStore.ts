@@ -8,7 +8,7 @@ export interface Notification {
   message: string;
   read: boolean;
   createdAt: string;
-  type: 'pedido';
+  type: 'pedido' | 'reserva';
 }
 
 interface NotificationStore {

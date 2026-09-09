@@ -22,6 +22,8 @@ import { ProyectoModule } from './proyecto/proyecto.module';
 import { ProspectoModule } from './prospecto/prospecto.module';
 import { ReunionModule } from './reunion/reunion.module';
 import { AnaliticasModule } from './analiticas/analiticas.module';
+import { MesaModule } from './mesa/mesa.module';
+import { ReservaModule } from './reserva/reserva.module';
 
 @Module({
   imports: [
@@ -78,6 +80,8 @@ import { AnaliticasModule } from './analiticas/analiticas.module';
     ProspectoModule,
     ReunionModule,
     AnaliticasModule,
+    MesaModule,
+    ReservaModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }, AppService],

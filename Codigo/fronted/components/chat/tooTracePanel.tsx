@@ -4,13 +4,7 @@ import { useEffect, useState } from 'react';
 import { X, Wrench, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { chatRepository } from '@/features/chat/services/repositories/chatRepository';
-
-interface ToolTrace {
-  tool_name: string;
-  input_data: any;
-  output_data: any;
-  timestamp: string;
-}
+import type { ToolTrace } from '@/features/chat/schema/toolTraceInterface';
 
 interface ToolTracePanelProps {
   isOpen: boolean;

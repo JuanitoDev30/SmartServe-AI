@@ -9,5 +9,6 @@ import { ScheduleModule } from '@nestjs/schedule';
   controllers: [ClienteController],
   providers: [ClienteService],
   imports: [TypeOrmModule.forFeature([Cliente]), ScheduleModule.forRoot()],
+  exports: [ClienteService],
 })
 export class ClienteModule {}

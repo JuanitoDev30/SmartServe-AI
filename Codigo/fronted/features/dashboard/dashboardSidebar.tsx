@@ -5,8 +5,10 @@ import { AuthUser } from '@/types';
 import {
   Archive,
   BarChart3,
+  CalendarDays,
   ChevronLeft,
   LayoutDashboard,
+  LayoutGrid,
   MessageSquare,
   Package,
   Tags,
@@ -32,6 +34,16 @@ const navItems = [
     label: 'Pedidos',
     href: '/dashboard/pedido',
     icon: Package,
+  },
+  {
+    label: 'Reservas',
+    href: '/dashboard/reservas',
+    icon: CalendarDays,
+  },
+  {
+    label: 'Mesas',
+    href: '/dashboard/mesas',
+    icon: LayoutGrid,
   },
 
   {

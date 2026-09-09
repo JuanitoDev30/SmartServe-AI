@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const AGENT_BASE_URL = process.env.AGENT_URL;
+const AGENT_TOKEN = process.env.AGENT_TOKEN;
+
+const agentHeaders = {
+  'Content-Type': 'application/json',
+  Authorization: `Bearer ${AGENT_TOKEN}`,
+};
+
+// ── Enviar mensaje (n8n) ──
 export async function POST(request: NextRequest) {
   try {
     const { message, contactId, history } = await request.json();
@@ -24,74 +33,52 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// import { NextRequest, NextResponse } from 'next/server';
+// ── Resetear sesión del agente ──
+export async function DELETE() {
+  if (!AGENT_BASE_URL) {
+    return NextResponse.json(
+      { error: 'AGENT_URL no está configurada' },
+      { status: 503 },
+    );
+  }
 
-// const AGENT_BASE_URL = process.env.AGENT_URL!;
-// const AGENT_TOKEN = process.env.AGENT_TOKEN!;
+  try {
+    const response = await fetch(`${AGENT_BASE_URL}/reset`, {
+      method: 'POST',
+      headers: agentHeaders,
+    });
 
-// const agentHeaders = {
-//   'Content-Type': 'application/json',
-//   Authorization: `Bearer ${AGENT_TOKEN}`,
-// };
+    if (!response.ok) throw new Error(`Agent error: ${response.status}`);
 
-// // ── Enviar mensaje ──
-// export async function POST(request: NextRequest) {
-//   try {
-//     const { message, contactId } = await request.json();
+    const data = await response.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error resetting agent:', error);
+    return NextResponse.json({ status: 'error' }, { status: 500 });
+  }
+}
 
-//     const response = await fetch(`${AGENT_BASE_URL}/query`, {
-//       method: 'POST',
-//       headers: agentHeaders,
-//       body: JSON.stringify({ message }),
-//     });
+// ── Traza de herramientas usadas por el agente ──
+export async function GET() {
+  if (!AGENT_BASE_URL) {
+    return NextResponse.json(
+      { tool_trace: [], length: 0 },
+      { status: 503 },
+    );
+  }
 
-//     if (!response.ok) throw new Error(`Agent error: ${response.status}`);
+  try {
+    const response = await fetch(`${AGENT_BASE_URL}/tool-trace`, {
+      method: 'GET',
+      headers: agentHeaders,
+    });
 
-//     const data = await response.json();
+    if (!response.ok) throw new Error(`Agent error: ${response.status}`);
 
-//     return NextResponse.json({
-//       message: data.response,
-//       contactId,
-//       tokenUsage: data.token_usage,
-//       responseTime: data.response_time_seconds,
-//     });
-//   } catch (error) {
-//     console.error('Error in chat API:', error);
-//     return NextResponse.json(
-//       { message: 'Lo siento, ocurrió un error. Intenta de nuevo.' },
-//       { status: 500 },
-//     );
-//   }
-// }
-
-// // ── Resetear sesión ──
-// export async function DELETE() {
-//   try {
-//     const response = await fetch(`${AGENT_BASE_URL}/reset`, {
-//       method: 'POST',
-//       headers: agentHeaders,
-//     });
-
-//     const data = await response.json();
-//     return NextResponse.json(data);
-//   } catch (error) {
-//     console.error('Error resetting agent:', error);
-//     return NextResponse.json({ status: 'error' }, { status: 500 });
-//   }
-// }
-
-// // ── Tool trace ──
-// export async function GET() {
-//   try {
-//     const response = await fetch(`${AGENT_BASE_URL}/tool-trace`, {
-//       method: 'GET',
-//       headers: agentHeaders,
-//     });
-
-//     const data = await response.json();
-//     return NextResponse.json(data);
-//   } catch (error) {
-//     console.error('Error fetching tool trace:', error);
-//     return NextResponse.json({ tool_trace: [], length: 0 }, { status: 500 });
-//   }
-// }
+    const data = await response.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error fetching tool trace:', error);
+    return NextResponse.json({ tool_trace: [], length: 0 }, { status: 500 });
+  }
+}

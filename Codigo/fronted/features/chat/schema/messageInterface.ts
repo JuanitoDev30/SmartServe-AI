@@ -1,4 +1,3 @@
-import { ProductType } from '@/features/productos/schemas/productSchema';
 import { CartItem } from './cartItem';
 
 export interface Message {
@@ -8,14 +7,8 @@ export interface Message {
   timestamp: string;
   sender: 'me' | 'them';
   status: 'sent' | 'delivered' | 'read';
-  productos?: ProductType[];
+  /** Borrador del pedido tal como quedo despues de este turno del agente. */
   cart?: CartItem[];
-  clienteInfo?: {
-    nombre: string | null;
-    telefono: string | null;
-    direccion: string | null;
-    metodoPago: string | null;
-  };
+  /** Id del pedido ya escrito en el ERP, cuando el cliente confirmo. */
   pedidoId?: string;
-  estado?: string;
 }

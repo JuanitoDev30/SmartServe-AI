@@ -1,34 +1,148 @@
+import {
+  AgentChatResponse,
+  AgentDraftLine,
+  AgentSessionResponse,
+} from '../../schema/agentChatResponse';
+import { AgentError } from '../../schema/agentError';
+import { CartItem } from '../../schema/cartItem';
 import { ChatResponse } from '../../schema/chatResponseInterface';
 import { SendMessageInterface } from '../../schema/sendMessageInterface';
-import { ToolTraceResponse } from '../../schema/toolTraceInterface';
+
+const BASE_URL = '/api/asistente';
+const STORAGE_KEY = 'asistente:sessions';
+
+/**
+ * Un token de sesion por contacto.
+ *
+ * El token lo emite el servidor y aca solo se guarda y se reenvia: la
+ * conversacion la identifica el, no el contactId. Con un id elegido por el
+ * cliente, cualquiera que ponga el de otro le lee el carrito, el nombre, el
+ * telefono y la direccion.
+ *
+ * En sessionStorage y no en localStorage porque una conversacion de compra
+ * pertenece a la pestana, no al dispositivo para siempre.
+ */
+function readTokens(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  try {
+    return JSON.parse(window.sessionStorage.getItem(STORAGE_KEY) ?? '{}');
+  } catch {
+    return {};
+  }
+}
+
+function writeTokens(tokens: Record<string, string>): void {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(tokens));
+}
+
+function clearToken(contactId: string): void {
+  const tokens = readTokens();
+  delete tokens[contactId];
+  writeTokens(tokens);
+}
+
+async function openSession(contactId: string): Promise<string> {
+  const existing = readTokens()[contactId];
+  if (existing) return existing;
+
+  const response = await fetch(`${BASE_URL}/chat/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channel: 'web' }),
+  });
+  if (!response.ok) {
+    throw new AgentError(
+      'No se pudo abrir la conversación.',
+      response.status,
+      true,
+    );
+  }
+
+  const data: AgentSessionResponse = await response.json();
+  // Se relee el mapa en vez de reusar el de arriba: entre medio pudo abrirse
+  // la sesion de otro contacto y ese token no se puede pisar.
+  writeTokens({ ...readTokens(), [contactId]: data.session_token });
+  return data.session_token;
+}
+
+async function postMessage(
+  sessionToken: string,
+  message: string,
+): Promise<AgentChatResponse> {
+  const response = await fetch(`${BASE_URL}/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ session_token: sessionToken, message }),
+  });
+
+  if (response.ok) return response.json() as Promise<AgentChatResponse>;
+
+  // 409: llego otro mensaje al mismo tiempo y el estado cambio. 429 y 503 son
+  // transitorios. El resto no mejora reintentando.
+  throw new AgentError(
+    await readDetail(response),
+    response.status,
+    [409, 429, 503].includes(response.status),
+    Number(response.headers.get('Retry-After') ?? 0),
+  );
+}
+
+async function readDetail(response: Response): Promise<string> {
+  try {
+    const body = await response.json();
+    if (typeof body?.detail === 'string') return body.detail;
+  } catch {
+    // Cuerpo no JSON: se usa el mensaje generico de abajo.
+  }
+  return 'No pude procesar tu mensaje. Inténtalo de nuevo.';
+}
+
+function toCartItem(line: AgentDraftLine): CartItem {
+  return {
+    productoId: line.product_id,
+    nombre: line.name,
+    cantidad: line.quantity,
+    precioUnitario: Number(line.unit_price),
+    subtotalItem: Number(line.subtotal),
+  };
+}
 
 export const chatRepository = {
-  async sendMessage(message: SendMessageInterface): Promise<ChatResponse> {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(message),
-    });
+  async sendMessage({
+    message,
+    contactId,
+  }: SendMessageInterface): Promise<ChatResponse> {
+    const token = await openSession(contactId);
 
-    if (!response.ok) throw new Error('Error sending message');
+    let data: AgentChatResponse;
+    try {
+      data = await postMessage(token, message);
+    } catch (error) {
+      // Una sesion vencida no deberia costarle el mensaje al cliente: se abre
+      // una nueva y se reenvia una sola vez.
+      if (error instanceof AgentError && error.status === 401) {
+        clearToken(contactId);
+        data = await postMessage(await openSession(contactId), message);
+      } else {
+        throw error;
+      }
+    }
 
-    const data: ChatResponse = await response.json();
-    return data;
+    return {
+      message: data.reply,
+      contactId,
+      cart: data.draft.map(toCartItem),
+      cartTotal: Number(data.draft_total),
+      ...(data.placed_order_id ? { pedidoId: data.placed_order_id } : {}),
+      faltantes: data.missing_fields,
+    };
   },
 
-  // Hace que el agente olvide la conversación anterior
-  async resetSession(): Promise<void> {
-    const response = await fetch('/api/chat', { method: 'DELETE' });
-
-    if (!response.ok) throw new Error('Error resetting session');
-  },
-
-  // Herramientas que el agente ejecutó en la sesión actual
-  async getToolTrace(): Promise<ToolTraceResponse> {
-    const response = await fetch('/api/chat', { method: 'GET' });
-
-    if (!response.ok) throw new Error('Error fetching tool trace');
-
-    return response.json();
+  // El agente olvida la conversacion al descartar el token: el estado vive en
+  // el servidor atado a el y sin token no hay forma de volver a abrirlo. No hay
+  // llamada HTTP que hacer.
+  resetSession(contactId: string): void {
+    clearToken(contactId);
   },
 };

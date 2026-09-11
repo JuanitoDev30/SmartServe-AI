@@ -64,13 +64,10 @@ export default function ChatApp() {
       };
 
       // Usamos el callback para leer el estado más reciente y evitar race condition
-      let historyForBackend: Message[] = [];
-
-      setAllMessages(prev => {
-        const prevMsgs = prev[activeContactId] ?? [];
-        historyForBackend = [...prevMsgs, newMessage];
-        return { ...prev, [activeContactId]: historyForBackend };
-      });
+      setAllMessages(prev => ({
+        ...prev,
+        [activeContactId]: [...(prev[activeContactId] ?? []), newMessage],
+      }));
 
       // Actualizamos el sidebar con el mensaje enviado
       setAllConversations(prev =>
@@ -83,10 +80,11 @@ export default function ChatApp() {
 
       setIsTyping(true);
       try {
+        // El historial no se manda: vive en el servidor, atado al token de
+        // sesión que el repository guarda por contacto.
         const response = await sendMessageUseCase({
           message: text,
           contactId: activeContactId,
-          history: historyForBackend,
         });
 
         const botMessage: Message = {
@@ -96,11 +94,8 @@ export default function ChatApp() {
           timestamp: nowLocalISO(),
           sender: 'them',
           status: 'read',
-          ...(response.productos && { productos: response.productos }),
-          ...(response.cart && { cart: response.cart }),
-          ...(response.clienteInfo && { clienteInfo: response.clienteInfo }),
+          cart: response.cart,
           ...(response.pedidoId && { pedidoId: response.pedidoId }),
-          ...(response.estado && { estado: response.estado }),
         };
 
         setAllMessages(prev => ({

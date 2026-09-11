@@ -1,17 +1,11 @@
-import { ProductType } from '@/features/productos/schemas/productSchema';
 import { CartItem } from './cartItem';
 
 export interface ChatResponse {
   message: string;
   contactId: string;
-  productos?: ProductType[];
-  cart?: CartItem[];
-  clienteInfo?: {
-    nombre: string | null;
-    telefono: string | null;
-    direccion: string | null;
-    metodoPago: string | null;
-  };
+  cart: CartItem[];
+  cartTotal: number;
   pedidoId?: string;
-  estado?: string;
+  /** Datos del cliente que al agente todavia le faltan para cerrar el pedido. */
+  faltantes: string[];
 }

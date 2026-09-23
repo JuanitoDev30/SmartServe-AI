@@ -6,8 +6,8 @@ import {
   CalendarRange,
   ChevronLeft,
   ChevronRight,
-  LayoutGrid,
   List,
+  Map,
   Plus,
   Search,
   Users,
@@ -55,7 +55,7 @@ import {
 
 import { ReservasAgenda } from './reservasAgenda';
 import { ReservasTable } from './reservasTable';
-import { MapaMesas } from './mapaMesas';
+import { PlanoSalon } from './planoSalon';
 import { ReservaFormModal } from './reservaFormModal';
 import { ReservaViewModal } from './reservaViewModal';
 import { DeleteReservaConfirm } from './deleteReservaConfirm';
@@ -65,7 +65,7 @@ type Vista = 'agenda' | 'lista' | 'mesas';
 const VISTAS: { value: Vista; label: string; icon: typeof List }[] = [
   { value: 'agenda', label: 'Agenda', icon: CalendarRange },
   { value: 'lista', label: 'Lista', icon: List },
-  { value: 'mesas', label: 'Salón', icon: LayoutGrid },
+  { value: 'mesas', label: 'Salón', icon: Map },
 ];
 
 interface StatCardProps {
@@ -566,9 +566,11 @@ export function ReservasDashboard({ mesas }: ReservasDashboardProps) {
             onEdit={abrirEdicion}
           />
         ) : (
-          <MapaMesas
+          <PlanoSalon
+            key={fecha}
             mesas={mesas}
             reservas={reservasDelDia}
+            fecha={fecha}
             onSelectReserva={abrirDetalle}
             onCrearEnMesa={abrirCreacion}
           />

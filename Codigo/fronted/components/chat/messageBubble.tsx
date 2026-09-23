@@ -1,8 +1,10 @@
 'use client';
 
-import type { Message } from '@/lib/chat-data';
+import type { Message } from '@/features/chat/schema/messageInterface';
 import { cn } from '@/lib/utils';
 import { Check, CheckCheck } from 'lucide-react';
+import { AppointmentCard } from './appointmentCard';
+import { ImagenesMensaje } from './imagenesMensaje';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 interface MessageBubbleProps {
@@ -38,6 +40,10 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             : 'bg-chat-incoming text-foreground rounded-tl-none',
         )}
       >
+        {message.imagenes && message.imagenes.length > 0 && (
+          <ImagenesMensaje imagenes={message.imagenes} />
+        )}
+
         <div className="text-sm leading-relaxed break-words prose prose-sm max-w-none dark:prose-invert">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -60,6 +66,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             {cleanText}
           </ReactMarkdown>
         </div>
+        {message.cita && <AppointmentCard cita={message.cita} />}
         <div
           className={cn(
             'flex items-center justify-end gap-1 mt-0.5 -mb-0.5',

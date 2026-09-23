@@ -96,6 +96,10 @@ export default function ChatApp() {
           status: 'read',
           cart: response.cart,
           ...(response.pedidoId && { pedidoId: response.pedidoId }),
+          ...(response.cita && { cita: response.cita }),
+          ...(response.imagenes?.length
+            ? { imagenes: response.imagenes }
+            : {}),
         };
 
         setAllMessages(prev => ({
@@ -109,7 +113,10 @@ export default function ChatApp() {
             conv.contact.id === activeContactId
               ? {
                   ...conv,
-                  lastMessage: botMessage.text,
+                  // Si el agente solo mandó fotos, el sidebar lo dice así
+                  lastMessage:
+                    botMessage.text ||
+                    (botMessage.imagenes?.length ? '📷 Foto' : ''),
                   lastMessageTime: botMessage.timestamp,
                 }
               : conv,

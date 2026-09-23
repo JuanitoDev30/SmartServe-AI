@@ -8,6 +8,7 @@ import {
   Min,
 } from 'class-validator';
 import { ZonaMesa } from '../enum/zonaMesa.enum';
+import { FormaMesa } from '../enum/formaMesa.enum';
 
 export class CreateMesaDto {
   @IsInt({ message: 'El número de mesa debe ser un entero' })
@@ -32,4 +33,42 @@ export class CreateMesaDto {
   @IsOptional()
   @IsString()
   descripcion?: string;
+
+  // ─────────── Plano del salón (opcional) ───────────
+
+  @IsOptional()
+  @IsEnum(FormaMesa, {
+    message: `forma debe ser una de: ${Object.values(FormaMesa).join(', ')}`,
+  })
+  forma?: FormaMesa;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(200)
+  posX?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(200)
+  posY?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(40)
+  ancho?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(40)
+  alto?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(359)
+  rotacion?: number;
 }

@@ -5,6 +5,11 @@ import {
 
 import { ImportProductsResponse } from '../../types/importProduct';
 
+export interface UploadImagenResponse {
+  fileName: string;
+  secureUrl: string;
+}
+
 export interface IProductRepository {
   getAll({
     page,
@@ -29,4 +34,6 @@ export interface IProductRepository {
   delete(id: string): Promise<void>;
 
   bulkImport(formData: FormData): Promise<ImportProductsResponse>;
+
+  uploadImagen(formData: FormData): Promise<UploadImagenResponse>;
 }

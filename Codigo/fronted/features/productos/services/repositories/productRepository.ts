@@ -1,7 +1,10 @@
 // repositories/productRepository.ts
 
 import { getApiWithAuth } from '@/db/apiWithAuth';
-import { IProductRepository } from './productRepositoryInterface';
+import {
+  IProductRepository,
+  UploadImagenResponse,
+} from './productRepositoryInterface';
 
 import {
   ProductType,
@@ -108,6 +111,18 @@ class ProductRepository implements IProductRepository {
     const api = await getApiWithAuth();
 
     const { data } = await api.post('/producto/bulk-import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return data;
+  }
+
+  async uploadImagen(formData: FormData): Promise<UploadImagenResponse> {
+    const api = await getApiWithAuth();
+
+    const { data } = await api.post('/files/producto', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

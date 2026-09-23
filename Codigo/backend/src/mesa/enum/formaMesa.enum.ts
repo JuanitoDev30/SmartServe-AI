@@ -1,0 +1,5 @@
+export enum FormaMesa {
+  REDONDA = 'REDONDA',
+  CUADRADA = 'CUADRADA',
+  RECTANGULAR = 'RECTANGULAR',
+}

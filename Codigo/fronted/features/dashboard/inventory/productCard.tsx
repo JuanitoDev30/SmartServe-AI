@@ -12,7 +12,8 @@ import {
 } from '@/features/productos/schemas/productSchema';
 import { cn } from '@/lib/utils';
 
-import { Edit2, MoreVertical, Package, Trash2 } from 'lucide-react';
+import { Edit2, MoreVertical, Trash2 } from 'lucide-react';
+import { ProductoImagen } from '@/components/ui/productoImagen';
 
 interface ProductCardProps {
   product: ProductType;
@@ -47,100 +48,114 @@ export function ProductCard({ onDelete, onEdit, product }: ProductCardProps) {
   return (
     <div
       className={cn(
-        'group relative bg-card rounded-xl border border-border p-5 transition-all duration-200',
+        'group relative bg-card rounded-xl border border-border overflow-hidden transition-all duration-200',
         isInactive
           ? 'opacity-60 border-dashed'
           : 'hover:shadow-lg hover:shadow-primary/5',
       )}
     >
-      {/* HEADER */}
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <div
+      {/* FOTO */}
+      <div className="relative">
+        <ProductoImagen
+          imagen={product.imagen}
+          nombre={product.nombre}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
+          className={cn(
+            'aspect-[4/3] w-full transition-transform duration-300',
+            !isInactive && 'group-hover:scale-[1.03]',
+          )}
+        />
+
+        {/* El estado flota sobre la foto para no robarle espacio al contenido */}
+        <span className="absolute right-3 top-3 rounded-full bg-card/90 p-[3px] shadow-sm backdrop-blur-md">
+          <span
             className={cn(
-              'flex size-11 items-center justify-center rounded-lg shrink-0',
-              isInactive
-                ? 'bg-muted text-muted-foreground'
-                : 'bg-primary/10 text-primary',
+              'block rounded-full px-2.5 py-1 text-xs font-medium',
+              status.color,
             )}
           >
-            <Package className="size-5" />
+            {status.label}
+          </span>
+        </span>
+      </div>
+
+      <div className="p-5">
+        {/* HEADER */}
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="min-w-0">
+              <h3
+                className={cn(
+                  'font-semibold truncate',
+                  isInactive
+                    ? 'text-muted-foreground line-through'
+                    : 'text-foreground',
+                )}
+              >
+                {product.nombre}
+              </h3>
+              <p className="text-xs text-muted-foreground font-mono">
+                {product.slug}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h3
-              className={cn(
-                'font-semibold truncate',
-                isInactive
-                  ? 'text-muted-foreground line-through'
-                  : 'text-foreground',
-              )}
-            >
-              {product.nombre}
-            </h3>
-            <p className="text-xs text-muted-foreground font-mono">
-              {product.slug}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <span className="inline-flex items-center justify-center size-8">
+                <MoreVertical className="size-4" />
+              </span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={() => onEdit(product)}>
+                <Edit2 className="size-4 mr-2" />
+                Editar
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => onDelete(product)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="size-4 mr-2" />
+                Eliminar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        {/* Description */}
+        {product.descripcion && (
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+            {product.descripcion}
+          </p>
+        )}
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="rounded-lg bg-muted/50 px-3 py-2">
+            <p className="text-xs text-muted-foreground mb-0.5">Precio</p>
+            <p className="text-sm font-semibold text-foreground">
+              ${product.precio}
+            </p>
+          </div>
+          <div className="rounded-lg bg-muted/50 px-3 py-2">
+            <p className="text-xs text-muted-foreground mb-0.5">Stock</p>
+            <p className="text-sm font-semibold text-foreground">
+              {product.stock} uds
             </p>
           </div>
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <span className="inline-flex items-center justify-center size-8">
-              <MoreVertical className="size-4" />
+        {/* Footer */}
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground px-2 py-1 rounded-md bg-muted/50">
+            {product.categoria?.nombre ?? 'Sin categoría'}
+          </span>
+          {product.proveedor && (
+            <span className="text-xs text-muted-foreground truncate max-w-[50%]">
+              {product.proveedor}
             </span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={() => onEdit(product)}>
-              <Edit2 className="size-4 mr-2" />
-              Editar
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              onClick={() => onDelete(product)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="size-4 mr-2" />
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      {/* Description */}
-      {product.descripcion && (
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-          {product.descripcion}
-        </p>
-      )}
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="rounded-lg bg-muted/50 px-3 py-2">
-          <p className="text-xs text-muted-foreground mb-0.5">Precio</p>
-          <p className="text-sm font-semibold text-foreground">
-            ${product.precio}
-          </p>
-        </div>
-        <div className="rounded-lg bg-muted/50 px-3 py-2">
-          <p className="text-xs text-muted-foreground mb-0.5">Stock</p>
-          <p className="text-sm font-semibold text-foreground">
-            {product.stock} uds
-          </p>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground px-2 py-1 rounded-md bg-muted/50">
-          {product.categoria?.nombre ?? 'Sin categoría'}
-        </span>
-        <span
-          className={cn(
-            'text-xs font-medium px-2.5 py-1 rounded-full',
-            status.color,
           )}
-        >
-          {status.label}
-        </span>
+        </div>
       </div>
     </div>
   );

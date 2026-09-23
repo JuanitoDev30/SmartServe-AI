@@ -2,7 +2,7 @@
 
 import { ScrollArea } from '@/components/ui/scrollArea';
 import { MessageBubble } from './messageBubble';
-import type { Message } from '@/lib/chat-data';
+import type { Message } from '@/features/chat/schema/messageInterface';
 import { useEffect, useRef } from 'react';
 import { Lock } from 'lucide-react';
 

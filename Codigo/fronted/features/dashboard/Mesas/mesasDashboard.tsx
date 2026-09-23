@@ -6,6 +6,7 @@ import {
   Armchair,
   CircleSlash,
   LayoutGrid,
+  Map,
   Pencil,
   Plus,
   Power,
@@ -35,8 +36,16 @@ import { ZONA_MESA_CONFIG } from '../shared/constants/reservaConstants';
 import { StatsCard } from '../shared/statsCard';
 import { MesaFormModal } from './mesaFormModal';
 import { DeleteMesaConfirm } from './deleteMesaConfirm';
+import { EditorPlano } from './editorPlano';
 
 type ZonaFilter = 'all' | ZonaMesa;
+
+type Vista = 'tarjetas' | 'plano';
+
+const VISTAS: { value: Vista; label: string; icon: typeof LayoutGrid }[] = [
+  { value: 'tarjetas', label: 'Tarjetas', icon: LayoutGrid },
+  { value: 'plano', label: 'Plano', icon: Map },
+];
 
 const ZONA_TABS: { label: string; value: ZonaFilter }[] = [
   { label: 'Todas', value: 'all' },
@@ -53,6 +62,7 @@ interface MesasDashboardProps {
 export function MesasDashboard({ mesas }: MesasDashboardProps) {
   const router = useRouter();
 
+  const [vista, setVista] = useState<Vista>('tarjetas');
   const [zonaActiva, setZonaActiva] = useState<ZonaFilter>('all');
   const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
@@ -206,13 +216,33 @@ export function MesasDashboard({ mesas }: MesasDashboardProps) {
           </p>
         </div>
 
-        <button
-          onClick={abrirCreacion}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          <Plus className="size-4" />
-          Nueva mesa
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 rounded-xl border border-border bg-muted/50 p-1">
+            {VISTAS.map(opcion => (
+              <button
+                key={opcion.value}
+                onClick={() => setVista(opcion.value)}
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                  vista === opcion.value
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <opcion.icon className="size-4" />
+                <span className="hidden sm:inline">{opcion.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={abrirCreacion}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <Plus className="size-4" />
+            Nueva mesa
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -236,6 +266,10 @@ export function MesasDashboard({ mesas }: MesasDashboardProps) {
       </div>
 
       <div className="rounded-xl border border-border bg-card">
+        {vista === 'plano' ? (
+          <EditorPlano mesas={mesas} onGuardado={() => router.refresh()} />
+        ) : (
+          <>
         <div className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
           <TabsSelector
             tabs={ZONA_TABS}
@@ -364,6 +398,8 @@ export function MesasDashboard({ mesas }: MesasDashboardProps) {
               );
             })}
           </div>
+        )}
+          </>
         )}
       </div>
 

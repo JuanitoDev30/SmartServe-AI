@@ -15,12 +15,39 @@ export interface AgentDraftLine {
   subtotal: string;
 }
 
+/** Solo la manda el agente de la constructora, en el turno en que se agenda. */
+export interface AgentPlacedAppointment {
+  id: string;
+  starts_at: string;
+  when: string;
+  duration_minutes: number;
+  status: string;
+  project_name: string | null;
+  project_address: string | null;
+  unit_code: string | null;
+}
+
+/**
+ * Imagen adjunta a la respuesta. El agente puede mandar la URL suelta o el
+ * objeto con pie de foto; el repository acepta las dos formas.
+ */
+export interface AgentImage {
+  url: string;
+  caption?: string | null;
+  product_id?: string | null;
+}
+
 export interface AgentChatResponse {
   conversation_id: string;
   reply: string;
-  draft: AgentDraftLine[];
-  draft_total: string;
-  placed_order_id: string | null;
+  // Opcionales: solo los manda el agente del restaurante. El de la
+  // constructora no maneja pedidos y responde sin ellos.
+  draft?: AgentDraftLine[];
+  draft_total?: string;
+  placed_order_id?: string | null;
+  placed_appointment?: AgentPlacedAppointment | null;
+  /** Fotos que acompanan la respuesta: platos, planos, comprobantes. */
+  images?: (string | AgentImage)[] | null;
   missing_fields: string[];
 }
 

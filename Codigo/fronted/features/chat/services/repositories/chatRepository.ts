@@ -1,11 +1,15 @@
 import {
   AgentChatResponse,
   AgentDraftLine,
+  AgentImage,
+  AgentPlacedAppointment,
   AgentSessionResponse,
 } from '../../schema/agentChatResponse';
 import { AgentError } from '../../schema/agentError';
 import { CartItem } from '../../schema/cartItem';
 import { ChatResponse } from '../../schema/chatResponseInterface';
+import { CitaAgendada } from '../../schema/citaAgendada';
+import { ImagenMensaje } from '../../schema/imagenMensaje';
 import { SendMessageInterface } from '../../schema/sendMessageInterface';
 
 const BASE_URL = '/api/asistente';
@@ -108,6 +112,45 @@ function toCartItem(line: AgentDraftLine): CartItem {
   };
 }
 
+function toCita(appointment: AgentPlacedAppointment): CitaAgendada {
+  return {
+    id: appointment.id,
+    cuando: appointment.when,
+    duracionMinutos: appointment.duration_minutes,
+    estado: appointment.status,
+    ...(appointment.project_name ? { proyecto: appointment.project_name } : {}),
+    ...(appointment.project_address ? { direccion: appointment.project_address } : {}),
+    ...(appointment.unit_code ? { unidad: appointment.unit_code } : {}),
+  };
+}
+
+/**
+ * El agente puede mandar `images` como lista de URLs o de objetos. Aca se
+ * unifica a una sola forma y se descarta lo que no traiga URL, para que una
+ * respuesta mal formada no rompa la burbuja.
+ */
+function toImagenes(
+  images: AgentChatResponse['images'],
+): ImagenMensaje[] {
+  if (!images?.length) return [];
+
+  return images.reduce<ImagenMensaje[]>((acc, image) => {
+    const crudo: AgentImage =
+      typeof image === 'string' ? { url: image } : image;
+
+    const url = crudo?.url?.trim();
+    if (!url) return acc;
+
+    acc.push({
+      url,
+      ...(crudo.caption ? { descripcion: crudo.caption } : {}),
+      ...(crudo.product_id ? { productoId: crudo.product_id } : {}),
+    });
+
+    return acc;
+  }, []);
+}
+
 export const chatRepository = {
   async sendMessage({
     message,
@@ -129,13 +172,19 @@ export const chatRepository = {
       }
     }
 
+    const imagenes = toImagenes(data.images);
+
     return {
       message: data.reply,
       contactId,
-      cart: data.draft.map(toCartItem),
-      cartTotal: Number(data.draft_total),
+      // `?? []` y `?? 0`: el agente de la constructora no devuelve carrito.
+      // Asi el mismo chat sirve para los dos proyectos.
+      cart: (data.draft ?? []).map(toCartItem),
+      cartTotal: Number(data.draft_total ?? 0),
       ...(data.placed_order_id ? { pedidoId: data.placed_order_id } : {}),
-      faltantes: data.missing_fields,
+      ...(data.placed_appointment ? { cita: toCita(data.placed_appointment) } : {}),
+      ...(imagenes.length ? { imagenes } : {}),
+      faltantes: data.missing_fields ?? [],
     };
   },
 

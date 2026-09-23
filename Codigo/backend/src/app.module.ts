@@ -24,6 +24,7 @@ import { ReunionModule } from './reunion/reunion.module';
 import { AnaliticasModule } from './analiticas/analiticas.module';
 import { MesaModule } from './mesa/mesa.module';
 import { ReservaModule } from './reserva/reserva.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { ReservaModule } from './reserva/reserva.module';
     AnaliticasModule,
     MesaModule,
     ReservaModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }, AppService],

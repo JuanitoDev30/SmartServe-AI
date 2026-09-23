@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ZonaMesa } from '../enum/zonaMesa.enum';
+import { FormaMesa } from '../enum/formaMesa.enum';
 import { Reserva } from 'src/reserva/entities/reserva.entity';
 
 @Entity()
@@ -33,6 +34,31 @@ export class Mesa {
 
   @Column('text', { nullable: true })
   descripcion?: string;
+
+  // ─────────── Plano del salón ───────────
+  // Geometría en unidades de grilla (no en píxeles): el frontend decide
+  // cuántos píxeles mide una unidad, así el plano escala sin migrar datos.
+
+  @Column({ type: 'enum', enum: FormaMesa, default: FormaMesa.REDONDA })
+  forma!: FormaMesa;
+
+  // Centro de la mesa. null = todavía no se ha colocado en el plano; el
+  // editor la auto-acomoda por zona hasta que alguien la arrastre.
+  @Column('int', { nullable: true })
+  posX?: number | null;
+
+  @Column('int', { nullable: true })
+  posY?: number | null;
+
+  // null = tamaño derivado de la capacidad
+  @Column('int', { nullable: true })
+  ancho?: number | null;
+
+  @Column('int', { nullable: true })
+  alto?: number | null;
+
+  @Column('int', { default: 0 })
+  rotacion!: number;
 
   @OneToMany(() => Reserva, (reserva) => reserva.mesa)
   reservas!: Reserva[];

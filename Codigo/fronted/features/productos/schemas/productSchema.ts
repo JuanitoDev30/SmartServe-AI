@@ -14,6 +14,8 @@ export interface ProductType {
   slug?: string;
   stock?: number;
   proveedor?: string;
+  /** URL de la imagen del producto; la sirve el API o es externa. */
+  imagen?: string | null;
   status: ProductStatus;
   ivaPercent?: number;
   categoria?: {

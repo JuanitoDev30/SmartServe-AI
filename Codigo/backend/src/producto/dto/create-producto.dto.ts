@@ -54,6 +54,12 @@ export class CreateProductoDto {
   @MaxLength(100)
   proveedor?: string;
 
+  // URL de la imagen: la devuelve POST /files/producto o se pega una externa
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  imagen?: string;
+
   @IsOptional()
   @IsNumber()
   @IsIn([0, 5, 19], { message: 'El IVA debe ser 0, 5 o 19' })

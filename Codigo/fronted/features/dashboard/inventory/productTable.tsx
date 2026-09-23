@@ -1,7 +1,8 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Edit2, Trash2, Package } from 'lucide-react';
+import { Edit2, Trash2 } from 'lucide-react';
+import { ProductoImagen } from '@/components/ui/productoImagen';
 import { Button } from '@/components/ui/button';
 import {
   ProductStatus,
@@ -83,9 +84,12 @@ export function ProductTable({
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-                        <Package className="size-4" />
-                      </div>
+                      <ProductoImagen
+                        imagen={product.imagen}
+                        nombre={product.nombre}
+                        sizes="48px"
+                        className="size-10 rounded-lg"
+                      />
                       <div className="min-w-0">
                         <p className="font-medium text-sm text-foreground truncate max-w-[200px]">
                           {product.nombre}

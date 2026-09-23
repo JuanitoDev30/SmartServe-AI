@@ -4,6 +4,7 @@ import {
   CreateMesaInput,
   Mesa,
   MesaStats,
+  UpdateLayoutInput,
   UpdateMesaInput,
 } from '../../schemas/mesaSchema';
 import { MesaRepositoryInterface } from './mesaRepositoryInterface';
@@ -38,6 +39,12 @@ class MesaRepository implements MesaRepositoryInterface {
   async update(id: string, dto: UpdateMesaInput): Promise<Mesa> {
     const api = await getApiWithAuth();
     const { data } = await api.patch(`/mesa/${id}`, dto);
+    return data;
+  }
+
+  async updateLayout(dto: UpdateLayoutInput): Promise<Mesa[]> {
+    const api = await getApiWithAuth();
+    const { data } = await api.patch('/mesa/layout', dto);
     return data;
   }
 

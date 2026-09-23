@@ -6,10 +6,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { CreateMesaDto } from './dto/create-mesa.dto';
 import { UpdateMesaDto } from './dto/update-mesa.dto';
+import { UpdateLayoutDto } from './dto/update-layout.dto';
 import { Mesa } from './entities/mesa.entity';
 
 @Injectable()
@@ -96,6 +97,34 @@ export class MesaService {
 
     await this.mesaRepository.remove(mesa);
     return { mensaje: `Mesa ${mesa.numero} eliminada` };
+  }
+
+  // LAYOUT — el editor del plano guarda todas las mesas movidas de un golpe
+  async actualizarLayout(dto: UpdateLayoutDto): Promise<Mesa[]> {
+    const ids = dto.mesas.map((item) => item.id);
+
+    const mesas = await this.mesaRepository.findBy({ id: In(ids) });
+    const porId = new Map(mesas.map((mesa) => [mesa.id, mesa]));
+
+    const faltantes = ids.filter((id) => !porId.has(id));
+    if (faltantes.length > 0) {
+      throw new NotFoundException(
+        `No se encontraron las mesas: ${faltantes.join(', ')}`,
+      );
+    }
+
+    for (const item of dto.mesas) {
+      const mesa = porId.get(item.id)!;
+      mesa.posX = item.posX;
+      mesa.posY = item.posY;
+      if (item.forma !== undefined) mesa.forma = item.forma;
+      if (item.ancho !== undefined) mesa.ancho = item.ancho;
+      if (item.alto !== undefined) mesa.alto = item.alto;
+      if (item.rotacion !== undefined) mesa.rotacion = item.rotacion;
+    }
+
+    await this.mesaRepository.save([...porId.values()]);
+    return this.findAll();
   }
 
   async cambiarDisponibilidad(id: string, activa: boolean): Promise<Mesa> {

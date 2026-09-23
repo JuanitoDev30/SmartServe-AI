@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { X } from 'lucide-react';
@@ -13,6 +13,8 @@ import {
   ProductFormValues,
 } from '@/lib/validations/product';
 import { CategoryType } from '@/features/categories/schemas/categorySchema';
+import { ImageUploader } from '@/components/ui/imageUploader';
+import { uploadProductImageAction } from '@/features/productos/actions/uploadProductImageActions';
 import { cn } from '@/lib/utils';
 
 interface ProductFormModalProps {
@@ -35,6 +37,7 @@ const defaultValues: ProductFormValues = {
   status: 'active',
   categoriaId: '',
   ivaPercent: 19,
+  imagen: '',
 };
 
 function getServerErrorField(
@@ -59,11 +62,15 @@ export function ProductFormModal({
     register,
     handleSubmit,
     reset,
+    control,
+    setValue,
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues,
   });
+
+  const imagen = useWatch({ control, name: 'imagen' });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -79,6 +86,7 @@ export function ProductFormModal({
         status: product.status,
         categoriaId: product.categoria?.id ?? '',
         ivaPercent: product.ivaPercent ?? 19,
+        imagen: product.imagen ?? '',
       });
     } else {
       reset(defaultValues);
@@ -148,6 +156,24 @@ export function ProductFormModal({
                 <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2 rounded-lg">
                   {error}
                 </div>
+              )}
+            </div>
+
+            {/* Imagen */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Imagen del producto
+              </label>
+              <ImageUploader
+                onUpload={uploadProductImageAction}
+                value={imagen}
+                onChange={url =>
+                  setValue('imagen', url ?? '', { shouldDirty: true })
+                }
+                disabled={isLoading}
+              />
+              {errors.imagen && (
+                <p className="text-red-600 text-sm">{errors.imagen.message}</p>
               )}
             </div>
 

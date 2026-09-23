@@ -37,6 +37,11 @@ export const productFormSchema = z.object({
     .max(100, 'El proveedor no puede exceder 100 caracteres')
     .optional(),
 
+  imagen: z
+    .string()
+    .max(500, 'La URL de la imagen es demasiado larga')
+    .optional(),
+
   status: z.enum(['active', 'inactive', 'low_stock', 'out_of_stock']),
 
   ivaPercent: z

@@ -13,6 +13,7 @@ import {
 import { MesaService } from './mesa.service';
 import { CreateMesaDto } from './dto/create-mesa.dto';
 import { UpdateMesaDto } from './dto/update-mesa.dto';
+import { UpdateLayoutDto } from './dto/update-layout.dto';
 
 @Controller('mesa')
 export class MesaController {
@@ -40,6 +41,12 @@ export class MesaController {
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.mesaService.findOne(id);
+  }
+
+  // PATCH /mesa/layout — declarado antes que :id para que no lo capture
+  @Patch('layout')
+  actualizarLayout(@Body() updateLayoutDto: UpdateLayoutDto) {
+    return this.mesaService.actualizarLayout(updateLayoutDto);
   }
 
   @Patch(':id')

@@ -6,6 +6,7 @@ export interface CitaAgendada {
   duracionMinutos: number;
   estado: string;
   proyecto?: string;
+  procedimiento?: string;
   direccion?: string;
   unidad?: string;
 }

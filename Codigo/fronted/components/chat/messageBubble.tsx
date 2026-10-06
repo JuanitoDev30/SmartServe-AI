@@ -66,7 +66,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             {cleanText}
           </ReactMarkdown>
         </div>
-        {message.cita && <AppointmentCard cita={message.cita} />}
+        {message.cita && (
+          <AppointmentCard cita={message.cita} contactId={message.contactId} />
+        )}
         <div
           className={cn(
             'flex items-center justify-end gap-1 mt-0.5 -mb-0.5',

@@ -22,9 +22,13 @@ export interface AgentPlacedAppointment {
   when: string;
   duration_minutes: number;
   status: string;
-  project_name: string | null;
-  project_address: string | null;
-  unit_code: string | null;
+  // Constructora: proyecto y unidad. Consultorio: procedimiento y direccion.
+  // El mismo chat sirve para los dos agentes.
+  project_name?: string | null;
+  project_address?: string | null;
+  unit_code?: string | null;
+  procedure_name?: string | null;
+  address?: string | null;
 }
 
 /**

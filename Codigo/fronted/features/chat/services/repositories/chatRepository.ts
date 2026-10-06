@@ -119,7 +119,10 @@ function toCita(appointment: AgentPlacedAppointment): CitaAgendada {
     duracionMinutos: appointment.duration_minutes,
     estado: appointment.status,
     ...(appointment.project_name ? { proyecto: appointment.project_name } : {}),
-    ...(appointment.project_address ? { direccion: appointment.project_address } : {}),
+    ...(appointment.procedure_name ? { procedimiento: appointment.procedure_name } : {}),
+    ...(appointment.project_address || appointment.address
+      ? { direccion: (appointment.project_address ?? appointment.address)! }
+      : {}),
     ...(appointment.unit_code ? { unidad: appointment.unit_code } : {}),
   };
 }
@@ -186,6 +189,23 @@ export const chatRepository = {
       ...(imagenes.length ? { imagenes } : {}),
       faltantes: data.missing_fields ?? [],
     };
+  },
+
+  /**
+   * Solo demo: pide al agente el recordatorio de la cita de esta conversacion
+   * ya, sin esperar al dia antes. El agente lo manda al correo que el paciente
+   * dio en el chat.
+   */
+  async sendDemoReminder(contactId: string): Promise<{ sent: boolean; detail: string }> {
+    const token = readTokens()[contactId];
+    if (!token) return { sent: false, detail: 'Primero agenda una cita en el chat.' };
+    const response = await fetch(`${BASE_URL}/demo/recordatorio`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_token: token }),
+    });
+    if (!response.ok) return { sent: false, detail: await readDetail(response) };
+    return response.json();
   },
 
   // El agente olvida la conversacion al descartar el token: el estado vive en

@@ -1,10 +1,23 @@
 import { auth } from '@/auth';
 import { NextResponse } from 'next/server';
+import { DEMO_COOKIE, demoKey, demoToken } from '@/lib/demo/acceso';
 
-export default auth(req => {
+export default auth(async req => {
+  const { pathname } = req.nextUrl;
+
+  // Demo publica: el chat y su API piden la clave (ver lib/demo/acceso.ts).
+  const key = demoKey();
+  const isChat = pathname === '/' || pathname.startsWith('/api/asistente');
+  if (key && isChat && req.cookies.get(DEMO_COOKIE)?.value !== (await demoToken(key))) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ detail: 'Falta la clave de la demo.' }, { status: 401 });
+    }
+    return NextResponse.redirect(new URL('/acceso', req.url));
+  }
+
   const isLoggedIn = !!req.auth;
-  const isLoginPage = req.nextUrl.pathname.startsWith('/login');
-  const isDashboard = req.nextUrl.pathname.startsWith('/dashboard');
+  const isLoginPage = pathname.startsWith('/login');
+  const isDashboard = pathname.startsWith('/dashboard');
 
   if (isLoginPage && isLoggedIn) {
     return NextResponse.redirect(new URL('/dashboard', req.url));
@@ -18,5 +31,5 @@ export default auth(req => {
 });
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login'],
+  matcher: ['/', '/api/asistente/:path*', '/dashboard/:path*', '/login'],
 };

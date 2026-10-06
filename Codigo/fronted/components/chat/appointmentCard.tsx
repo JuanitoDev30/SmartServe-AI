@@ -1,10 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import type { CitaAgendada } from '@/features/chat/schema/citaAgendada';
-import { Building2, CalendarCheck, Clock, House, MapPin } from 'lucide-react';
+import { chatRepository } from '@/features/chat/services/repositories/chatRepository';
+import {
+  BellRing,
+  Building2,
+  CalendarCheck,
+  Clock,
+  House,
+  MapPin,
+  Stethoscope,
+} from 'lucide-react';
 
 interface AppointmentCardProps {
   cita: CitaAgendada;
+  contactId: string;
 }
 
 const ESTADOS: Record<string, string> = {
@@ -15,19 +26,22 @@ const ESTADOS: Record<string, string> = {
   no_show: 'No asistió',
 };
 
+// Solo en demos: muestra el boton que manda el recordatorio de una vez.
+const DEMO_REMINDER = process.env.NEXT_PUBLIC_DEMO_REMINDER === '1';
+
 /**
- * Tarjeta de la visita agendada, dentro de la burbuja del agente.
+ * Tarjeta de la cita agendada, dentro de la burbuja del agente.
  *
  * El id de la cita no se muestra: es un UUID interno. Si el cliente pregunta
  * por su cita, el agente la encuentra con el telefono.
  */
-export function AppointmentCard({ cita }: AppointmentCardProps) {
+export function AppointmentCard({ cita, contactId }: AppointmentCardProps) {
   return (
     <div className="mt-1 mb-1 overflow-hidden rounded-md border-l-4 border-primary bg-muted/70">
       <div className="flex items-center justify-between gap-3 px-3 pt-2">
         <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
           <CalendarCheck className="size-4 text-primary" aria-hidden />
-          Visita agendada
+          {cita.proyecto ? 'Visita agendada' : 'Cita agendada'}
         </div>
         <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium text-primary">
           {ESTADOS[cita.estado] ?? cita.estado}
@@ -41,6 +55,11 @@ export function AppointmentCard({ cita }: AppointmentCardProps) {
             Duración: {cita.duracionMinutos} minutos
           </div>
         </Row>
+        {cita.procedimiento && (
+          <Row icon={<Stethoscope className="size-3.5" aria-hidden />} label="Procedimiento">
+            {cita.procedimiento}
+          </Row>
+        )}
         {cita.proyecto && (
           <Row icon={<Building2 className="size-3.5" aria-hidden />} label="Proyecto">
             {cita.proyecto}
@@ -57,6 +76,44 @@ export function AppointmentCard({ cita }: AppointmentCardProps) {
           </Row>
         )}
       </dl>
+
+      {DEMO_REMINDER && <DemoReminder contactId={contactId} />}
+    </div>
+  );
+}
+
+function DemoReminder({ contactId }: { contactId: string }) {
+  const [state, setState] = useState<'idle' | 'sending' | 'done'>('idle');
+  const [detail, setDetail] = useState('');
+
+  async function send() {
+    setState('sending');
+    try {
+      const result = await chatRepository.sendDemoReminder(contactId);
+      setDetail(result.detail);
+    } catch {
+      setDetail('No se pudo enviar. Intenta de nuevo.');
+    }
+    setState('done');
+  }
+
+  return (
+    <div className="border-t border-border/60 px-3 py-2">
+      {state === 'done' ? (
+        <p className="text-xs text-muted-foreground">{detail}</p>
+      ) : (
+        <button
+          type="button"
+          onClick={send}
+          disabled={state === 'sending'}
+          className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline disabled:opacity-60"
+        >
+          <BellRing className="size-3.5" aria-hidden />
+          {state === 'sending'
+            ? 'Enviando…'
+            : 'Demo: enviar el recordatorio del día antes ahora'}
+        </button>
+      )}
     </div>
   );
 }

@@ -59,7 +59,8 @@ export const pedidoSchema = z.object({
   ]),
   subTotal: z.number().min(0),
   total: z.number().min(0),
-  direccion: z.string().min(5, 'La direccion debe tener al menos 5 caracteres'),
+  tipoEntrega: z.enum(['DOMICILIO', 'RECOGER']).optional(),
+  direccion: z.string().nullable().optional(),
   metodoPago: z.enum(['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'PSE']),
   notas: z.string().optional(),
   items: z.array(pedidoItemSchema).min(1, 'Debe haber al menos un item'),
@@ -78,7 +79,9 @@ export const pedidoFormSchema = z.object({
     'ENTREGADO',
     'CANCELADO',
   ]),
-  direccion: z.string().min(5, 'La direccion debe tener al menos 5 caracteres'),
+  tipoEntrega: z.enum(['DOMICILIO', 'RECOGER']).optional(),
+  // Obligatoria solo a domicilio; un pedido para recoger no tiene direccion.
+  direccion: z.string().optional(),
   metodoPago: z.enum(['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'PSE']),
   notas: z.string().optional(),
   cliente: z.object({
@@ -88,6 +91,14 @@ export const pedidoFormSchema = z.object({
   .regex(/^\d{10}$/, 'El telefono debe tener exactamente 10 digitos numericos'),
     email: z.string().email('Email invalido').optional().or(z.literal('')),
   }),
+}).superRefine((data, ctx) => {
+  if (data.tipoEntrega !== 'RECOGER' && (data.direccion ?? '').trim().length < 5) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['direccion'],
+      message: 'La direccion debe tener al menos 5 caracteres',
+    });
+  }
 });
 
 // ============================================

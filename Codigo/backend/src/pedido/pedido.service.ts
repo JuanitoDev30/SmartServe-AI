@@ -13,6 +13,7 @@ import { Pedido } from './entities/pedido.entity';
 import { Producto } from '../producto/entities/producto.entity';
 import { Cliente } from '../cliente/entities/cliente.entity';
 import { EstadoPedido } from './enum/pedidoEstado.enum';
+import { TipoEntrega } from './enum/tipoEntrega.enum';
 import { PedidoItem } from './entities/pedidoItem.entity';
 import { PedidoGateway } from './pedido.gateway';
 
@@ -53,6 +54,7 @@ export class PedidoService {
     try {
       const { items, usuarioId, direccion, notas, metodoPago } =
         createPedidoDto;
+      const tipoEntrega = createPedidoDto.tipoEntrega ?? TipoEntrega.DOMICILIO;
 
       // Validar usuario
 
@@ -121,7 +123,9 @@ export class PedidoService {
         items: pedidoItems,
         subTotal,
         total: subTotal,
-        direccion,
+        tipoEntrega,
+        // Quien recoge no deja direccion, venga o no en la peticion.
+        direccion: tipoEntrega === TipoEntrega.RECOGER ? null : direccion,
         notas,
         metodoPago,
         estado: EstadoPedido.PENDIENTE,

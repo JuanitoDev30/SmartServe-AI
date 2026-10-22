@@ -144,10 +144,18 @@ export function OrderViewModal({
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-foreground">
               <MapPin className="size-4" />
-              <h3 className="font-medium">Direccion de Entrega</h3>
+              <h3 className="font-medium">
+                {order.tipoEntrega === 'RECOGER'
+                  ? 'Entrega'
+                  : 'Direccion de Entrega'}
+              </h3>
             </div>
             <div className="rounded-xl bg-muted/50 p-4">
-              <p className="text-foreground">{order.direccion}</p>
+              <p className="text-foreground">
+                {order.tipoEntrega === 'RECOGER'
+                  ? 'Recoge en el local'
+                  : order.direccion}
+              </p>
             </div>
           </div>
 

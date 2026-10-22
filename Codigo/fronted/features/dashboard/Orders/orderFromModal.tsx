@@ -52,7 +52,8 @@ export function OrderFormModal({
     if (order) {
       reset({
         estado: order.estado,
-        direccion: order.direccion,
+        tipoEntrega: order.tipoEntrega ?? 'DOMICILIO',
+        direccion: order.direccion ?? '',
         metodoPago: order.metodoPago,
         notas: order.notas || '',
         cliente: {
@@ -65,7 +66,15 @@ export function OrderFormModal({
   }, [order, reset]);
 
   const handleFormSubmit = (data: PedidoFormValues) => {
-    onSubmit(data);
+    // Un pedido para recoger no tiene direccion: no se manda vacia al backend,
+    // que la rechaza por corta.
+    if (data.tipoEntrega === 'RECOGER') {
+      const { direccion: _direccion, tipoEntrega: _tipo, ...rest } = data;
+      onSubmit(rest as PedidoFormValues);
+      return;
+    }
+    const { tipoEntrega: _tipo, ...rest } = data;
+    onSubmit(rest as PedidoFormValues);
   };
 
   const estadosPermitidos = order ? getEstadosPermitidos(order.estado) : [];
@@ -260,7 +269,15 @@ export function OrderFormModal({
               </div>
             </div>
 
-            {/* Direccion */}
+            {/* Direccion: los pedidos para recoger no tienen */}
+            {order?.tipoEntrega === 'RECOGER' ? (
+              <div className="space-y-2 rounded-xl bg-muted/50 p-4 text-foreground">
+                <div className="flex items-center gap-2">
+                  <MapPin className="size-4" />
+                  <h3 className="font-medium">Recoge en el local</h3>
+                </div>
+              </div>
+            ) : (
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-foreground">
                 <MapPin className="size-4" />
@@ -283,6 +300,7 @@ export function OrderFormModal({
                 )}
               </div>
             </div>
+            )}
 
             {/* Metodo de Pago */}
             <div className="space-y-4">

@@ -31,7 +31,9 @@ export interface Pedido {
   estado: EstadoPedido;
   subTotal: number;
   total: number;
-  direccion: string;
+  tipoEntrega?: 'DOMICILIO' | 'RECOGER';
+  // Vacia en los pedidos para recoger.
+  direccion?: string | null;
   metodoPago: MetodoPago;
   notas?: string;
   items: PedidoItem[];

@@ -13,6 +13,7 @@ import { PedidoItem } from './pedidoItem.entity';
 import { Cliente } from 'src/cliente/entities/cliente.entity';
 import { EstadoPedido } from '../enum/pedidoEstado.enum';
 import { MetodoPago } from '../enum/metodoPago.enum';
+import { TipoEntrega } from '../enum/tipoEntrega.enum';
 
 @Entity()
 export class Pedido {
@@ -35,8 +36,13 @@ export class Pedido {
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   total!: number;
 
-  @Column('text')
-  direccion!: string;
+  // DOMICILIO lleva el pedido a una direccion; RECOGER lo deja en el local y
+  // no tiene direccion.
+  @Column({ type: 'enum', enum: TipoEntrega, default: TipoEntrega.DOMICILIO })
+  tipoEntrega!: TipoEntrega;
+
+  @Column('text', { nullable: true })
+  direccion?: string | null;
 
   @Column('text', { nullable: true })
   notas?: string;
